@@ -1,1 +1,263 @@
-=LET( unlockPass, N2, IF(IFERROR(VALUE(unlockPass) + 888, 0)<>2122, "🔒 【系統提示】：教練正在為你當週的訓練數據、有氧心肺效率與跑姿經濟性進行深度分析，評語尚未解鎖。請等待教練親自發放專屬方針！", LET( weekNum, IF(A2="","基礎期",A2), name, B2, race, "樂施毅行者 (100km)", dist_pct, IF(C2="","未填寫",IF(ISNUMBER(C2),TEXT(C2,"0%"),C2)), climb_pct, IF(D2="","未填寫",IF(ISNUMBER(D2),TEXT(D2,"0%"),D2)), lr_status, E2, lr_dist, F2, lr_time, G2, hr, H2, cadence, I2, stride, J2, body_status, K2, weather_status, L2, nutri_status, M2, pace_text, IF(OR(lr_dist="", lr_time="", lr_dist=0), "數據不全", LET( total_mins, lr_time * 1440, avg_pace, total_mins / lr_dist, pace_min, INT(avg_pace), pace_sec, TEXT(ROUND((avg_pace - pace_min) * 60, 0), "00"), pace_min & ":" & pace_sec ) ), run_eco_cm, IF(OR(lr_dist="", lr_time="", hr="", cadence="", stride=""), "🏃‍♂️【大數據跑姿與心肺效率評估】：當週手錶大數據（距離/時間/心率/步頻/步幅）不齊全，暫時無法評估。下週請務必完整抄錄，教練會幫你精算內耗率！", LET( hr_status_text, IFS(hr<140, "處於極佳的有氧 Zone 2 低內耗區", AND(hr>=140, hr<=155), "處於中等強度有氧消耗區", hr>155, "心率偏高，身體正處於高耗能狀態"), cadence_cm, IFS( cadence<160, "【步頻隱患】：平均步頻 " & cadence & " spm 偏慢。長距離負重行軍時步頻慢，代表每一步「騰空太長、落地衝擊力大」，這會瘋狂摧殘膝關節並加速大腿肌肉力竭。下週特訓請強迫自己縮小步幅，將腳頻帶領到 170 spm 以上的「碎步快行」節奏！", AND(cadence>=160, cadence<=172), "【步頻穩定】：平均步頻 " & cadence & " spm 表現尚算穩定。但隨著 OT 疲勞累積，後半程步頻極易跌穿 160 導致跑姿崩散。週間請多做居家單腿重訓以維持神經肌肉連結。", cadence>172, "【步頻極佳】：平均步頻達 " & cadence & " spm，具備極高經濟性！這種低騰空、低衝擊的跑法能將下肢關節壓力降到最低，是最完美的毅行者續航跑姿！", TRUE, "" ), "🏃‍♂️【大數據跑姿與心肺效率評估】：" & CHAR(10) & "➔ 當週長跑實際數據：距離 " & lr_dist & "km | 時間 " & TEXT(lr_time,"hh:mm:ss") & " | 平均配速 " & pace_text & " /km | 平均心率 " & hr & " bpm。" & CHAR(10) & "➔ 【心肺效率診斷】：在當前配速下，你嘅心率 (" & hr & " bpm) " & hr_status_text & "。考慮到你經常 OT/通宵，若心率比平時偏高 5-10下，代表自主神經未完全恢復，切記要壓制速度、強迫控低心率前進！" & CHAR(10) & "➔ 【技術指標分析】：" & cadence_cm ) ), body_cm, IFS( LEFT(body_status,4)="過度疲勞", "➔【中樞疲勞警戒】：返工 OT 加埋強行訓練已經令你身體超載。如果靜止心率偏高、體感極重，本週「嚴禁進行任何高強度課表（如 Interval 速度跑）」。週間全部改為 30-45 分鐘嘅 Zone 2 極輕鬆恢復跑，甚至直接休息。記住：無充分修復嘅訓練只會適得其反！", LEFT(body_status,4)="睡眠不足", "➔【通宵/缺眠緊急修正】：通宵返工後身體皮質醇極高，肌肉修復力幾近大跌。如果你啱啱通完頂，『絕對唔好勉強補課表』！本週週間長距離取消，改為 30 分鐘輕鬆步行或全休。請在下一個放假日優先補眠（至少 8 小時以上），等中樞神經恢復先重新啟動低心率訓練。", LEFT(body_status,6)="上山肌力不足", "➔【毅行者專項爬升補強】：毅行者路段有大量漫長嘅石階。上山力量不足，本週起請在日間碎片時間加入【居家自重力量特訓】：1. 負重登階：返工放工行樓梯，嘗試一級跨兩級，用臀大肌發力推蹬。2. 保加利亞單腿蹲：每側 12 次，做 3 組，強化雙腿耐力與關節穩定性，咁樣可以幫你喺沒時間上山時維持肌肉神經連結。", LEFT(body_status,6)="落山習慣拗柴", "➔【下坡本體感受重建】：返工疲勞會令大腦反應變慢，行夜路更容易拗柴。本週起每日刷牙時順便做「單腳閉眼站立」每側 1 分鐘 × 3 組（強迫足踝微小肌群主動微調）。毅行者後段有大量麥理浩徑石屎下坡路，正賽同特訓必須著一對保護性好、楦頭夠闊嘅越野鞋，唔好追求輕量化賽車鞋。", LEFT(body_status,3)="ITB", "➔【ITB 傷痛處理】：下坡膝蓋外側痛是髂脛束發炎訊號。本週週間立刻停止所有跑坡與下坡跑！多用滾筒徹底放鬆大腿外側、臀中肌同闊筋膜張肌。利用拉伸和物理治療主攻組織修復，等痛楚完全消失先好重新上山。", LEFT(body_status,8)="Achilles", "➔【阿基里斯腱處理】：肌腱發炎說明小腿長期過度緊繃。這週嚴禁 any 強力推蹬與跑坡。唔好去強行拉伸肌腱，改用滾筒徹底放鬆小腿腓腸肌與比目魚肌。Long Run 改為平路輕鬆急行軍。", LEFT(body_status,4)="心理焦慮", "➔【心態調整】：返工忙、無系統訓練容易產生進度焦慮。教練話你知：毅行者是一場跟自己身體對話嘅馬拉松。無時間跑就多利用返放工行路當累積。放遜心情，我哋會根據你嘅工作時間動態調整，只要保持穩定，年尾一定可以順利完賽！", TRUE, "➔【身心與基礎耐力診斷】：喺經常 OT 嘅情況下仍能保持良好體感，說明你嘅身體適應力好強。現階段核心任務係「穩定堆疊基礎有氧里數」，唔好盲目追求速度。繼續保持每週一場高質量 Long Run，幫年尾 100 公里打好最扎實嘅地基！" ), weather_cm, IFS( LEFT(weather_status,6)="香港高濕脫水", " 🎯【香港盛夏高濕度應對】：香港現時 80%-90% 嘅高濕度會嚴重壓榨你本來就疲勞嘅身體，汗水難蒸發導致核心溫度飆升，後半程極易隱性脫水引發抽筋掉速。本週每次長跑前後必須秤重，流失多少重量就必須回補 1.5倍的水分，日常要大幅提升防抽筋鹽丸與電解質嘅攝取頻率！", TRUE, " 🌤️【環境與氣候反饋】：目前天氣對訓練體感無特別負面影響，繼續保持平穩心率即可。" ), nutri_cm, IFS( LEFT(nutri_status,4)="補水不足", " 🎯【強迫補水時間表】：感到口渴時身體其實已經脫水 2% 以上（耐力直接砍 20%）。尤其工作忙碌容易忘記飲水。接下來必須執行「強迫補水時間表」：訓練時每 15-20 分鐘強迫喝水 150ml-200ml，不准等到口渴才喝水！日常返工亦要準備一個大水樽，強迫自己定時補水。", LEFT(nutri_status,4)="胃酸脹氣", " 🎯【高碳水腸胃不適修正】：吃能量膠導致胃酸倒流，說明腸胃對高濃度果糖抗拒。毅行者是長達十多至數十小時嘅拉鋸戰，現階段請全面測試「多樣化固體食物」：嘗試在 Long Run 時加入飯糰、運動軟糖、馬鈴薯或鹹餅乾，找出最適合你返工疲勞胃口嘅食物組合。", TRUE, " 🎯【腸胃與水份補給】：目前水份與食物吸收良好。毅行者雖然喺年尾冬季，但目前盛夏訓練是鍛鍊腸胃（Gut Training）嘅好時機。繼續保持每小時補給 40-60g 碳水化合物嘅節奏。" ), "===========================================" & CHAR(10) & "【樂施毅行者 100K 備戰：" & weekNum & " 學員大數據狀態監察】" & CHAR(10) & "===========================================" & CHAR(10) & "● 學員姓名：" & name & " | ● 目標賽事：" & race & CHAR(10) & "-------------------------------------------" & CHAR(10) & "【當週課表指標達標率】" & CHAR(10) & "- 當週總里程達標率：" & dist_pct & CHAR(10) & "- 當週總爬升達標率：" & climb_pct & CHAR(10) & "- 週末長距離跑體感：" & lr_status & CHAR(10) & "-------------------------------------------" & run_eco_cm & CHAR(10) & "-------------------------------------------" & CHAR(10) & "💬 教練核心建議 (Coach's Comments) ：" & CHAR(10) & body_cm & CHAR(10) & weather_cm & CHAR(10) & nutri_cm & CHAR(10) & CHAR(10) & "===========================================" & CHAR(10) & "※ 本週教練大數據分析完畢。請根據工作疲勞度動態調整，收到請回覆！" )) )
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ki Coach 遠程特訓平台</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        /* 模擬手機外殼容器 */
+        .phone-container {
+            width: 100%;
+            max-width: 412px;
+            height: 100vh;
+            max-height: 892px;
+            background: #1e1e1e;
+            position: relative;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* 隱藏但用作原生互動的輸入框（方便手機彈出鍵盤） */
+        #hidden-input {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            z-index: -1;
+            width: 1px;
+            height: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <canvas id="appCanvas"></canvas>
+    <input type="text" id="hidden-input" maxlength="6" placeholder="密碼">
+</div>
+
+<script>
+    const canvas = document.getElementById('appCanvas');
+    const ctx = canvas.getContext('2d');
+    const hiddenInput = document.getElementById('hidden-input');
+
+    // 模擬從 Google Sheets 獲取的 Kit Week 14 真實數據（稍後可一秒綁定 CSV）
+    const trainData = {
+        name: "Kit",
+        week: "Week 14",
+        distance: 10,
+        time: "0:10:05",
+        hr: 140,
+        cadence: 180,
+        stride: 112,
+        risk: "良好 (狀態平穩，無傷痛)",
+        weather: "正常 (天氣涼爽 / 室內冷氣 / 體感舒適)"
+    };
+
+    let passwordText = "";
+    let isUnlocked = false;
+
+    // 定義高清 Canvas 分辨率 (Retina 螢幕優化)
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    // 密碼判斷邏輯 (VALUE(code) + 888 === 2122)
+    function checkPassword(pass) {
+        const codeNum = parseInt(pass);
+        if (!isNaN(codeNum) && codeNum + 888 === 2122) {
+            isUnlocked = true;
+        } else {
+            isUnlocked = false;
+        }
+    }
+
+    // Canvas 多行文字自動換行渲染器
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split('');
+        let line = '';
+        let currentY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n];
+            let metrics = ctx.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = words[n];
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, currentY);
+        return currentY;
+    }
+
+    // 主渲染循環 (Render Loop)
+    function render() {
+        const w = canvas.width / window.devicePixelRatio;
+        const h = canvas.height / window.devicePixelRatio;
+
+        // 1. 背景與頂欄
+        ctx.fillStyle = '#16161a';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = '#ff3366';
+        ctx.fillRect(0, 0, w, 90);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px system-ui';
+        ctx.fillText(`${trainData.name} - ${trainData.week} 特訓簡報`, 20, 45);
+        ctx.font = '14px system-ui';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillText('毅行者遠程智慧特訓平台 v2.0', 20, 70);
+
+        // 2. 核心數據卡片
+        let startY = 120;
+        ctx.fillStyle = '#22222b';
+        ctx.fillRect(15, startY, w - 30, 210);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px system-ui';
+        ctx.fillText('🏃 當週長跑核心數據', 30, startY + 30);
+
+        ctx.font = '14px system-ui';
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText(`長跑距離: ${trainData.distance} km`, 30, startY + 65);
+        ctx.fillText(`長跑時間: ${trainData.time}`, 30, startY + 90);
+        ctx.fillText(`平均步幅: ${trainData.stride} m`, 30, startY + 115);
+
+        // 3. 視覺化組件：步頻儀表板提示 (Cadence)
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText(`平均步頻: ${trainData.cadence} spm`, 30, startY + 145);
+        if (trainData.cadence >= 180) {
+            ctx.fillStyle = '#00ffcc';
+            ctx.font = 'bold 14px system-ui';
+            ctx.fillText('✓ 完美高效步頻', 180, startY + 145);
+        }
+
+        // 4. 視覺化組件：心率進度條 (Heart Rate Zone)
+        ctx.font = '14px system-ui';
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText(`平均心率: ${trainData.hr} bpm`, 30, startY + 180);
+        
+        // 畫心率條背景
+        ctx.fillStyle = '#3a3a4a';
+        ctx.fillRect(160, startY + 170, 120, 12);
+        // 根據心率高低渲染顏色（模擬 Zone 2 內耗優化）
+        ctx.fillStyle = trainData.hr <= 145 ? '#00ffcc' : '#ff9900'; 
+        ctx.fillRect(160, startY + 170, (trainData.hr / 200) * 120, 12);
+
+        // 5. 狀態與天氣
+        ctx.fillStyle = '#22222b';
+        ctx.fillRect(15, startY + 230, w - 30, 90);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px system-ui';
+        ctx.fillText('🩺 跑手身體與外在環境', 30, startY + 260);
+        ctx.font = '13px system-ui';
+        ctx.fillStyle = '#ccff00';
+        ctx.fillText(`身體風險: ${trainData.risk}`, 30, startY + 285);
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText(`環境天氣: ${trainData.weather}`, 30, startY + 305);
+
+        // 6. 教練解鎖密碼交互區
+        let pwdY = startY + 340;
+        ctx.fillStyle = '#2a2a35';
+        ctx.fillRect(15, pwdY, w - 30, 80);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px system-ui';
+        ctx.fillText('🔐 教練專屬解鎖密碼輸入區', 30, pwdY + 30);
+
+        // 畫密碼輸入框
+        ctx.fillStyle = '#16161a';
+        ctx.strokeStyle = '#ff3366';
+        ctx.lineWidth = 1;
+        ctx.fillRect(30, pwdY + 42, 120, 26);
+        ctx.strokeRect(30, pwdY + 42, 120, 26);
+
+        // 顯示目前打入嘅密碼（或星號）
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '14px monospace';
+        let displayPass = passwordText.replace(/./g, '*');
+        ctx.fillText(passwordText ? displayPass : '點擊輸入密碼', 40, pwdY + 60);
+
+        // 7. 動態評語解鎖看板（終極大公式前端渲染）
+        let commentY = pwdY + 100;
+        ctx.fillStyle = isUnlocked ? '#1b2a22' : '#2d1a1e';
+        ctx.strokeStyle = isUnlocked ? '#00ffcc' : '#ff3366';
+        ctx.fillRect(15, commentY, w - 30, 200);
+        ctx.strokeRect(15, commentY, w - 30, 200);
+
+        if (isUnlocked) {
+            ctx.fillStyle = '#00ffcc';
+            ctx.font = 'bold 16px system-ui';
+            ctx.fillText('🔓 Ki Coach 硬核特訓方針已解鎖：', 30, commentY + 35);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px system-ui';
+            // 這裡模擬解鎖後，背景 Excel 大公式噴出來的長篇策略
+            const coachComment = "根據本週數據，Kit 的步頻完美保持在 180spm，有氧心肺效率極高，處於低內耗的 Zone 2 黃金跑姿。目前毫無傷痛風險。下週起，由於進入 Week 15 特訓中段，強度目標將提升 15%，長跑里數正式加碼至 25K。請密切留意夜間靜止心率，防止過度疲勞！";
+            wrapText(ctx, coachComment, 30, commentY + 65, w - 60, 22);
+        } else {
+            ctx.fillStyle = '#ff4d4d';
+            ctx.font = 'bold 16px system-ui';
+            ctx.fillText('🔒 遠程評語尚未解鎖', 30, commentY + 45);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '13px system-ui';
+            const lockPrompt = "【系統提示】：教練正在為你當週的訓練數據、有氧心肺效率與跑姿經濟性進行深度分析，評語尚未解鎖。請等待教練親自輸入密碼發放專屬方針！";
+            wrapText(ctx, lockPrompt, 30, commentY + 80, w - 60, 20);
+        }
+
+        requestAnimationFrame(render);
+    }
+
+    // 處理手機點擊與觸發原生鍵盤
+    window.addEventListener('resize', resizeCanvas);
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        // 判斷點擊位置是否在「密碼輸入框」範圍內
+        let pwdY = 120 + 340; 
+        if (clickX >= 30 && clickX <= 150 && clickY >= pwdY + 42 && clickY <= pwdY + 68) {
+            hiddenInput.focus();
+        }
+    });
+
+    // 監聽鍵盤輸入
+    hiddenInput.addEventListener('input', (e) => {
+        passwordText = e.target.value;
+        checkPassword(passwordText);
+    });
+
+    // 啟動 App
+    resizeCanvas();
+    render();
+</script>
+
+</body>
+</html>
