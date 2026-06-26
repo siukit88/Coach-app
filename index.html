@@ -30,7 +30,7 @@
         .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
         
         .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; }
-        .data-val { color: #ffffff; font-weight: bold; float: right; }
+        .data-val { color: #ffffff; font-weight: bold; float: right; text-align: right; max-width: 60%; }
         .clear { clear: both; }
         
         /* 動態心率條 */
@@ -49,7 +49,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Ki Coach 特訓大數據平台</h1>
-        <p>毅行者遠程智慧特訓平台 v3.5</p>
+        <p>毅行者遠程智慧特訓平台 v3.8</p>
     </div>
 
     <div class="card">
@@ -94,7 +94,7 @@
 </div>
 
 <script>
-    // 💡 已完美綁定你提供的真實連結
+    // 已自動完美綁定你提供的真實連結
     const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/viewform?embedded=true"; 
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
 
@@ -102,17 +102,39 @@
 
     let allRecords = []; 
 
-    // 全量數據抓取與精確對位
+    // 全量數據抓取與安全解析邏輯
     async function fetchAllData() {
         try {
             const response = await fetch(googleSheetCsvUrl);
             const data = await response.text();
             
-            // 解析 CSV 行（考慮到引號引起來的逗號中文字）
-            const lines = data.split('\n').map(line => {
-                // 簡易 CSV 逗號分割，若有複雜引號可以用正規式，這裡對應標準導出
-                return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            });
+            // 使用進階正規表達式安全解析 CSV，防止多選題引號內的逗號導致數據錯位
+            const lines = [];
+            const rawLines = data.split('\n');
+            
+            for (let i = 0; i < rawLines.length; i++) {
+                const text = rawLines[i].trim();
+                if (!text) continue;
+                
+                const row = [];
+                let insideQuote = false;
+                let entries = [];
+                let current = '';
+                
+                for (let j = 0; j < text.length; j++) {
+                    let char = text[j];
+                    if (char === '"') {
+                        insideQuote = !insideQuote;
+                    } else if (char === ',' && !insideQuote) {
+                        entries.push(current.replace(/^"|"$/g, '').trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                entries.push(current.replace(/^"|"$/g, '').trim());
+                lines.push(entries);
+            }
             
             allRecords = [];
             let names = new Set();
@@ -122,19 +144,16 @@
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 5 && row[1]) { 
-                    // 清除引號文字包裹
-                    const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : "--";
-                    
                     let record = {
-                        timestamp: clean(row[0]),     // A: 時間戳記
-                        name: clean(row[1]),          // B: 學員姓名
-                        week: clean(row[2]),          // C: 特訓週數
-                        distance: clean(row[3]),      // D: 長跑距離
-                        time: clean(row[4]),          // E: 長跑時間
-                        cadence: clean(row[5]),       // F: 平均步頻
-                        hr: clean(row[6]),            // G: 平均心率
-                        risk: clean(row[7]),          // H: 身體風險
-                        weather: clean(row[8])        // I: 環境天氣
+                        timestamp: row[0] || "--",     // A: 時間戳記
+                        name: row[1] || "--",          // B: 學員姓名
+                        week: row[2] || "Week 14",     // C: 特訓週數
+                        distance: row[3] || "0",       // D: 長跑距離
+                        time: row[4] || "--",          // E: 長跑時間
+                        cadence: row[5] || "0",        // F: 平均步頻
+                        hr: row[6] || "0",             // G: 平均心率
+                        risk: row[7] || "正常",        // H: 身體風險
+                        weather: row[8] || "正常"       // I: 環境天氣
                     };
                     allRecords.push(record);
                     names.add(record.name);
@@ -169,12 +188,12 @@
         const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
         
         if (matched) {
-            // 解析日期
+            // 解析並只顯示日期部分
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--";
             document.getElementById('val-distance').innerText = matched.distance + " km";
             document.getElementById('val-time').innerText = matched.time;
             
-            // 步頻高於 180 綠色大剔號
+            // 步頻高於 180 顯示綠色高效剔號
             const cadNum = parseInt(matched.cadence);
             if(cadNum >= 180) {
                 document.getElementById('val-cadence').innerHTML = `${matched.cadence} spm <span style="color:#00ffcc; font-size:12px;">(✓ 高效)</span>`;
