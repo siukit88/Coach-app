@@ -3,260 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ki Coach 遠程特訓平台</title>
+    <title>Ki Coach 智慧特訓平台</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #121212;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: block; text-align: center;
             color: #ffffff;
-            overflow-x: hidden;
         }
-        /* 模擬手機外殼容器 */
         .phone-container {
-            width: 100%;
-            max-width: 412px;
-            height: 100vh;
-            max-height: 892px;
-            background: #1e1e1e;
-            position: relative;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            overflow: hidden;
+            width: 100%; max-width: 412px; min-height: 100vh;
+            background: #16161a; margin: 0 auto;
+            position: relative; box-sizing: border-box;
+            padding-bottom: 40px; text-align: left;
         }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-        /* 隱藏但用作原生互動的輸入框（方便手機彈出鍵盤） */
-        #hidden-input {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            z-index: -1;
-            width: 1px;
-            height: 1px;
-        }
+        .header { background: #ff3366; padding: 25px 20px; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
+        .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
+        .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
+        
+        /* 表單外殼優化 */
+        .form-wrapper { width: 100%; height: 450px; border: none; border-radius: 8px; background: #ffffff; overflow: hidden; }
+        
+        .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; }
+        .data-val { color: #ffffff; font-weight: bold; float: right; }
+        .clear { clear: both; }
+        .input-box { background: #16161a; border: 1px solid #ff3366; padding: 10px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; }
+        .comment-box { margin: 15px; padding: 20px; border-radius: 8px; border: 1px solid #ff3366; background: #2d1a1e; }
+        .comment-box.unlocked { border-color: #00ffcc; background: #1b2a22; }
+        .comment-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
+        .comment-text { font-size: 13px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <div class="phone-container">
-    <canvas id="appCanvas"></canvas>
-    <input type="text" id="hidden-input" maxlength="6" placeholder="密碼">
+    <div class="header">
+        <h1>Ki Coach 特訓回報與簡報</h1>
+        <p>毅行者遠程智慧特訓平台 v2.1</p>
+    </div>
+
+    <!-- 1. 學員功課自填回報區 -->
+    <div class="card">
+        <h2>📝 步驟一：學員功課手動回報</h2>
+        <!-- ⚠️ 請將下方的 src 換成你自己的 Google 表單網址 -->
+        <iframe class="form-wrapper" src="https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/viewform?embedded=true">載入中...</iframe>
+    </div>
+
+    <!-- 2. 最新一期數據看板（測試樣式） -->
+    <div class="card">
+        <h2>📊 步驟二：教練覆核歷史數據</h2>
+        <div class="data-row">今日長跑距離 <span class="data-val">10 km</span></div>
+        <div class="data-row">平均步頻 <span class="data-val" style="color: #00ffcc;">180 spm</span></div>
+        <div class="data-row">平均心率 <span class="data-val">140 bpm</span></div>
+    </div>
+
+    <!-- 3. 教練密碼解鎖區 -->
+    <div class="card">
+        <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
+        <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
+    </div>
+
+    <div id="lock-zone" class="comment-box">
+        <div id="lock-title" class="comment-title" style="color: #ff4d4d;">🔒 遠程評語尚未解鎖</div>
+        <div id="lock-content" class="comment-text" style="color: rgba(255,255,255,0.6);">
+            【系統提示】：請等待教練審查完你填寫的功課數據，並打入密碼解鎖本週毅行者核心特訓戰術方針！
+        </div>
+    </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('appCanvas');
-    const ctx = canvas.getContext('2d');
-    const hiddenInput = document.getElementById('hidden-input');
+    const pwdInput = document.getElementById('pwd-input');
+    const lockZone = document.getElementById('lock-zone');
+    const lockTitle = document.getElementById('lock-title');
+    const lockContent = document.getElementById('lock-content');
 
-    // 模擬從 Google Sheets 獲取的 Kit Week 14 真實數據（稍後可一秒綁定 CSV）
-    const trainData = {
-        name: "Kit",
-        week: "Week 14",
-        distance: 10,
-        time: "0:10:05",
-        hr: 140,
-        cadence: 180,
-        stride: 112,
-        risk: "良好 (狀態平穩，無傷痛)",
-        weather: "正常 (天氣涼爽 / 室內冷氣 / 體感舒適)"
-    };
-
-    let passwordText = "";
-    let isUnlocked = false;
-
-    // 定義高清 Canvas 分辨率 (Retina 螢幕優化)
-    function resizeCanvas() {
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * window.devicePixelRatio;
-        canvas.height = rect.height * window.devicePixelRatio;
-        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    }
-
-    // 密碼判斷邏輯 (VALUE(code) + 888 === 2122)
-    function checkPassword(pass) {
-        const codeNum = parseInt(pass);
-        if (!isNaN(codeNum) && codeNum + 888 === 2122) {
-            isUnlocked = true;
+    pwdInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        // 密碼盲碼判斷 (密碼 1234)
+        if (parseInt(val) + 888 === 2122) {
+            lockZone.className = "comment-box unlocked";
+            lockTitle.innerText = "🔓 Ki Coach 毅行者戰術方針已解鎖：";
+            lockTitle.style.color = "#00ffcc";
+            lockContent.style.color = "#ffffff";
+            lockContent.innerText = "本週 Kit 提交的步頻保持在 180spm 黃金經濟性，心率控制符合 Zone 2 低內耗標準。下週特訓進入 Week 15 高拉量期，長跑里數正式加碼至 25K。請在明早出發前，全隊補充足夠電解質與碳水！";
         } else {
-            isUnlocked = false;
-        }
-    }
-
-    // Canvas 多行文字自動換行渲染器
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-        const words = text.split('');
-        let line = '';
-        let currentY = y;
-
-        for (let n = 0; n < words.length; n++) {
-            let testLine = line + words[n];
-            let metrics = ctx.measureText(testLine);
-            let testWidth = metrics.width;
-            if (testWidth > maxWidth && n > 0) {
-                ctx.fillText(line, x, currentY);
-                line = words[n];
-                currentY += lineHeight;
-            } else {
-                line = testLine;
-            }
-        }
-        ctx.fillText(line, x, currentY);
-        return currentY;
-    }
-
-    // 主渲染循環 (Render Loop)
-    function render() {
-        const w = canvas.width / window.devicePixelRatio;
-        const h = canvas.height / window.devicePixelRatio;
-
-        // 1. 背景與頂欄
-        ctx.fillStyle = '#16161a';
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.fillStyle = '#ff3366';
-        ctx.fillRect(0, 0, w, 90);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px system-ui';
-        ctx.fillText(`${trainData.name} - ${trainData.week} 特訓簡報`, 20, 45);
-        ctx.font = '14px system-ui';
-        ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.fillText('毅行者遠程智慧特訓平台 v2.0', 20, 70);
-
-        // 2. 核心數據卡片
-        let startY = 120;
-        ctx.fillStyle = '#22222b';
-        ctx.fillRect(15, startY, w - 30, 210);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px system-ui';
-        ctx.fillText('🏃 當週長跑核心數據', 30, startY + 30);
-
-        ctx.font = '14px system-ui';
-        ctx.fillStyle = '#aaaaaa';
-        ctx.fillText(`長跑距離: ${trainData.distance} km`, 30, startY + 65);
-        ctx.fillText(`長跑時間: ${trainData.time}`, 30, startY + 90);
-        ctx.fillText(`平均步幅: ${trainData.stride} m`, 30, startY + 115);
-
-        // 3. 視覺化組件：步頻儀表板提示 (Cadence)
-        ctx.fillStyle = '#aaaaaa';
-        ctx.fillText(`平均步頻: ${trainData.cadence} spm`, 30, startY + 145);
-        if (trainData.cadence >= 180) {
-            ctx.fillStyle = '#00ffcc';
-            ctx.font = 'bold 14px system-ui';
-            ctx.fillText('✓ 完美高效步頻', 180, startY + 145);
-        }
-
-        // 4. 視覺化組件：心率進度條 (Heart Rate Zone)
-        ctx.font = '14px system-ui';
-        ctx.fillStyle = '#aaaaaa';
-        ctx.fillText(`平均心率: ${trainData.hr} bpm`, 30, startY + 180);
-        
-        // 畫心率條背景
-        ctx.fillStyle = '#3a3a4a';
-        ctx.fillRect(160, startY + 170, 120, 12);
-        // 根據心率高低渲染顏色（模擬 Zone 2 內耗優化）
-        ctx.fillStyle = trainData.hr <= 145 ? '#00ffcc' : '#ff9900'; 
-        ctx.fillRect(160, startY + 170, (trainData.hr / 200) * 120, 12);
-
-        // 5. 狀態與天氣
-        ctx.fillStyle = '#22222b';
-        ctx.fillRect(15, startY + 230, w - 30, 90);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px system-ui';
-        ctx.fillText('🩺 跑手身體與外在環境', 30, startY + 260);
-        ctx.font = '13px system-ui';
-        ctx.fillStyle = '#ccff00';
-        ctx.fillText(`身體風險: ${trainData.risk}`, 30, startY + 285);
-        ctx.fillStyle = '#00e5ff';
-        ctx.fillText(`環境天氣: ${trainData.weather}`, 30, startY + 305);
-
-        // 6. 教練解鎖密碼交互區
-        let pwdY = startY + 340;
-        ctx.fillStyle = '#2a2a35';
-        ctx.fillRect(15, pwdY, w - 30, 80);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px system-ui';
-        ctx.fillText('🔐 教練專屬解鎖密碼輸入區', 30, pwdY + 30);
-
-        // 畫密碼輸入框
-        ctx.fillStyle = '#16161a';
-        ctx.strokeStyle = '#ff3366';
-        ctx.lineWidth = 1;
-        ctx.fillRect(30, pwdY + 42, 120, 26);
-        ctx.strokeRect(30, pwdY + 42, 120, 26);
-
-        // 顯示目前打入嘅密碼（或星號）
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '14px monospace';
-        let displayPass = passwordText.replace(/./g, '*');
-        ctx.fillText(passwordText ? displayPass : '點擊輸入密碼', 40, pwdY + 60);
-
-        // 7. 動態評語解鎖看板（終極大公式前端渲染）
-        let commentY = pwdY + 100;
-        ctx.fillStyle = isUnlocked ? '#1b2a22' : '#2d1a1e';
-        ctx.strokeStyle = isUnlocked ? '#00ffcc' : '#ff3366';
-        ctx.fillRect(15, commentY, w - 30, 200);
-        ctx.strokeRect(15, commentY, w - 30, 200);
-
-        if (isUnlocked) {
-            ctx.fillStyle = '#00ffcc';
-            ctx.font = 'bold 16px system-ui';
-            ctx.fillText('🔓 Ki Coach 硬核特訓方針已解鎖：', 30, commentY + 35);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '14px system-ui';
-            // 這裡模擬解鎖後，背景 Excel 大公式噴出來的長篇策略
-            const coachComment = "根據本週數據，Kit 的步頻完美保持在 180spm，有氧心肺效率極高，處於低內耗的 Zone 2 黃金跑姿。目前毫無傷痛風險。下週起，由於進入 Week 15 特訓中段，強度目標將提升 15%，長跑里數正式加碼至 25K。請密切留意夜間靜止心率，防止過度疲勞！";
-            wrapText(ctx, coachComment, 30, commentY + 65, w - 60, 22);
-        } else {
-            ctx.fillStyle = '#ff4d4d';
-            ctx.font = 'bold 16px system-ui';
-            ctx.fillText('🔒 遠程評語尚未解鎖', 30, commentY + 45);
-
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.font = '13px system-ui';
-            const lockPrompt = "【系統提示】：教練正在為你當週的訓練數據、有氧心肺效率與跑姿經濟性進行深度分析，評語尚未解鎖。請等待教練親自輸入密碼發放專屬方針！";
-            wrapText(ctx, lockPrompt, 30, commentY + 80, w - 60, 20);
-        }
-
-        requestAnimationFrame(render);
-    }
-
-    // 處理手機點擊與觸發原生鍵盤
-    window.addEventListener('resize', resizeCanvas);
-    canvas.addEventListener('click', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-
-        // 判斷點擊位置是否在「密碼輸入框」範圍內
-        let pwdY = 120 + 340; 
-        if (clickX >= 30 && clickX <= 150 && clickY >= pwdY + 42 && clickY <= pwdY + 68) {
-            hiddenInput.focus();
+            lockZone.className = "comment-box";
+            lockTitle.innerText = "🔒 遠程評語尚未解鎖";
+            lockTitle.style.color = "#ff4d4d";
+            lockContent.style.color = "rgba(255,255,255,0.6)";
+            lockContent.innerText = "【系統提示】：請等待教練審查完你填寫的功課數據，並打入密碼解鎖本週毅行者核心特訓戰術方針！";
         }
     });
-
-    // 監聽鍵盤輸入
-    hiddenInput.addEventListener('input', (e) => {
-        passwordText = e.target.value;
-        checkPassword(passwordText);
-    });
-
-    // 啟動 App
-    resizeCanvas();
-    render();
 </script>
 
 </body>
