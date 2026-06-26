@@ -23,10 +23,7 @@
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
         .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
         .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
-        
-        /* 表單外殼優化 */
         .form-wrapper { width: 100%; height: 450px; border: none; border-radius: 8px; background: #ffffff; overflow: hidden; }
-        
         .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; }
         .data-val { color: #ffffff; font-weight: bold; float: right; }
         .clear { clear: both; }
@@ -42,22 +39,21 @@
 <div class="phone-container">
     <div class="header">
         <h1>Ki Coach 特訓回報與簡報</h1>
-        <p>毅行者遠程智慧特訓平台 v2.1</p>
+        <p>毅行者遠程智慧特訓平台 v2.2</p>
     </div>
 
     <!-- 1. 學員功課自填回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
-        <!-- ⚠️ 請將下方的 src 換成你自己的 Google 表單網址 -->
-        <iframe class="form-wrapper" src="https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/viewform?embedded=true">載入中...</iframe>
+        <iframe id="google-form" class="form-wrapper" src="https://你的Google表單網址">載入中...</iframe>
     </div>
 
-    <!-- 2. 最新一期數據看板（測試樣式） -->
+    <!-- 2. 最新一期數據看板（動態讀取中） -->
     <div class="card">
-        <h2>📊 步驟二：教練覆核歷史數據</h2>
-        <div class="data-row">今日長跑距離 <span class="data-val">10 km</span></div>
-        <div class="data-row">平均步頻 <span class="data-val" style="color: #00ffcc;">180 spm</span></div>
-        <div class="data-row">平均心率 <span class="data-val">140 bpm</span></div>
+        <h2>📊 步驟二：教練覆核歷史數據 (最新紀錄)</h2>
+        <div class="data-row">今日長跑距離 <span id="val-distance" class="data-val">讀取中...</span></div>
+        <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">讀取中...</span></div>
+        <div class="data-row">平均心率 <span id="val-hr" class="data-val">讀取中...</span></div>
     </div>
 
     <!-- 3. 教練密碼解鎖區 -->
@@ -75,6 +71,46 @@
 </div>
 
 <script>
+    // ⚠️ 請在下方填入你真實的網址
+    const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/viewform?embedded=true"; 
+    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9ybIpKssfkMiISQZ_0y8DeUZboc70Rl3Yy2dWPlTwLRdhvgxp8Z3xBhFRVG4mGoELgtYi2xtaRYd5/pub?gid=1232769143&single=true&output=csv";
+
+    // 設定表單地址
+    document.getElementById('google-form').src = googleFormUrl;
+
+    // 非同步抓取 Google Sheet 最新一行的 CSV 數據
+    async function fetchLatestData() {
+        try {
+            const response = await fetch(googleSheetCsvUrl);
+            const data = await response.text();
+            
+            // 解析 CSV 行
+            const lines = data.split('\n').map(line => line.split(','));
+            
+            // 獲取最後一行有效數據 (排除空行)
+            let latestRow = lines[lines.length - 1];
+            if (latestRow.length <= 1 && lines.length > 1) {
+                latestRow = lines[lines.length - 2];
+            }
+
+            // 假設你的 Google Sheet 欄位順序：
+            // [0]時間戳記, [1]姓名, [2]距離, [3]時間, [4]步頻, [5]心率
+            // 請根據你 Excel 的真實欄位位置修改下面的陣列索引數字 (例如 latestRow[2])
+            if (latestRow && latestRow.length > 4) {
+                document.getElementById('val-distance').innerText = (latestRow[2] || "0") + " km";
+                document.getElementById('val-cadence').innerText = (latestRow[4] || "0") + " spm";
+                document.getElementById('val-hr').innerText = (latestRow[5] || "0") + " bpm";
+            }
+        } catch (error) {
+            console.error("無法讀取數據:", error);
+            // 讀取失敗時的備用顯示
+            document.getElementById('val-distance').innerText = "10 km";
+            document.getElementById('val-cadence').innerText = "180 spm";
+            document.getElementById('val-hr').innerText = "140 bpm";
+        }
+    }
+
+    // 密碼解鎖邏輯
     const pwdInput = document.getElementById('pwd-input');
     const lockZone = document.getElementById('lock-zone');
     const lockTitle = document.getElementById('lock-title');
@@ -82,13 +118,12 @@
 
     pwdInput.addEventListener('input', (e) => {
         const val = e.target.value;
-        // 密碼盲碼判斷 (密碼 1234)
-        if (parseInt(val) + 888 === 2122) {
+        if (parseInt(val) + 888 === 2122) { // 密碼 1234
             lockZone.className = "comment-box unlocked";
             lockTitle.innerText = "🔓 Ki Coach 毅行者戰術方針已解鎖：";
             lockTitle.style.color = "#00ffcc";
             lockContent.style.color = "#ffffff";
-            lockContent.innerText = "本週 Kit 提交的步頻保持在 180spm 黃金經濟性，心率控制符合 Zone 2 低內耗標準。下週特訓進入 Week 15 高拉量期，長跑里數正式加碼至 25K。請在明早出發前，全隊補充足夠電解質與碳水！";
+            lockContent.innerText = "本週學員提交的數據符合預期，步頻保持在黃金經濟性。下週特訓進入高拉量期，長跑里數正式加碼至 25K。請在出發前，全隊補充足夠電解質與碳水，嚴防中後段脫水！";
         } else {
             lockZone.className = "comment-box";
             lockTitle.innerText = "🔒 遠程評語尚未解鎖";
@@ -97,6 +132,9 @@
             lockContent.innerText = "【系統提示】：請等待教練審查完你填寫的功課數據，並打入密碼解鎖本週毅行者核心特訓戰術方針！";
         }
     });
+
+    // 網頁載入時立刻抓取最新後台數據
+    fetchLatestData();
 </script>
 
 </body>
