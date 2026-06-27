@@ -44,7 +44,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v7.6 (即時防呆版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v7.7 (雲端同步修正版)</p>
     </div>
 
     <div class="card">
@@ -54,21 +54,21 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select" required>
-                    <option value="">請選擇跑手...</option>
-                    <option value="Kit Coach">Kit Coach</option>
-                    <option value="Karis">Karis</option>
-                    <option value="跑手A">跑手A</option>
+                    <option value="">正在讀取歷史跑手...</option>
                 </select>
+                <div id="new-name-zone" class="hidden-group">
+                    <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
+                </div>
             </div>
 
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select" required>
-                    <option value="">請選擇週數...</option>
-                    <option value="1">第 1 週</option>
-                    <option value="2">第 2 週</option>
-                    <option value="3">第 3 週</option>
+                    <option value="">正在讀取歷史週數...</option>
                 </select>
+                <div id="new-week-zone" class="hidden-group">
+                    <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
+                </div>
             </div>
 
             <div class="form-row" style="display: flex; gap: 10px;">
@@ -101,50 +101,40 @@
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
                 <div class="tag-container" id="risk-tags-zone">
-                    <div class="multiselect-tag selected" data-value="良好 (狀態平穩)">良好 (狀態平穩)</div>
-                    <div class="multiselect-tag" data-value="過度疲勞">過度疲勞</div>
-                    <div class="multiselect-tag" data-value="睡眠不足">睡眠不足</div>
+                    <div class="multiselect-tag selected" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩)</div>
+                    <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞</div>
+                    <div class="multiselect-tag" data-value="睡眠不足 (通宵、返工 OT 嚴重缺眠)">睡眠不足</div>
+                    <div class="multiselect-tag" data-value="上山肌力不足 (大腿提早力竭、抽筋)">上山肌力不足</div>
+                    <div class="multiselect-tag" data-value="落山習慣拗柴 (腳腕穩定度不足)">落山習慣拗柴</div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>環境天氣</label>
+                <label>環境天氣與補給 (可複選)</label>
                 <div class="tag-container" id="weather-tags-zone">
-                    <div class="multiselect-tag selected" data-value="天氣涼爽舒適">天氣涼爽舒適</div>
+                    <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 體感舒適)">天氣涼爽舒適</div>
                     <div class="multiselect-tag" data-value="香港高濕脫水">香港高濕脫水</div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>補給問題</label>
-                <div class="tag-container" id="supply-tags-zone">
-                    <div class="multiselect-tag selected" data-value="補給吸收良好">補給吸收良好</div>
-                    <div class="multiselect-tag" data-value="補水不足">補水不足</div>
+                    <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴)">補水不足</div>
+                    <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠反胃)">胃酸脹氣</div>
                 </div>
             </div>
             
-            <button type="submit" id="submit-btn" class="submit-btn">本地同步上傳 (即時刷新測試)</button>
+            <button type="submit" id="submit-btn" class="submit-btn">一鍵同步到 Google 雲端</button>
         </form>
     </div>
 
     <div class="card">
-        <h2>📊 步驟二：智慧數據看板 (支援本地與歷史紀錄)</h2>
+        <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
-            <select id="filter-name" class="filter-select">
-                <option value="Kit Coach">Kit Coach</option>
-                <option value="Karis">Karis</option>
-            </select>
-            <select id="filter-week" class="filter-select">
-                <option value="1">第 1 週</option>
-                <option value="2">第 2 週</option>
-            </select>
+            <select id="filter-name" class="filter-select"><option value="">選擇跑手...</option></select>
+            <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
-        <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請先提交上方數據</span></div>
+        <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請選取上方篩選數據</span></div>
         <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
         <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
-        <div class="data-row" style="color: #00ffcc; font-weight: bold;">每小時耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
+        <div class="data-row" style="color: #00ffcc; font-weight: bold;">正宗耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
         <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
         <div class="data-row" style="margin-top: 15px;">
             <div>平均心率 <span id="val-hr" class="data-val">--</span></div>
@@ -153,8 +143,7 @@
         </div>
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         <div class="data-row">身體風險 <span id="val-risk" class="data-val">--</span></div>
-        <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
-        <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+        <div class="data-row">環境與補給狀態 <span id="val-weather" class="data-val">--</span></div>
     </div>
 
     <div class="card">
@@ -171,54 +160,162 @@
 </div>
 
 <script>
-    let allRecords = [
-        { timestamp: "2026/06/27", name: "Kit Coach", week: "1", distance: "34.14", time: "06:48:21", cadence: "175", hr: "142", risk: "良好 (狀態平穩)", weather: "天氣涼爽舒適", supply: "補給吸收良好", climb: "2220" }
-    ]; 
+    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
+    const formSubmitUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/formResponse";
+
+    let allRecords = []; 
 
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             if (e.target.classList.contains('multiselect-tag')) {
-                container.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
-                e.target.classList.add('selected');
+                const val = e.target.getAttribute('data-value');
+                if (val.includes("良好") || val.includes("正常")) {
+                    container.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                } else {
+                    container.querySelectorAll('.multiselect-tag').forEach(t => {
+                        const tv = t.getAttribute('data-value');
+                        if (tv.includes("良好") || tv.includes("正常")) t.classList.remove('selected');
+                    });
+                    e.target.classList.toggle('selected');
+                }
             }
         });
     });
 
+    document.getElementById('form-name-select').addEventListener('change', function(e) {
+        const customZone = document.getElementById('new-name-zone');
+        if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-name-custom').required = true; }
+        else { customZone.style.display = "none"; document.getElementById('form-name-custom').required = false; }
+    });
+
+    document.getElementById('form-week-select').addEventListener('change', function(e) {
+        const customZone = document.getElementById('new-week-zone');
+        if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-week-custom').required = true; }
+        else { customZone.style.display = "none"; document.getElementById('form-week-custom').required = false; }
+    });
+
     document.getElementById('coach-native-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const finalName = document.getElementById('form-name-select').value;
-        const finalWeek = document.getElementById('form-week-select').value;
-        if(!finalName || !finalWeek) { alert("請選好名字同週數！"); return; }
+        const btn = document.getElementById('submit-btn');
+        btn.innerText = "正在同步到雲端..."; btn.disabled = true;
 
-        let record = { 
-            timestamp: new Date().toLocaleDateString(), name: finalName, week: finalWeek, 
-            distance: document.getElementById('form-distance').value, 
-            time: document.getElementById('form-time').value, 
-            cadence: document.getElementById('form-cadence').value, 
-            hr: document.getElementById('form-hr').value, 
-            risk: "良好 (狀態平穩)", weather: "天氣涼爽舒適", supply: "補給吸收良好",
-            climb: document.getElementById('form-climb').value
-        };
+        const selectName = document.getElementById('form-name-select').value;
+        const finalName = selectName === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : selectName;
         
-        allRecords.push(record);
-        alert('🎉 本地數據注入成功！看板已同步更新！');
-        
-        document.getElementById('filter-name').value = finalName;
-        document.getElementById('filter-week').value = finalWeek;
-        updateDisplay(finalName, finalWeek);
+        const selectWeek = document.getElementById('form-week-select').value;
+        const finalWeek = selectWeek === "__NEW__" ? document.getElementById('form-week-custom').value.trim() : selectWeek;
+
+        const rawTime = document.getElementById('form-time').value.trim();
+        const rawClimb = document.getElementById('form-climb').value.trim();
+        // 💡 雲端穿透技術：將「爬升海拔」完美嵌入時間欄位內（格式：06:48:21_climb:2220），避免 entry ID 不合規被拒絕！
+        const cloudTimeCompound = `${rawTime}_climb:${rawClimb}`;
+
+        const selectedRisks = [];
+        document.querySelectorAll('#risk-tags-zone .multiselect-tag.selected').forEach(t => selectedRisks.push(t.getAttribute('data-value')));
+        const finalRiskString = selectedRisks.length > 0 ? selectedRisks.join(', ') : "良好 (狀態平穩，無傷痛)";
+
+        const selectedWeather = [];
+        document.querySelectorAll('#weather-tags-zone .multiselect-tag.selected').forEach(t => selectedWeather.push(t.getAttribute('data-value')));
+        const finalWeatherString = selectedWeather.length > 0 ? selectedWeather.join(', ') : "正常 (天氣涼爽 / 體感舒適)";
+
+        const formData = new FormData();
+        formData.append('entry.209633346', finalName);
+        formData.append('entry.189445831', finalWeek);
+        formData.append('entry.1354020960', document.getElementById('form-distance').value);
+        formData.append('entry.1166663248', cloudTimeCompound); // 🚀 送出安全合規的純數字主 ID
+        formData.append('entry.2120014022', document.getElementById('form-cadence').value);    
+        formData.append('entry.753896590', document.getElementById('form-hr').value);     
+        formData.append('entry.1697204990', finalRiskString);       
+        formData.append('entry.1437190861', finalWeatherString);
+
+        fetch(formSubmitUrl, { method: 'POST', mode: 'no-cors', body: formData }).then(() => {
+            alert('🎉 雲端連動同步成功！大數據後台已接收！');
+            btn.innerText = "一鍵同步到 Google 雲端"; btn.disabled = false;
+            document.getElementById('coach-native-form').reset();
+            document.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
+            document.getElementById('new-name-zone').style.display = "none";
+            document.getElementById('new-week-zone').style.display = "none";
+            setTimeout(fetchAllData, 2000); // 2秒後重新拉取最新雲端試算表
+        }).catch(err => { alert('傳送失敗，請檢查網絡'); btn.disabled = false; });
     });
 
     function timeStringToHours(timeStr) {
         if (!timeStr || !timeStr.includes(':')) return 0;
-        const parts = timeStr.split(':').map(Number);
-        return parts.length === 3 ? parts[0] + (parts[1] / 60) + (parts[2] / 3600) : 0;
+        const cleanTime = timeStr.split('_')[0]; // 切割掉附帶的 climb 數據
+        const parts = cleanTime.split(':').map(Number);
+        if (parts.length === 3) return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
+        else if (parts.length === 2) return (parts[0] / 60) + (parts[1] / 3600);
+        return 0;
+    }
+
+    async function fetchAllData() {
+        try {
+            const response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
+            const data = await response.text();
+            const lines = []; const rawLines = data.split('\n');
+            
+            for (let i = 0; i < rawLines.length; i++) {
+                const text = rawLines[i].trim(); if (!text) continue;
+                let entries = [], insideQuote = false, current = '';
+                for (let j = 0; j < text.length; j++) {
+                    let char = text[j]; if (char === '"') insideQuote = !insideQuote;
+                    else if (char === ',' && !insideQuote) { entries.push(current.replace(/^"|"$/g, '').trim()); current = ''; }
+                    else current += char;
+                }
+                entries.push(current.replace(/^"|"$/g, '').trim()); lines.push(entries);
+            }
+            
+            allRecords = []; let names = new Set(); let weeks = new Set();
+            for(let i = 1; i < lines.length; i++) {
+                let row = lines[i];
+                if(row && row.length > 4 && row[1]) { 
+                    let rawCloudTime = row[4] || "";
+                    let displayTime = rawCloudTime.split('_')[0];
+                    let parsedClimb = "0";
+                    if (rawCloudTime.includes('_climb:')) {
+                        parsedClimb = rawCloudTime.split('_climb:')[1] || "0";
+                    } else if (row[10]) {
+                        parsedClimb = row[10].trim();
+                    }
+
+                    let record = { 
+                        timestamp: row[0]||"--", name: row[1], week: row[2], 
+                        distance: row[3]||"0", time: displayTime, cadence: row[5]||"0", 
+                        hr: row[6]||"0", risk: row[7]||"良好", weather: row[8]||"正常",
+                        climb: parsedClimb, rawTimeCombo: rawCloudTime
+                    };
+                    allRecords.push(record); names.add(record.name); weeks.add(record.week);
+                }
+            }
+
+            const formNameSelect = document.getElementById('form-name-select');
+            formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
+            names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+            formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
+
+            const formWeekSelect = document.getElementById('form-week-select');
+            formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
+
+            const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
+            names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+            const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
+            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            
+            if(allRecords.length > 0) {
+                const last = allRecords[allRecords.length - 1]; 
+                nameSelect.value = last.name; weekSelect.value = last.week; 
+                updateDisplay(last.name, last.week);
+            }
+        } catch (error) { console.error("讀取雲端失敗：", error); }
     }
 
     function updateDisplay(selectedName, selectedWeek) {
         const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
         if (matched) {
-            document.getElementById('val-date').innerText = matched.timestamp;
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--";
             document.getElementById('val-distance').innerText = matched.distance + " km";
             document.getElementById('val-climb').innerText = matched.climb + " 米";
             document.getElementById('val-time').innerText = matched.time;
@@ -226,24 +323,28 @@
             
             const distNum = parseFloat(matched.distance) || 0;
             const climbNum = parseFloat(matched.climb) || 0;
-            const hoursNum = timeStringToHours(matched.time);
+            const hoursNum = timeStringToHours(matched.rawTimeCombo);
             
             if (hoursNum > 0) {
-                const ephCalc = (distNum + (climbNum / 100)) / hoursNum;
+                const epCalc = distNum + (climbNum / 100);
+                const ephCalc = epCalc / hoursNum;
                 document.getElementById('val-eph').innerText = ephCalc.toFixed(2) + " EP/小時";
             } else {
                 document.getElementById('val-eph').innerText = "--";
             }
             
             const hrNum = parseInt(matched.hr); document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            const hrBar = document.getElementById('hr-bar'); hrBar.style.width = Math.min(100, (hrNum/200)*100) + "%";
-            hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
+            const hrBar = document.getElementById('hr-bar'); let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%";
+            if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900";
             
             document.getElementById('val-risk').innerText = matched.risk; 
             document.getElementById('val-weather').innerText = matched.weather;
-            document.getElementById('val-supply').innerText = matched.supply;
         } else {
-            document.getElementById('val-distance').innerText = "無歷史紀錄";
+            document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
+            document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
+            document.getElementById('val-eph').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
+            document.getElementById('val-hr').innerText = "--"; document.getElementById('hr-bar').style.width = "0%";
+            document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
         }
     }
 
@@ -251,16 +352,11 @@
     document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
     
     document.getElementById('pwd-input').addEventListener('input', (e) => {
-        if (parseInt(e.target.value) + 888 === 2122) {
-            document.getElementById('lock-zone').className = "comment-box unlocked";
-            document.getElementById('lock-title').innerText = "🔓 Kit Coach 智能方針解鎖成功！";
-            document.getElementById('lock-title').style.color = "#00ffcc";
-            document.getElementById('lock-content').innerText = "對照當週大數據指標與正宗 EPH 推進效率評估，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！";
-            document.getElementById('lock-content').style.color = "#ffffff";
-        }
+        const val = e.target.value; const currentName = document.getElementById('filter-name').value || "學員"; const currentWeek = document.getElementById('filter-week').value || "當週";
+        if (parseInt(val) + 888 === 2122) { document.getElementById('lock-zone').className = "comment-box unlocked"; document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; document.getElementById('lock-title').style.color = "#00ffcc"; document.getElementById('lock-content').style.color = "#ffffff"; document.getElementById('lock-content').innerText = `對照當週大數據指標與正宗 EPH 推進效率評估，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！`; }
     });
 
-    updateDisplay("Kit Coach", "1");
+    fetchAllData();
 </script>
 </body>
 </html>
