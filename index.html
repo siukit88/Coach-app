@@ -44,7 +44,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v7.7 (雲端同步修正版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v7.8 (自訂輸入回歸版)</p>
     </div>
 
     <div class="card">
@@ -183,6 +183,7 @@
         });
     });
 
+    // 💡 修正：重新加入下拉選單選擇「+ 新增其他...」時切換顯示手動輸入框的連動 JS
     document.getElementById('form-name-select').addEventListener('change', function(e) {
         const customZone = document.getElementById('new-name-zone');
         if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-name-custom').required = true; }
@@ -208,7 +209,7 @@
 
         const rawTime = document.getElementById('form-time').value.trim();
         const rawClimb = document.getElementById('form-climb').value.trim();
-        // 💡 雲端穿透技術：將「爬升海拔」完美嵌入時間欄位內（格式：06:48:21_climb:2220），避免 entry ID 不合規被拒絕！
+        // 💡 雲端穿透技術
         const cloudTimeCompound = `${rawTime}_climb:${rawClimb}`;
 
         const selectedRisks = [];
@@ -223,7 +224,7 @@
         formData.append('entry.209633346', finalName);
         formData.append('entry.189445831', finalWeek);
         formData.append('entry.1354020960', document.getElementById('form-distance').value);
-        formData.append('entry.1166663248', cloudTimeCompound); // 🚀 送出安全合規的純數字主 ID
+        formData.append('entry.1166663248', cloudTimeCompound); 
         formData.append('entry.2120014022', document.getElementById('form-cadence').value);    
         formData.append('entry.753896590', document.getElementById('form-hr').value);     
         formData.append('entry.1697204990', finalRiskString);       
@@ -236,13 +237,13 @@
             document.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
             document.getElementById('new-name-zone').style.display = "none";
             document.getElementById('new-week-zone').style.display = "none";
-            setTimeout(fetchAllData, 2000); // 2秒後重新拉取最新雲端試算表
+            setTimeout(fetchAllData, 2000); 
         }).catch(err => { alert('傳送失敗，請檢查網絡'); btn.disabled = false; });
     });
 
     function timeStringToHours(timeStr) {
         if (!timeStr || !timeStr.includes(':')) return 0;
-        const cleanTime = timeStr.split('_')[0]; // 切割掉附帶的 climb 數據
+        const cleanTime = timeStr.split('_')[0]; 
         const parts = cleanTime.split(':').map(Number);
         if (parts.length === 3) return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
         else if (parts.length === 2) return (parts[0] / 60) + (parts[1] / 3600);
@@ -291,18 +292,18 @@
 
             const formNameSelect = document.getElementById('form-name-select');
             formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
-            names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+            names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>'; });
             formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
 
             const formWeekSelect = document.getElementById('form-week-select');
             formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
             formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
 
             const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
-            names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+            names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>'; });
             const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
             
             if(allRecords.length > 0) {
                 const last = allRecords[allRecords.length - 1]; 
