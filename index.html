@@ -15,14 +15,14 @@
         .custom-form { display: flex; flex-direction: column; gap: 12px; }
         .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 13px; color: #aaaaaa; margin-bottom: 4px; }
-        .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; }
+        .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; width: 100%; }
         .native-input:focus, .native-select:focus { border-color: #00ffcc; }
         
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
         .multiselect-tag { background: #1d1d26; border: 1px solid #555566; padding: 8px 12px; color: #cccccc; font-size: 13px; border-radius: 20px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
         .multiselect-tag.selected { background: rgba(0, 255, 204, 0.15) !important; border-color: #00ffcc !important; color: #00ffcc !important; font-weight: bold; }
         
-        .submit-btn { background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; color: #ffffff; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; text-align: center; width: 100%; }
+        .submit-btn { background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; color: #ffffff; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; text-align: center; width: 100%; display: block; text-decoration: none; box-sizing: border-box; }
         .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
         .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
         .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; }
@@ -43,21 +43,18 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v17.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v18.0</p>
     </div>
-
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
 
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
-        <form id="coach-native-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;" class="custom-form">
+        <div class="custom-form">
             
             <div class="form-group">
                 <label>學員姓名</label>
-                <select id="form-name-select" class="native-select" required>
+                <select id="form-name-select" class="native-select">
                     <option value="">正在載入跑手...</option>
                 </select>
-                <input type="hidden" name="entry.477574654" id="real-entry-name">
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
                 </div>
@@ -65,10 +62,9 @@
 
             <div class="form-group">
                 <label>特訓週數</label>
-                <select id="form-week-select" class="native-select" required>
+                <select id="form-week-select" class="native-select">
                     <option value="">正在載入週數...</option>
                 </select>
-                <input type="hidden" name="entry.1489498214" id="real-entry-week">
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
                 </div>
@@ -77,39 +73,38 @@
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑距離 (km)</label>
-                    <input type="number" name="entry.148761576" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01" required>
+                    <input type="number" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>爬升海拔 (米)</label>
-                    <input type="number" name="entry.1312042737" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
+                    <input type="number" id="form-climb" class="native-input" placeholder="e.g. 2220">
                 </div>
             </div>
             
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑時間</label>
-                    <input type="text" name="entry.1180292056" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                    <input type="text" id="form-time" class="native-input" placeholder="e.g. 06:48:21">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步頻 (spm)</label>
-                    <input type="number" name="entry.1706083544" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
+                    <input type="number" id="form-cadence" class="native-input" placeholder="e.g. 175">
                 </div>
             </div>
 
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>平均心率 (bpm)</label>
-                    <input type="number" name="entry.1835781605" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+                    <input type="number" id="form-hr" class="native-input" placeholder="e.g. 142">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步距 (m)</label>
-                    <input type="number" name="entry.772436490" id="form-stride" class="native-input" placeholder="e.g. 1.15" step="0.01" required>
+                    <input type="number" id="form-stride" class="native-input" placeholder="e.g. 1.15" step="0.01">
                 </div>
             </div>
 
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
-                <input type="hidden" name="entry.1920350515" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
                 <div class="tag-container" id="risk-tags-zone">
                     <div class="multiselect-tag selected" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</div>
                     <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞 (靜止心率偏高、體感重)</div>
@@ -124,7 +119,6 @@
 
             <div class="form-group">
                 <label>環境天氣 (可複選)</label>
-                <input type="hidden" name="entry.1919206278" id="real-entry-weather" value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">
                 <div class="tag-container" id="weather-tags-zone">
                     <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">天氣涼爽舒適</div>
                     <div class="multiselect-tag" data-value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水</div>
@@ -133,7 +127,6 @@
 
             <div class="form-group">
                 <label>補給問題 (可複選)</label>
-                <input type="hidden" name="entry.53803926" id="real-entry-supply" value="正常 (水份、能量膠與食物吸收良好)">
                 <div class="tag-container" id="supply-tags-zone">
                     <div class="multiselect-tag selected" data-value="正常 (水份、能量膠與食物吸收良好)">補給吸收良好</div>
                     <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴、心率偏高)">補水不足</div>
@@ -141,8 +134,8 @@
                 </div>
             </div>
             
-            <button type="submit" id="submit-btn" class="submit-btn">一鍵上傳特訓功課</button>
-        </form>
+            <button onclick="redirectToGoogleForm()" class="submit-btn">進入 Google 安全上傳通道 ➔</button>
+        </div>
     </div>
 
     <div class="card">
@@ -184,37 +177,14 @@
 </div>
 
 <script>
-    var submitted = false; 
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
-
     let allRecords = []; 
 
-    function handleFormSubmitted() {
-        alert('🎉 特訓功課已 100% 成功同步寫入雲端 Excel！');
-        document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
-        document.getElementById('submit-btn').disabled = false;
-        document.getElementById('coach-native-form').reset();
-        
-        document.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
-        document.querySelector('#risk-tags-zone .multiselect-tag').classList.add('selected');
-        document.querySelector('#weather-tags-zone .multiselect-tag').classList.add('selected');
-        document.querySelector('#supply-tags-zone .multiselect-tag').classList.add('selected');
-        
-        document.getElementById('real-entry-risk').value = "良好 (狀態平穩，無傷痛)";
-        document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 室內冷氣 / 體感舒適)";
-        document.getElementById('real-entry-supply').value = "正常 (水份、能量膠與食物吸收良好)";
-        
-        document.getElementById('new-name-zone').style.display = "none";
-        document.getElementById('new-week-zone').style.display = "none";
-        submitted = false;
-        setTimeout(fetchAllData, 1500); 
-    }
-
+    // 多選標籤控制邏輯
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target;
             if (!tag.classList.contains('multiselect-tag')) return;
-
             const val = tag.getAttribute('data-value');
             const isNormal = val.startsWith("良好") || val.startsWith("正常");
 
@@ -227,68 +197,75 @@
                     if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.remove('selected');
                 });
                 tag.classList.toggle('selected');
-
-                const anySelected = container.querySelectorAll('.multiselect-tag.selected').length;
-                if (anySelected === 0) {
+                if (container.querySelectorAll('.multiselect-tag.selected').length === 0) {
                     container.querySelectorAll('.multiselect-tag').forEach(t => {
                         const tv = t.getAttribute('data-value');
                         if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.add('selected');
                     });
                 }
             }
-
-            const selectedVals = [];
-            container.querySelectorAll('.multiselect-tag.selected').forEach(t => selectedVals.push(t.getAttribute('data-value')));
-            const finalStr = selectedVals.join(', ');
-
-            if (container.id === 'risk-tags-zone') document.getElementById('real-entry-risk').value = finalStr;
-            if (container.id === 'weather-tags-zone') document.getElementById('real-entry-weather').value = finalStr;
-            if (container.id === 'supply-tags-zone') document.getElementById('real-entry-supply').value = finalStr;
         });
     });
 
+    function getSelectedTagsString(containerId) {
+        const arr = [];
+        document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => arr.push(t.getAttribute('data-value')));
+        return arr.join(', ');
+    }
+
     function initSelectsWithNewOption() {
         const formNameSelect = document.getElementById('form-name-select');
-        formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
-        formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;" selected>+ 新增跑手...</option>';
+        formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增跑手...</option>';
         document.getElementById('new-name-zone').style.display = "block";
-        document.getElementById('form-name-custom').required = true;
 
         const formWeekSelect = document.getElementById('form-week-select');
-        formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-        formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;" selected>+ 新增週數...</option>';
+        formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增週數...</option>';
         document.getElementById('new-week-zone').style.display = "block";
-        document.getElementById('form-week-custom').required = true;
     }
 
     document.getElementById('form-name-select').addEventListener('change', function(e) {
-        const customZone = document.getElementById('new-name-zone');
-        if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-name-custom').required = true; }
-        else { customZone.style.display = "none"; document.getElementById('form-name-custom').required = false; }
+        document.getElementById('new-name-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
     });
-
     document.getElementById('form-week-select').addEventListener('change', function(e) {
-        const customZone = document.getElementById('new-week-zone');
-        if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-week-custom').required = true; }
-        else { customZone.style.display = "none"; document.getElementById('form-week-custom').required = false; }
+        document.getElementById('new-week-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
     });
 
-    document.getElementById('coach-native-form').addEventListener('submit', function(e) {
-        document.getElementById('submit-btn').innerText = "正在同步傳送...";
-        document.getElementById('submit-btn').disabled = true;
+    // 💡 100% 成功通道：安全跳轉
+    function redirectToGoogleForm() {
+        const nameSelect = document.getElementById('form-name-select').value;
+        const finalName = nameSelect === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : nameSelect;
         
-        const selectName = document.getElementById('form-name-select').value;
-        document.getElementById('real-entry-name').value = selectName === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : selectName;
+        const weekSelect = document.getElementById('form-week-select').value;
+        const finalWeek = weekSelect === "__NEW__" ? document.getElementById('form-week-custom').value.trim() : weekSelect;
         
-        const selectWeek = document.getElementById('form-week-select').value;
-        document.getElementById('real-entry-week').value = selectWeek === "__NEW__" ? document.getElementById('form-week-custom').value.trim() : selectWeek;
-    });
+        const distance = document.getElementById('form-distance').value || "";
+        const climb = document.getElementById('form-climb').value || "";
+        const timeStr = document.getElementById('form-time').value || "";
+        const cadence = document.getElementById('form-cadence').value || "";
+        const hr = document.getElementById('form-hr').value || "";
+        const stride = document.getElementById('form-stride').value || "";
+        
+        const risk = getSelectedTagsString('risk-tags-zone');
+        const weather = getSelectedTagsString('weather-tags-zone');
+        const supply = getSelectedTagsString('supply-tags-zone');
+
+        if(!finalName || !finalWeek) {
+            alert("請填寫姓名與週數！");
+            return;
+        }
+
+        // 建立安全預填官方通道長網址
+        const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform?usp=pp_url";
+        const finalFormUrl = `${baseUrl}&entry.477574654=${encodeURIComponent(finalName)}&entry.1489498214=${encodeURIComponent(finalWeek)}&entry.148761576=${encodeURIComponent(distance)}&entry.1312042737=${encodeURIComponent(climb)}&entry.1180292056=${encodeURIComponent(timeStr)}&entry.1706083544=${encodeURIComponent(cadence)}&entry.1835781605=${encodeURIComponent(hr)}&entry.772436490=${encodeURIComponent(stride)}&entry.1920350515=${encodeURIComponent(risk)}&entry.1919206278=${encodeURIComponent(weather)}&entry.53803926=${encodeURIComponent(supply)}`;
+        
+        // 直接安全開啟
+        window.open(finalFormUrl, '_blank');
+    }
 
     function timeStringToHours(timeStr) {
         if (!timeStr || !timeStr.includes(':')) return 0;
         const parts = timeStr.split(':').map(Number);
         if (parts.length === 3) return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
-        else if (parts.length === 2) return (parts[0] / 60) + (parts[1] / 3600);
         return 0;
     }
 
@@ -313,7 +290,6 @@
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
-                    // 💡 全新 11 題目排位：A0=時間, B1=姓名, C2=週數, D3=距離, E4=時間, F5=步頻, G6=步距, H7=心率, I8=風險, J9=天氣, K10=補給, L11=爬升
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0",
