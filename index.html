@@ -43,13 +43,16 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v9.1 (專業體感修正版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v9.5</p>
     </div>
 
-    <!-- 1. 步驟一：手動回報區 -->
+    <!-- 💡 核心技術：建立一個隱藏的 iframe 接收提交結果，防止頁面跳轉 -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
+
+    <!-- 1. 步驟一：手動回報區（將 target 指向隱藏的 iframe） -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
-        <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/formResponse" method="POST">
+        <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
             
             <div class="form-group">
                 <label>學員姓名</label>
@@ -101,7 +104,6 @@
                 <input type="number" name="entry.753896590" id="form-hr" class="native-input" placeholder="e.g. 142" required>
             </div>
 
-            <!-- 💡 修正：完全對齊 image_7dbd82.png 100% 完整字樣的身體風險多選標籤 -->
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
                 <input type="hidden" name="entry.1697204990" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
@@ -181,9 +183,23 @@
 </div>
 
 <script>
+    var submitted = false; // 控制標記
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
 
     let allRecords = []; 
+
+    // 💡 成功上傳後的背景靜態處理函數
+    function handleFormSubmitted() {
+        alert('🎉 功課已順利成功同步上載至 Google 雲端 Excel！');
+        document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('coach-native-form').reset();
+        document.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
+        document.getElementById('new-name-zone').style.display = "none";
+        document.getElementById('new-week-zone').style.display = "none";
+        submitted = false;
+        setTimeout(fetchAllData, 1500); // 重新讀取雲端更新數據
+    }
 
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
@@ -224,6 +240,9 @@
     });
 
     document.getElementById('coach-native-form').addEventListener('submit', function(e) {
+        document.getElementById('submit-btn').innerText = "正在同步傳送...";
+        document.getElementById('submit-btn').disabled = true;
+        
         const selectName = document.getElementById('form-name-select').value;
         document.getElementById('real-entry-name').value = selectName === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : selectName;
         
@@ -336,7 +355,7 @@
     
     document.getElementById('pwd-input').addEventListener('input', (e) => {
         const val = e.target.value; const currentName = document.getElementById('filter-name').value || "學員"; const currentWeek = document.getElementById('filter-week').value || "當週";
-        if (parseInt(val) + 888 === 2122) { document.getElementById('lock-zone').className = "comment-box unlocked"; document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; document.getElementById('lock-title').style.color = "#00ffcc"; document.getElementById('lock-content').style.color = "#ffffff"; document.getElementById('lock-content').innerText = `對照當週大數據指標與正宗 EPH 推進效率評估，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！`; }
+        if (parseInt(val) + 888 === 2122) { document.getElementById('lock-zone').className = "comment-box unlocked"; document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; document.getElementById('lock-title').style.color = "#00ffcc"; document.getElementById('lock-content').style.color = "#ffffff"; document.getElementById('lock-content').innerText = `對照當週大數據指標與正宗 EPH 推進效率評補，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！`; }
     });
 
     fetchAllData();
