@@ -44,10 +44,9 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢跑團 遠程智慧特訓平台 v6.8</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v7.0</p>
     </div>
 
-    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coach-native-form" class="custom-form">
@@ -75,28 +74,32 @@
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑距離 (km)</label>
-                    <input type="number" id="form-distance" class="native-input" placeholder="e.g. 11" step="0.01" required>
+                    <input type="number" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
-                    <label>長跑時間</label>
-                    <input type="text" id="form-time" class="native-input" placeholder="e.g. 00:15:00" required>
+                    <label>爬升海拔 (米)</label>
+                    <input type="number" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
                 </div>
             </div>
             
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
+                    <label>長跑時間</label>
+                    <input type="text" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
                     <label>平均步頻 (spm)</label>
                     <input type="number" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>平均心率 (bpm)</label>
-                    <input type="number" id="form-hr" class="native-input" placeholder="e.g. 140" required>
-                </div>
             </div>
 
-            <!-- 身體風險多選標籤 -->
             <div class="form-group">
-                <label>身體風險 (可複選體感，點擊切換)</label>
+                <label>平均心率 (bpm)</label>
+                <input type="number" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+            </div>
+
+            <div class="form-group">
+                <label>身體風險 (可複選體感)</label>
                 <div class="tag-container" id="risk-tags-zone">
                     <div class="multiselect-tag" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩)</div>
                     <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞</div>
@@ -109,18 +112,16 @@
                 </div>
             </div>
 
-            <!-- 環境天氣多選標籤 -->
             <div class="form-group">
-                <label>環境天氣 (可複選，點擊切換)</label>
+                <label>環境天氣 (可複選)</label>
                 <div class="tag-container" id="weather-tags-zone">
                     <div class="multiselect-tag" data-value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">天氣涼爽舒適</div>
                     <div class="multiselect-tag" data-value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水</div>
                 </div>
             </div>
 
-            <!-- 補給問題多選標籤 -->
             <div class="form-group">
-                <label>補給問題 (可複選，點擊切換)</label>
+                <label>補給問題 (可複選)</label>
                 <div class="tag-container" id="supply-tags-zone">
                     <div class="multiselect-tag" data-value="正常 (水份、能量膠與食物吸收良好)">補給吸收良好</div>
                     <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴、心率偏高)">補水不足</div>
@@ -132,7 +133,6 @@
         </form>
     </div>
 
-    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (支援歷史重睇)</h2>
         <div class="filter-zone">
@@ -142,7 +142,9 @@
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
         <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請先選取上方篩選</span></div>
+        <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
         <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
+        <div class="data-row" style="color: #00ffcc; font-weight: bold;">攀升折算效率 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
         <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
         <div class="data-row" style="margin-top: 15px;">
             <div>平均心率 <span id="val-hr" class="data-val">--</span></div>
@@ -155,7 +157,6 @@
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
-    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -164,7 +165,7 @@
     <div id="lock-zone" class="comment-box">
         <div id="lock-title" class="comment-title" style="color: #ff4d4d;">🔒 遠程評語尚未解鎖</div>
         <div id="lock-content" class="comment-text" style="color: rgba(255,255,255,0.6);">
-            【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週特訓戰術方針！
+            【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！
         </div>
     </div>
 </div>
@@ -175,6 +176,7 @@
 
     let allRecords = []; 
 
+    // 多選標籤點擊切換
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             if (e.target.classList.contains('multiselect-tag')) {
@@ -239,6 +241,7 @@
         formData.append('entry.1697204990', finalRiskString);       
         formData.append('entry.1437190861', finalWeatherString);
         formData.append('entry.1437190861_supply', finalSupplyString);
+        formData.append('entry.1166663248_climb', document.getElementById('form-climb').value); // 對接新增的第 K 欄爬升
 
         fetch(formSubmitUrl, { method: 'POST', mode: 'no-cors', body: formData }).then(() => {
             alert('🎉 功課上傳成功！');
@@ -250,6 +253,18 @@
             setTimeout(fetchAllData, 1500);
         }).catch(err => { alert('傳送失敗'); btn.disabled = false; });
     });
+
+    // 💡 時間字串轉小時的工具函數 (格式支援 hh:mm:ss 或 h:mm:ss)
+    function timeStringToHours(timeStr) {
+        if (!timeStr || !timeStr.includes(':')) return 0;
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) {
+            return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
+        } else if (parts.length === 2) {
+            return (parts[0] / 60) + (parts[1] / 3600);
+        }
+        return 0;
+    }
 
     async function fetchAllData() {
         try {
@@ -271,10 +286,12 @@
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 5 && row[1]) { 
+                    // 100% 吻合直欄排列：A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10(爬升)
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", 
-                        hr: row[6]||"0", risk: row[7]||"正常", weather: row[8]||"正常", supply: row[9]||"正常" 
+                        hr: row[6]||"0", risk: row[7]||"正常", weather: row[8]||"正常", supply: row[9]||"正常",
+                        climb: row[10] ? row[10].trim() : "0"
                     };
                     allRecords.push(record); names.add(record.name); weeks.add(record.week);
                 }
@@ -308,8 +325,21 @@
         if (matched) {
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--";
             document.getElementById('val-distance').innerText = matched.distance + " km";
+            document.getElementById('val-climb').innerText = matched.climb + " 米";
             document.getElementById('val-time').innerText = matched.time;
             document.getElementById('val-cadence').innerText = matched.cadence + " spm";
+            
+            // 💡 智能核心計算：EPH = (距離 + 攀升/10) / 時間
+            const distNum = parseFloat(matched.distance) || 0;
+            const climbNum = parseFloat(matched.climb) || 0;
+            const hoursNum = timeStringToHours(matched.time);
+            
+            if (hoursNum > 0) {
+                const ephCalc = (distNum + (climbNum / 10)) / hoursNum;
+                document.getElementById('val-eph').innerText = ephCalc.toFixed(2) + " 等效公里/小時";
+            } else {
+                document.getElementById('val-eph').innerText = "--";
+            }
             
             const hrNum = parseInt(matched.hr); document.getElementById('val-hr').innerText = matched.hr + " bpm";
             const hrBar = document.getElementById('hr-bar'); let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%";
@@ -320,7 +350,8 @@
             document.getElementById('val-supply').innerText = matched.supply;
         } else {
             document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
-            document.getElementById('val-time').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
+            document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
+            document.getElementById('val-eph').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
             document.getElementById('val-hr').innerText = "--"; hrBar.style.width = "0%";
             document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
             document.getElementById('val-supply').innerText = "--";
@@ -333,7 +364,7 @@
     const pwdInput = document.getElementById('pwd-input'); const lockZone = document.getElementById('lock-zone'); const lockTitle = document.getElementById('lock-title'); const lockContent = document.getElementById('lock-content');
     pwdInput.addEventListener('input', (e) => {
         const val = e.target.value; const currentName = document.getElementById('filter-name').value || "學員"; const currentWeek = document.getElementById('filter-week').value || "當週";
-        if (parseInt(val) + 888 === 2122) { lockZone.className = "comment-box unlocked"; lockTitle.innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; lockTitle.style.color = "#00ffcc"; lockContent.style.color = "#ffffff"; lockContent.innerText = `對照當週大數據指標，平均步頻與心率運作平穩。目前勾選的體感狀態控制良好，週間維持低耗氧 Zone 2 恢復跑，嚴防過度疲勞！`; }
+        if (parseInt(val) + 888 === 2122) { lockZone.className = "comment-box unlocked"; lockTitle.innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; lockTitle.style.color = "#00ffcc"; lockContent.style.color = "#ffffff"; lockContent.innerText = `對照當週大數據指標與 EPH 效率評估，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！`; }
         else { lockZone.className = "comment-box"; lockTitle.innerText = "🔒 遠程評語尚未解鎖"; lockTitle.style.color = "#ff4d4d"; lockContent.style.color = "rgba(255,255,255,0.6)"; lockContent.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！"; }
     });
 
