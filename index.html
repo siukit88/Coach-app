@@ -1,1 +1,385 @@
-https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform?usp=pp_url&entry.477574654=aa&entry.1489498214=14&entry.772436490=1.15&entry.1312042737=2222
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kit Coach 團隊特訓大數據平台</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: block; text-align: center; color: #ffffff; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; position: relative; box-sizing: border-box; padding-bottom: 40px; text-align: left; }
+        .header { background: #ff3366; padding: 25px 20px; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
+        .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
+        .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
+        .custom-form { display: flex; flex-direction: column; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 13px; color: #aaaaaa; margin-bottom: 4px; }
+        .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; }
+        .native-input:focus, .native-select:focus { border-color: #00ffcc; }
+        
+        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .multiselect-tag { background: #1d1d26; border: 1px solid #555566; padding: 8px 12px; color: #cccccc; font-size: 13px; border-radius: 20px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
+        .multiselect-tag.selected { background: rgba(0, 255, 204, 0.15) !important; border-color: #00ffcc !important; color: #00ffcc !important; font-weight: bold; }
+        
+        .submit-btn { background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; color: #ffffff; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; text-align: center; width: 100%; }
+        .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
+        .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
+        .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; }
+        .data-val { color: #ffffff; font-weight: bold; float: right; text-align: right; max-width: 60%; }
+        .clear { clear: both; }
+        .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
+        .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease, background-color 0.6s ease; }
+        .input-box { background: #16161a; border: 1px solid #ff3366; padding: 10px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; }
+        .comment-box { margin: 15px; padding: 20px; border-radius: 8px; border: 1px solid #ff3366; background: #2d1a1e; }
+        .comment-box.unlocked { border-color: #00ffcc; background: #1b2a22; }
+        .comment-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
+        .comment-text { font-size: 13px; line-height: 1.6; }
+        .hidden-group { display: none; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="header">
+        <h1>Kit Coach 團隊特訓大數據平台</h1>
+        <p>慢慢跑團 遠程智慧特訓平台 v14.0</p>
+    </div>
+
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
+
+    <div class="card">
+        <h2>📝 步驟一：學員功課手動回報</h2>
+        <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
+            
+            <div class="form-group">
+                <label>學員姓名</label>
+                <select id="form-name-select" class="native-select" required>
+                    <option value="">正在載入跑手...</option>
+                </select>
+                <input type="hidden" name="entry.477574654" id="real-entry-name">
+                <div id="new-name-zone" class="hidden-group">
+                    <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>特訓週數</label>
+                <select id="form-week-select" class="native-select" required>
+                    <option value="">正在載入週數...</option>
+                </select>
+                <input type="hidden" name="entry.1489498214" id="real-entry-week">
+                <div id="new-week-zone" class="hidden-group">
+                    <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>長跑距離 (km)</label>
+                    <input type="number" name="entry.1354020960" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>爬升海拔 (米)</label>
+                    <input type="number" name="entry.1166663248" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
+                </div>
+            </div>
+            
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>長跑時間</label>
+                    <input type="text" name="entry.2120014022" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>平均步頻 (spm)</label>
+                    <input type="number" name="entry.753896590" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>平均心率 (bpm)</label>
+                    <input type="number" name="entry.1697204990" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>平均步距 (m)</label>
+                    <input type="number" name="entry.772436490" id="form-stride" class="native-input" placeholder="e.g. 1.15" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>身體風險 (可複選體感)</label>
+                <input type="hidden" name="entry.1437190861" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
+                <div class="tag-container" id="risk-tags-zone">
+                    <div class="multiselect-tag selected" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</div>
+                    <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞 (靜止心率偏高、體感重)</div>
+                    <div class="multiselect-tag" data-value="睡眠不足 (通宵、返工 OT 嚴重缺眠)">睡眠不足 (通宵、返工 OT 嚴重缺眠)</div>
+                    <div class="multiselect-tag" data-value="上山肌力不足 (大腿提早力竭、抽筋)">上山肌力不足 (大腿提早力竭、抽筋)</div>
+                    <div class="multiselect-tag" data-value="落山習慣拗柴 (腳腕穩定度不足)">落山習慣拗柴 (腳腕穩定度不足)</div>
+                    <div class="multiselect-tag" data-value="ITB (膝蓋外側髂脛束發炎刺痛)">ITB (膝蓋外側髂脛束發炎刺痛)</div>
+                    <div class="multiselect-tag" data-value="Achilles (阿基里斯腱發炎緊繃)">Achilles (阿基里斯腱發炎緊繃)</div>
+                    <div class="multiselect-tag" data-value="心理焦慮 (進度落後、賽前焦慮)">心理焦慮 (進度落後、賽前焦慮)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>環境天氣 (可複選)</label>
+                <input type="hidden" name="entry.629396342" id="real-entry-weather" value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">
+                <div class="tag-container" id="weather-tags-zone">
+                    <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">天氣涼爽舒適</div>
+                    <div class="multiselect-tag" data-value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>補給問題 (可複選)</label>
+                <input type="hidden" name="entry.122176466" id="real-entry-supply" value="正常 (水份、能量膠與食物吸收良好)">
+                <div class="tag-container" id="supply-tags-zone">
+                    <div class="multiselect-tag selected" data-value="正常 (水份、能量膠與食物吸收良好)">補給吸收良好</div>
+                    <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴、心率偏高)">補水不足</div>
+                    <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠導致胃酸倒流、反胃)">胃酸脹氣</div>
+                </div>
+            </div>
+            
+            <button type="submit" id="submit-btn" class="submit-btn">一鍵上傳特訓功課</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
+        <div class="filter-zone">
+            <select id="filter-name" class="filter-select"><option value="">選擇跑手...</option></select>
+            <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
+        <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
+        <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請選取上方篩選數據</span></div>
+        <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
+        <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
+        <div class="data-row" style="color: #00ffcc; font-weight: bold;">正宗耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
+        <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
+        <div class="data-row">平均步距 <span id="val-stride" class="data-val">--</span></div>
+        <div class="data-row" style="margin-top: 15px;">
+            <div>平均心率 <span id="val-hr" class="data-val">--</span></div>
+            <div class="clear"></div>
+            <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
+        <div class="data-row">身體風險 <span id="val-risk" class="data-val">--</span></div>
+        <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
+        <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+    </div>
+
+    <div class="card">
+        <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
+        <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
+    </div>
+
+    <div id="lock-zone" class="comment-box">
+        <div id="lock-title" class="comment-title" style="color: #ff4d4d;">🔒 遠程評語尚未解鎖</div>
+        <div id="lock-content" class="comment-text" style="color: rgba(255,255,255,0.6);">
+            【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！
+        </div>
+    </div>
+</div>
+
+<script>
+    var submitted = false; 
+    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
+
+    let allRecords = []; 
+
+    function handleFormSubmitted() {
+        alert('🎉 特訓功課已順利寫入雲端 Excel！');
+        document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('coach-native-form').reset();
+        
+        document.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
+        document.querySelector('#risk-tags-zone .multiselect-tag').classList.add('selected');
+        document.querySelector('#weather-tags-zone .multiselect-tag').classList.add('selected');
+        document.querySelector('#supply-tags-zone .multiselect-tag').classList.add('selected');
+        
+        document.getElementById('real-entry-risk').value = "良好 (狀態平穩，無傷痛)";
+        document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 室內冷氣 / 體感舒適)";
+        document.getElementById('real-entry-supply').value = "正常 (水份、能量膠與食物吸收良好)";
+        
+        document.getElementById('new-name-zone').style.display = "none";
+        document.getElementById('new-week-zone').style.display = "none";
+        submitted = false;
+        setTimeout(fetchAllData, 1500); 
+    }
+
+    document.querySelectorAll('.tag-container').forEach(container => {
+        container.addEventListener('click', function(e) {
+            const tag = e.target;
+            if (!tag.classList.contains('multiselect-tag')) return;
+
+            const val = tag.getAttribute('data-value');
+            const isNormal = val.startsWith("良好") || val.startsWith("正常");
+
+            if (isNormal) {
+                container.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
+                tag.classList.add('selected');
+            } else {
+                container.querySelectorAll('.multiselect-tag').forEach(t => {
+                    const tv = t.getAttribute('data-value');
+                    if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.remove('selected');
+                });
+                tag.classList.toggle('selected');
+
+                const anySelected = container.querySelectorAll('.multiselect-tag.selected').length;
+                if (anySelected === 0) {
+                    container.querySelectorAll('.multiselect-tag').forEach(t => {
+                        const tv = t.getAttribute('data-value');
+                        if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.add('selected');
+                    });
+                }
+            }
+
+            const selectedVals = [];
+            container.querySelectorAll('.multiselect-tag.selected').forEach(t => selectedVals.push(t.getAttribute('data-value')));
+            const finalStr = selectedVals.join(', ');
+
+            if (container.id === 'risk-tags-zone') document.getElementById('real-entry-risk').value = finalStr;
+            if (container.id === 'weather-tags-zone') document.getElementById('real-entry-weather').value = finalStr;
+            if (container.id === 'supply-tags-zone') document.getElementById('real-entry-supply').value = finalStr;
+        });
+    });
+
+    document.getElementById('form-name-select').addEventListener('change', function(e) {
+        const customZone = document.getElementById('new-name-zone');
+        if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-name-custom').required = true; }
+        else { customZone.style.display = "none"; document.getElementById('form-name-custom').required = false; }
+    });
+
+    document.getElementById('form-week-select').addEventListener('change', function(e) {
+        const customZone = document.getElementById('new-week-zone');
+        if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-week-custom').required = true; }
+        else { customZone.style.display = "none"; document.getElementById('form-week-custom').required = false; }
+    });
+
+    document.getElementById('coach-native-form').addEventListener('submit', function(e) {
+        document.getElementById('submit-btn').innerText = "正在同步傳送...";
+        document.getElementById('submit-btn').disabled = true;
+        
+        const selectName = document.getElementById('form-name-select').value;
+        document.getElementById('real-entry-name').value = selectName === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : selectName;
+        
+        const selectWeek = document.getElementById('form-week-select').value;
+        document.getElementById('real-entry-week').value = selectWeek === "__NEW__" ? document.getElementById('form-week-custom').value.trim() : selectWeek;
+    });
+
+    function timeStringToHours(timeStr) {
+        if (!timeStr || !timeStr.includes(':')) return 0;
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
+        else if (parts.length === 2) return (parts[0] / 60) + (parts[1] / 3600);
+        return 0;
+    }
+
+    async function fetchAllData() {
+        try {
+            const response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
+            const data = await response.text();
+            const lines = []; const rawLines = data.split('\n');
+            
+            for (let i = 0; i < rawLines.length; i++) {
+                const text = rawLines[i].trim(); if (!text) continue;
+                let entries = [], insideQuote = false, current = '';
+                for (let j = 0; j < text.length; j++) {
+                    let char = text[j]; if (char === '"') insideQuote = !insideQuote;
+                    else if (char === ',' && !insideQuote) { entries.push(current.replace(/^"|"$/g, '').trim()); current = ''; }
+                    else current += char;
+                }
+                entries.push(current.replace(/^"|"$/g, '').trim()); lines.push(entries);
+            }
+            
+            allRecords = []; let names = new Set(); let weeks = new Set();
+            for(let i = 1; i < lines.length; i++) {
+                let row = lines[i];
+                if(row && row.length > 4 && row[1]) { 
+                    // 💡 對齊全新大數據直欄：A=0(時間戳), B=1(姓名), C=2(週數), D=3(距離), E=4(時間), F=5(步頻), G=6(步距), H=7(心率), I=8(風險), J=9(天氣), K=10(補給), L=11(爬升)
+                    let record = { 
+                        timestamp: row[0]||"--", name: row[1], week: row[2], 
+                        distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0",
+                        hr: row[7]||"0", risk: row[8]||"良好", weather: row[9]||"正常", supply: row[10]||"正常",
+                        climb: row[11] ? row[11].trim() : "0"
+                    };
+                    allRecords.push(record); names.add(record.name); weeks.add(record.week);
+                }
+            }
+
+            const formNameSelect = document.getElementById('form-name-select');
+            formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
+            names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+            formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
+
+            const formWeekSelect = document.getElementById('form-week-select');
+            formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
+
+            const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
+            names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+            const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
+            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            
+            if(allRecords.length > 0) {
+                const last = allRecords[allRecords.length - 1]; 
+                nameSelect.value = last.name; weekSelect.value = last.week; 
+                updateDisplay(last.name, last.week);
+            }
+        } catch (error) { console.error("雲端讀取錯誤：", error); }
+    }
+
+    function updateDisplay(selectedName, selectedWeek) {
+        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--";
+            document.getElementById('val-distance').innerText = matched.distance + " km";
+            document.getElementById('val-climb').innerText = matched.climb + " 米";
+            document.getElementById('val-time').innerText = matched.time;
+            document.getElementById('val-cadence').innerText = matched.cadence + " spm";
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            
+            const distNum = parseFloat(matched.distance) || 0;
+            const climbNum = parseFloat(matched.climb) || 0;
+            const hoursNum = timeStringToHours(matched.time);
+            
+            if (hoursNum > 0) {
+                const epCalc = distNum + (climbNum / 100);
+                const ephCalc = epCalc / hoursNum;
+                document.getElementById('val-eph').innerText = ephCalc.toFixed(2) + " EP/小時";
+            } else {
+                document.getElementById('val-eph').innerText = "--";
+            }
+            
+            const hrNum = parseInt(matched.hr); document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            const hrBar = document.getElementById('hr-bar'); let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%";
+            if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900";
+            
+            document.getElementById('val-risk').innerText = matched.risk; 
+            document.getElementById('val-weather').innerText = matched.weather + " / " + matched.supply;
+        } else {
+            document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
+            document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
+            document.getElementById('val-eph').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
+            document.getElementById('val-stride').innerText = "--";
+            document.getElementById('val-hr').innerText = "--"; document.getElementById('hr-bar').style.width = "0%";
+            document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+    document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+    
+    document.getElementById('pwd-input').addEventListener('input', (e) => {
+        const val = e.target.value; const currentName = document.getElementById('filter-name').value || "學員"; const currentWeek = document.getElementById('filter-week').value || "當週";
+        if (parseInt(val) + 888 === 2122) { document.getElementById('lock-zone').className = "comment-box unlocked"; document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; document.getElementById('lock-title').style.color = "#00ffcc"; document.getElementById('lock-content').style.color = "#ffffff"; document.getElementById('lock-content').innerText = `對照當週大數據指標與正宗 EPH 推進效率評補，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！`; }
+    });
+
+    fetchAllData();
+</script>
+</body>
+</html>
