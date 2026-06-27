@@ -43,11 +43,13 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v11.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v12.0</p>
     </div>
 
+    <!-- 隱藏的安全提交框架 -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
 
+    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
@@ -55,7 +57,7 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select" required>
-                    <option value="">正在讀取歷史跑手...</option>
+                    <option value="">正在載入跑手...</option>
                 </select>
                 <input type="hidden" name="entry.209633346" id="real-entry-name">
                 <div id="new-name-zone" class="hidden-group">
@@ -66,7 +68,7 @@
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select" required>
-                    <option value="">正在讀取歷史週數...</option>
+                    <option value="">正在載入週數...</option>
                 </select>
                 <input type="hidden" name="entry.189445831" id="real-entry-week">
                 <div id="new-week-zone" class="hidden-group">
@@ -118,20 +120,20 @@
 
             <div class="form-group">
                 <label>環境天氣 (可複選)</label>
-                <input type="hidden" name="entry.629396342" id="real-entry-weather" value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">
+                <input type="hidden" name="entry.629396342" id="real-entry-weather" value="正常 (天氣涼爽 / 體感舒適)">
                 <div class="tag-container" id="weather-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">天氣涼爽舒適</div>
-                    <div class="multiselect-tag" data-value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水</div>
+                    <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 體感舒適)">天氣涼爽舒適</div>
+                    <div class="multiselect-tag" data-value="香港高濕脫水">香港高濕脫水</div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>補給問題 (可複選)</label>
-                <input type="hidden" name="entry.122176466" id="real-entry-supply" value="正常 (水份、能量膠與食物吸收良好)">
+                <input type="hidden" name="entry.122176466" id="real-entry-supply" value="正常 (補給吸收良好)">
                 <div class="tag-container" id="supply-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常 (水份、能量膠與食物吸收良好)">補給吸收良好</div>
-                    <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴、心率偏高)">補水不足</div>
-                    <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠導致胃酸倒流、反胃)">胃酸脹氣</div>
+                    <div class="multiselect-tag selected" data-value="正常 (補給吸收良好)">補給吸收良好</div>
+                    <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴)">補水不足</div>
+                    <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠反胃)">胃酸脹氣</div>
                 </div>
             </div>
             
@@ -139,6 +141,7 @@
         </form>
     </div>
 
+    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -163,6 +166,7 @@
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
+    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -178,7 +182,8 @@
 
 <script>
     var submitted = false; 
-    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
+    // 💡 已替換為最新的全文件 CSV 連結
+    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?output=csv";
 
     let allRecords = []; 
 
@@ -194,8 +199,8 @@
         document.querySelector('#supply-tags-zone .multiselect-tag').classList.add('selected');
         
         document.getElementById('real-entry-risk').value = "良好 (狀態平穩，無傷痛)";
-        document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 室內冷氣 / 體感舒適)";
-        document.getElementById('real-entry-supply').value = "正常 (水份、能量膠與食物吸收良好)";
+        document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 體感舒適)";
+        document.getElementById('real-entry-supply').value = "正常 (補給吸收良好)";
         
         document.getElementById('new-name-zone').style.display = "none";
         document.getElementById('new-week-zone').style.display = "none";
@@ -203,7 +208,6 @@
         setTimeout(fetchAllData, 1500); 
     }
 
-    // 💡 100% 驗證修復的標籤點擊著色邏輯
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target;
@@ -292,8 +296,8 @@
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                if(row && row.length > 4 && row[1]) { 
-                    // 💡 對齊你最新 CSV 的 11 欄排位結構
+                // 💡 強固修復：精確對應最新試算表的 11 欄排位索引，並過濾掉可能導致 Crash 的空白行
+                if(row && row.length >= 10 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", 
