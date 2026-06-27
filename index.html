@@ -43,7 +43,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v15.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v16.0</p>
     </div>
 
     <!-- 隱藏的背景提交通道 -->
@@ -52,7 +52,6 @@
     <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
-        <!-- 💡 核心修復：已更換為全新表單的官方接收端網址 -->
         <form id="coach-native-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;" class="custom-form">
             
             <div class="form-group">
@@ -80,10 +79,12 @@
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑距離 (km)</label>
-                    <input type="number" name="entry.1354020960" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01" required>
+                    <!-- 💡 核心修復：精確校正為新表單的距離 ID -->
+                    <input type="number" name="entry.148761576" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>爬升海拔 (米)</label>
+                    <!-- 💡 核心修復：精確校正為新表單的爬升 ID -->
                     <input type="number" name="entry.1312042737" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
                 </div>
             </div>
@@ -106,6 +107,7 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步距 (m)</label>
+                    <!-- 💡 核心修復：精確校正為新表單的步距 ID -->
                     <input type="number" name="entry.772436490" id="form-stride" class="native-input" placeholder="e.g. 1.15" step="0.01" required>
                 </div>
             </div>
@@ -304,6 +306,7 @@
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                    // 💡 對齊直欄：A=0(時間戳), B=1(姓名), C=2(週數), D=3(距離), E=4(時間), F=5(步頻), G=6(步距), H=7(心率), I=8(風險), J=9(天氣), K=10(補給), L=11(爬升)
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0",
@@ -321,13 +324,13 @@
 
             const formWeekSelect = document.getElementById('form-week-select');
             formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
             formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
 
             const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
             names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
             const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
             
             if(allRecords.length > 0) {
                 const last = allRecords[allRecords.length - 1]; 
