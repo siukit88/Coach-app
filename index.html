@@ -44,7 +44,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v7.8 (自訂輸入回歸版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v7.9 (選項全面修復版)</p>
     </div>
 
     <div class="card">
@@ -177,13 +177,12 @@
                         const tv = t.getAttribute('data-value');
                         if (tv.includes("良好") || tv.includes("正常")) t.classList.remove('selected');
                     });
-                    e.target.classList.toggle('selected');
+                    e.target.toggle('selected');
                 }
             }
         });
     });
 
-    // 💡 修正：重新加入下拉選單選擇「+ 新增其他...」時切換顯示手動輸入框的連動 JS
     document.getElementById('form-name-select').addEventListener('change', function(e) {
         const customZone = document.getElementById('new-name-zone');
         if (e.target.value === "__NEW__") { customZone.style.display = "block"; document.getElementById('form-name-custom').required = true; }
@@ -209,7 +208,6 @@
 
         const rawTime = document.getElementById('form-time').value.trim();
         const rawClimb = document.getElementById('form-climb').value.trim();
-        // 💡 雲端穿透技術
         const cloudTimeCompound = `${rawTime}_climb:${rawClimb}`;
 
         const selectedRisks = [];
@@ -290,20 +288,21 @@
                 }
             }
 
+            // 💡 徹底修復：移除錯誤的單引號，確保瀏覽器能完美渲染 HTML
             const formNameSelect = document.getElementById('form-name-select');
             formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
-            names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>'; });
+            names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
             formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
 
             const formWeekSelect = document.getElementById('form-week-select');
             formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
+            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
             formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
 
             const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
-            names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>'; });
+            names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
             const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
+            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
             
             if(allRecords.length > 0) {
                 const last = allRecords[allRecords.length - 1]; 
