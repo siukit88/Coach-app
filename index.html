@@ -43,13 +43,11 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v12.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v13.0</p>
     </div>
 
-    <!-- 隱藏的安全提交框架 -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
 
-    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
@@ -83,29 +81,29 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>爬升海拔 (米)</label>
-                    <input type="number" name="entry.1166663248" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
+                    <input type="number" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
                 </div>
             </div>
             
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑時間</label>
-                    <input type="text" name="entry.2120014022" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                    <input type="text" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步頻 (spm)</label>
-                    <input type="number" name="entry.753896590" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
+                    <input type="number" name="entry.2120014022" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>平均心率 (bpm)</label>
-                <input type="number" name="entry.1697204990" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+                <input type="number" name="entry.753896590" id="form-hr" class="native-input" placeholder="e.g. 142" required>
             </div>
 
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
-                <input type="hidden" name="entry.1437190861" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
+                <input type="hidden" name="entry.1697204990" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
                 <div class="tag-container" id="risk-tags-zone">
                     <div class="multiselect-tag selected" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</div>
                     <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞 (靜止心率偏高、體感重)</div>
@@ -119,29 +117,22 @@
             </div>
 
             <div class="form-group">
-                <label>環境天氣 (可複選)</label>
-                <input type="hidden" name="entry.629396342" id="real-entry-weather" value="正常 (天氣涼爽 / 體感舒適)">
+                <label>環境天氣與補給 (可複選)</label>
+                <input type="hidden" name="entry.1437190861" id="real-entry-weather" value="正常 (天氣涼爽 / 體感舒適)">
                 <div class="tag-container" id="weather-tags-zone">
                     <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 體感舒適)">天氣涼爽舒適</div>
                     <div class="multiselect-tag" data-value="香港高濕脫水">香港高濕脫水</div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>補給問題 (可複選)</label>
-                <input type="hidden" name="entry.122176466" id="real-entry-supply" value="正常 (補給吸收良好)">
-                <div class="tag-container" id="supply-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常 (補給吸收良好)">補給吸收良好</div>
                     <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴)">補水不足</div>
                     <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠反胃)">胃酸脹氣</div>
                 </div>
             </div>
             
+            <input type="hidden" name="entry.1166663248" id="real-entry-time-compound">
+
             <button type="submit" id="submit-btn" class="submit-btn">一鍵上傳特訓功課</button>
         </form>
     </div>
 
-    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -162,11 +153,9 @@
         </div>
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         <div class="data-row">身體風險 <span id="val-risk" class="data-val">--</span></div>
-        <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
-        <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+        <div class="data-row">環境天氣與補給 <span id="val-weather" class="data-val">--</span></div>
     </div>
 
-    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -182,13 +171,12 @@
 
 <script>
     var submitted = false; 
-    // 💡 已替換為最新的全文件 CSV 連結
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?output=csv";
 
     let allRecords = []; 
 
     function handleFormSubmitted() {
-        alert('🎉 特訓功課已成功同步寫入雲端 Excel！看板即將更新！');
+        alert('🎉 特訓功課已 100% 成功同步至雲端 Excel！');
         document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
         document.getElementById('submit-btn').disabled = false;
         document.getElementById('coach-native-form').reset();
@@ -196,11 +184,9 @@
         document.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected'));
         document.querySelector('#risk-tags-zone .multiselect-tag').classList.add('selected');
         document.querySelector('#weather-tags-zone .multiselect-tag').classList.add('selected');
-        document.querySelector('#supply-tags-zone .multiselect-tag').classList.add('selected');
         
         document.getElementById('real-entry-risk').value = "良好 (狀態平穩，無傷痛)";
         document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 體感舒適)";
-        document.getElementById('real-entry-supply').value = "正常 (補給吸收良好)";
         
         document.getElementById('new-name-zone').style.display = "none";
         document.getElementById('new-week-zone').style.display = "none";
@@ -241,7 +227,6 @@
 
             if (container.id === 'risk-tags-zone') document.getElementById('real-entry-risk').value = finalStr;
             if (container.id === 'weather-tags-zone') document.getElementById('real-entry-weather').value = finalStr;
-            if (container.id === 'supply-tags-zone') document.getElementById('real-entry-supply').value = finalStr;
         });
     });
 
@@ -266,11 +251,17 @@
         
         const selectWeek = document.getElementById('form-week-select').value;
         document.getElementById('real-entry-week').value = selectWeek === "__NEW__" ? document.getElementById('form-week-custom').value.trim() : selectWeek;
+
+        // 💡 在背景自動打包：將時間與爬升結合為一個穩定的舊有直欄發送
+        const rawTime = document.getElementById('form-time').value.trim();
+        const rawClimb = document.getElementById('form-climb').value.trim();
+        document.getElementById('real-entry-time-compound').value = `${rawTime} (爬升:${rawClimb}m)`;
     });
 
     function timeStringToHours(timeStr) {
         if (!timeStr || !timeStr.includes(':')) return 0;
-        const parts = timeStr.split(':').map(Number);
+        const cleanTime = timeStr.split(' ')[0];
+        const parts = cleanTime.split(':').map(Number);
         if (parts.length === 3) return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
         else if (parts.length === 2) return (parts[0] / 60) + (parts[1] / 3600);
         return 0;
@@ -296,13 +287,25 @@
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                // 💡 強固修復：精確對應最新試算表的 11 欄排位索引，並過濾掉可能導致 Crash 的空白行
-                if(row && row.length >= 10 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                if(row && row.length >= 5 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                    
+                    // 🧠 智慧數據提取器：完美從時間複合欄位中拆解爬升數值
+                    let rawTimeCell = row[4] || "";
+                    let displayTime = rawTimeCell.split(' ')[0] || "--";
+                    let displayClimb = "0";
+                    
+                    if (rawTimeCell.includes("爬升:")) {
+                        let match = rawTimeCell.match(/爬升:(\d+)/);
+                        if (match && match[1]) displayClimb = match[1];
+                    } else if (row[10]) {
+                        displayClimb = row[10].trim();
+                    }
+
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
-                        distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", 
-                        hr: row[6]||"0", risk: row[7]||"良好", weather: row[8]||"正常", supply: row[9]||"正常",
-                        climb: row[10] ? row[10].trim() : "0"
+                        distance: row[3]||"0", time: displayTime, cadence: row[5]||"0", 
+                        hr: row[6]||"0", risk: row[7]||"良好", weather: row[8]||"正常",
+                        climb: displayClimb
                     };
                     allRecords.push(record); names.add(record.name); weeks.add(record.week);
                 }
@@ -358,14 +361,12 @@
             
             document.getElementById('val-risk').innerText = matched.risk; 
             document.getElementById('val-weather').innerText = matched.weather;
-            document.getElementById('val-supply').innerText = matched.supply;
         } else {
             document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
             document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
             document.getElementById('val-eph').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
             document.getElementById('val-hr').innerText = "--"; document.getElementById('hr-bar').style.width = "0%";
             document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
-            document.getElementById('val-supply').innerText = "--";
         }
     }
 
