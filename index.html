@@ -42,7 +42,6 @@
         <p>毅行者遠程智慧特訓平台 v5.5 (智慧記憶選單版)</p>
     </div>
 
-    <!-- 1. 步驟一：智慧對接歷史跑手，有舊記錄自動秀出 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coach-native-form" class="custom-form">
@@ -52,7 +51,6 @@
                 <select id="form-name-select" class="native-select" required>
                     <option value="">正在讀取歷史跑手...</option>
                 </select>
-                <!-- 隱藏的手動輸入格，當選擇新增跑手時才會彈出 -->
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
                 </div>
@@ -63,7 +61,6 @@
                 <select id="form-week-select" class="native-select" required>
                     <option value="">正在讀取歷史週數...</option>
                 </select>
-                <!-- 隱藏的手動輸入格，當選擇新週數時彈出 -->
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. Week 15">
                 </div>
@@ -113,7 +110,6 @@
         </form>
     </div>
 
-    <!-- 2. 大數據篩選與歷史查看面板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (支援歷史重睇)</h2>
         <div class="filter-zone">
@@ -136,7 +132,6 @@
         <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
     </div>
 
-    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -156,7 +151,6 @@
 
     let allRecords = []; 
 
-    // 監聽步驟一 姓名下拉選單 切換手動輸入邏輯
     document.getElementById('form-name-select').addEventListener('change', function(e) {
         const customZone = document.getElementById('new-name-zone');
         if (e.target.value === "__NEW__") {
@@ -168,7 +162,6 @@
         }
     });
 
-    // 監聽步驟一 週數下拉選單 切換手動輸入邏輯
     document.getElementById('form-week-select').addEventListener('change', function(e) {
         const customZone = document.getElementById('new-week-zone');
         if (e.target.value === "__NEW__") {
@@ -180,13 +173,11 @@
         }
     });
 
-    // 自定義表單提交事件
     document.getElementById('coach-native-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('submit-btn');
         btn.innerText = "正在同步上傳..."; btn.disabled = true;
 
-        // 判定最終提交的名字與週數
         const selectName = document.getElementById('form-name-select').value;
         const finalName = selectName === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : selectName;
         
@@ -214,7 +205,6 @@
         }).catch(err => { alert('傳送失敗'); btn.disabled = false; });
     });
 
-    // 全量數據抓取與安全解析
     async function fetchAllData() {
         try {
             const response = await fetch(googleSheetCsvUrl);
@@ -240,7 +230,6 @@
                 }
             }
 
-            // 【核心改動：同步更新步驟一 的下拉選單】
             const formNameSelect = document.getElementById('form-name-select');
             formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
             names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
@@ -248,10 +237,9 @@
 
             const formWeekSelect = document.getElementById('form-week-select');
             formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+            Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>'; });
             formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
 
-            // 同步更新步驟二 看板選單
             const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
             names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
             const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
