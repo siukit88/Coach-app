@@ -43,16 +43,17 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v14.5</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v15.0</p>
     </div>
 
-    <!-- 隱藏的背景安全提交通道 -->
+    <!-- 隱藏的背景提交通道 -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
 
     <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
-        <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
+        <!-- 💡 核心修復：已更換為全新表單的官方接收端網址 -->
+        <form id="coach-native-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;" class="custom-form">
             
             <div class="form-group">
                 <label>學員姓名</label>
@@ -189,13 +190,12 @@
 
 <script>
     var submitted = false; 
-    // 💡 核心修正：已更換為全新發布的專屬 Excel CSV 數據連結
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
 
     let allRecords = []; 
 
     function handleFormSubmitted() {
-        alert('🎉 特訓功課已 100% 同步寫入全新雲端 Excel！');
+        alert('🎉 特訓功課已 100% 成功同步寫入雲端 Excel！');
         document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
         document.getElementById('submit-btn').disabled = false;
         document.getElementById('coach-native-form').reset();
@@ -237,7 +237,7 @@
                 if (anySelected === 0) {
                     container.querySelectorAll('.multiselect-tag').forEach(t => {
                         const tv = t.getAttribute('data-value');
-                        if (tv.startsWith("良好") || tv.startsWith("正常")) t.add('selected');
+                        if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.add('selected');
                     });
                 }
             }
@@ -304,7 +304,6 @@
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
-                    // 💡 對齊全新大數據直欄：A=0(時間戳), B=1(姓名), C=2(週數), D=3(距離), E=4(時間), F=5(步頻), G=6(步距), H=7(心率), I=8(風險), J=9(天氣), K=10(補給), L=11(爬升)
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0",
