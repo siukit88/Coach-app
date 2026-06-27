@@ -23,8 +23,23 @@
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
         .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
         .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
-        .form-wrapper { width: 100%; height: 450px; border: none; border-radius: 8px; background: #ffffff; overflow: hidden; }
         
+        /* 獨特原生輸入框樣式 (告別 Google Form 罐頭樣) */
+        .custom-form { display: flex; flex-direction: column; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 13px; color: #aaaaaa; }
+        .native-input, .native-select { 
+            background: #16161a; border: 1px solid #ff3366; padding: 10px; 
+            color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box;
+        }
+        .native-input:focus, .native-select:focus { border-color: #00ffcc; }
+        .submit-btn { 
+            background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; 
+            color: #ffffff; padding: 12px; font-size: 16px; font-weight: bold; 
+            border-radius: 6px; cursor: pointer; margin-top: 10px; transition: opacity 0.2s;
+        }
+        .submit-btn:opacity { opacity: 0.9; }
+
         /* 篩選器樣式 */
         .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
         .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
@@ -49,23 +64,75 @@
 <div class="phone-container">
     <div class="header">
         <h1>Ki Coach 特訓大數據平台</h1>
-        <p>毅行者遠程智慧特訓平台 v3.8</p>
+        <p>毅行者遠程智慧特訓平台 v4.0</p>
     </div>
 
     <div class="card">
-        <h2>📝 步驟一：學員功課手動回報</h2>
-        <iframe id="google-form" class="form-wrapper" src="">載入中...</iframe>
+        <h2>📝 步驟一：學員功課手動回報 (極簡跑手風)</h2>
+        <form id="coach-native-form" class="custom-form">
+            <div class="form-group">
+                <label>學員姓名</label>
+                <select id="form-name" class="native-select" required>
+                    <option value="Kit">Kit</option>
+                    <option value="Karis">Karis</option>
+                    <option value="Alex">Alex</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>特訓週數</label>
+                <select id="form-week" class="native-select" required>
+                    <option value="Week 14">Week 14</option>
+                    <option value="Week 15">Week 15</option>
+                    <option value="Week 16">Week 16</option>
+                </select>
+            </div>
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>長跑距離 (km)</label>
+                    <input type="number" id="form-distance" class="native-input" placeholder="e.g. 15" step="0.1" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>長跑時間</label>
+                    <input type="text" id="form-time" class="native-input" placeholder="e.g. 01:20:00" required>
+                </div>
+            </div>
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>平均步頻 (spm)</label>
+                    <input type="number" id="form-cadence" class="native-input" placeholder="e.g. 180" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>平均心率 (bpm)</label>
+                    <input type="number" id="form-hr" class="native-input" placeholder="e.g. 140" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>身體風險</label>
+                <select id="form-risk" class="native-select">
+                    <option value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</option>
+                    <option value="輕微疲勞 (肌肉酸痛)">輕微疲勞 (肌肉酸痛)</option>
+                    <option value="受傷預警 (關節不適)">受傷預警 (關節不適)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>環境天氣</label>
+                <select id="form-weather" class="native-select">
+                    <option value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">正常 (體感舒適)</option>
+                    <option value="炎熱 (高溫暴曬 / 體能消耗極大)">炎熱 (高溫暴曬)</option>
+                    <option value="潮濕下雨 (濕滑環境 / 降溫注意)">潮濕下雨</option>
+                </select>
+            </div>
+            <button type="submit" id="submit-btn" class="submit-btn">一鍵上傳特訓功課</button>
+        </form>
     </div>
 
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (支援歷史重睇)</h2>
-        
         <div class="filter-zone">
             <select id="filter-name" class="filter-select"><option value="">選擇跑手...</option></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
-
         <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
         <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請先選取上方篩選</span></div>
         <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
@@ -94,13 +161,48 @@
 </div>
 
 <script>
-    // 已自動完美綁定你提供的真實連結
-    const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/viewform?embedded=true"; 
+    // 🔗 你的專屬雲端數據鏈接
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
 
-    document.getElementById('google-form').src = googleFormUrl;
+    // 💡 核心技術：背後倒回 Google Form 嘅提交入口
+    const formSubmitUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdV_jDZAewz9DRibVGR4d00JKYSY_HG3H2rqnhs8DP-qbOpgg/formResponse";
 
     let allRecords = []; 
+
+    // 自定義表單提交事件 (隱形發送給 Google Form)
+    document.getElementById('coach-native-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.innerText = "正在同步上傳...";
+        btn.disabled = true;
+
+        // 封裝表單數據 (利用 FormData 對接 Google Form 的 entry IDs)
+        const formData = new FormData();
+        formData.append('entry.209633346', document.getElementById('form-name').value);
+        formData.append('entry.189445831', document.getElementById('form-week').value);
+        formData.append('entry.1354020960', document.getElementById('form-distance').value);
+        formData.append('entry.1166663248', document.getElementById('form-time').value);
+        formData.append('entry.2120014022', document.getElementById('form-cadence').value);
+        formData.append('entry.753896590', document.getElementById('form-hr').value);
+        formData.append('entry.1697204990', document.getElementById('form-risk').value);
+        formData.append('entry.1437190861', document.getElementById('form-weather').value);
+
+        // 使用 no-cors 模式跨域發送
+        fetch(formSubmitUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: formData
+        }).then(() => {
+            alert('🎉 功課上傳成功！數據已同步至教練後台。');
+            btn.innerText = "一鍵上傳特訓功課";
+            btn.disabled = false;
+            // 重新刷新歷史看板
+            setTimeout(fetchAllData, 1500);
+        }).catch(err => {
+            alert('傳送失敗，請檢查網路。');
+            btn.disabled = false;
+        });
+    });
 
     // 全量數據抓取與安全解析邏輯
     async function fetchAllData() {
@@ -108,29 +210,17 @@
             const response = await fetch(googleSheetCsvUrl);
             const data = await response.text();
             
-            // 使用進階正規表達式安全解析 CSV，防止多選題引號內的逗號導致數據錯位
             const lines = [];
             const rawLines = data.split('\n');
-            
             for (let i = 0; i < rawLines.length; i++) {
                 const text = rawLines[i].trim();
                 if (!text) continue;
-                
-                const row = [];
-                let insideQuote = false;
-                let entries = [];
-                let current = '';
-                
+                let row = [], insideQuote = false, entries = [], current = '';
                 for (let j = 0; j < text.length; j++) {
                     let char = text[j];
-                    if (char === '"') {
-                        insideQuote = !insideQuote;
-                    } else if (char === ',' && !insideQuote) {
-                        entries.push(current.replace(/^"|"$/g, '').trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
+                    if (char === '"') insideQuote = !insideQuote;
+                    else if (char === ',' && !insideQuote) { entries.push(current.replace(/^"|"$/g, '').trim()); current = ''; }
+                    else current += char;
                 }
                 entries.push(current.replace(/^"|"$/g, '').trim());
                 lines.push(entries);
@@ -140,20 +230,13 @@
             let names = new Set();
             let weeks = new Set();
 
-            // 循環讀取每列 (i=1 跳過表頭)
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 5 && row[1]) { 
                     let record = {
-                        timestamp: row[0] || "--",     // A: 時間戳記
-                        name: row[1] || "--",          // B: 學員姓名
-                        week: row[2] || "Week 14",     // C: 特訓週數
-                        distance: row[3] || "0",       // D: 長跑距離
-                        time: row[4] || "--",          // E: 長跑時間
-                        cadence: row[5] || "0",        // F: 平均步頻
-                        hr: row[6] || "0",             // G: 平均心率
-                        risk: row[7] || "正常",        // H: 身體風險
-                        weather: row[8] || "正常"       // I: 環境天氣
+                        timestamp: row[0] || "--", name: row[1] || "--", week: row[2] || "Week 14",
+                        distance: row[3] || "0", time: row[4] || "--", cadence: row[5] || "0",
+                        hr: row[6] || "0", risk: row[7] || "正常", weather: row[8] || "正常"
                     };
                     allRecords.push(record);
                     names.add(record.name);
@@ -161,7 +244,6 @@
                 }
             }
 
-            // 生成下拉選單
             const nameSelect = document.getElementById('filter-name');
             nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
             names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
@@ -170,75 +252,47 @@
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
 
-            // 預設全自動選取最新一筆提交紀錄
             if(allRecords.length > 0) {
                 const last = allRecords[allRecords.length - 1];
                 nameSelect.value = last.name;
                 weekSelect.value = last.week;
                 updateDisplay(last.name, last.week);
             }
-
-        } catch (error) {
-            console.error("數據加載失敗:", error);
-        }
+        } catch (error) { console.error("數據加載失敗:", error); }
     }
 
-    // 核心數據重新對位刷新
     function updateDisplay(selectedName, selectedWeek) {
         const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
-        
         if (matched) {
-            // 解析並只顯示日期部分
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--";
             document.getElementById('val-distance').innerText = matched.distance + " km";
             document.getElementById('val-time').innerText = matched.time;
-            
-            // 步頻高於 180 顯示綠色高效剔號
             const cadNum = parseInt(matched.cadence);
             if(cadNum >= 180) {
                 document.getElementById('val-cadence').innerHTML = `${matched.cadence} spm <span style="color:#00ffcc; font-size:12px;">(✓ 高效)</span>`;
-            } else {
-                document.getElementById('val-cadence').innerText = matched.cadence + " spm";
-            }
+            } else { document.getElementById('val-cadence').innerText = matched.cadence + " spm"; }
             
-            // 心率條百分比 (滿分 200)
             const hrNum = parseInt(matched.hr);
             document.getElementById('val-hr').innerText = matched.hr + " bpm";
             const hrBar = document.getElementById('hr-bar');
-            
             let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
             hrBar.style.width = pct + "%";
-            
-            // Zone 2 內耗顏色判定
-            if(hrNum <= 145) {
-                hrBar.style.backgroundColor = "#00ffcc";
-            } else {
-                hrBar.style.backgroundColor = "#ff9900";
-            }
+            if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc";
+            else hrBar.style.backgroundColor = "#ff9900";
             
             document.getElementById('val-risk').innerText = matched.risk;
             document.getElementById('val-weather').innerText = matched.weather;
         } else {
-            document.getElementById('val-date').innerText = "--";
-            document.getElementById('val-distance').innerText = "無歷史紀錄";
-            document.getElementById('val-time').innerText = "--";
-            document.getElementById('val-cadence').innerText = "--";
-            document.getElementById('val-hr').innerText = "--";
-            document.getElementById('hr-bar').style.width = "0%";
-            document.getElementById('val-risk').innerText = "--";
-            document.getElementById('val-weather').innerText = "--";
+            document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
+            document.getElementById('val-time').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
+            document.getElementById('val-hr').innerText = "--"; hrBar.style.width = "0%";
+            document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
         }
     }
 
-    // 監聽下拉選單
-    document.getElementById('filter-name').addEventListener('change', (e) => {
-        updateDisplay(e.target.value, document.getElementById('filter-week').value);
-    });
-    document.getElementById('filter-week').addEventListener('change', (e) => {
-        updateDisplay(document.getElementById('filter-name').value, e.target.value);
-    });
+    document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+    document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
 
-    // 密碼解鎖評語邏輯 (密碼 1234)
     const pwdInput = document.getElementById('pwd-input');
     const lockZone = document.getElementById('lock-zone');
     const lockTitle = document.getElementById('lock-title');
@@ -248,23 +302,17 @@
         const val = e.target.value;
         const currentName = document.getElementById('filter-name').value || "學員";
         const currentWeek = document.getElementById('filter-week').value || "當週";
-
         if (parseInt(val) + 888 === 2122) { 
             lockZone.className = "comment-box unlocked";
             lockTitle.innerText = `🔓 Ki Coach 對 [${currentName}] ${currentWeek} 戰術方針：`;
-            lockTitle.style.color = "#00ffcc";
-            lockContent.style.color = "#ffffff";
+            lockTitle.style.color = "#00ffcc"; lockContent.style.color = "#ffffff";
             lockContent.innerText = `根據 ${currentName} 在 ${currentWeek} 提交的歷史指標，平均步頻與心率表現十分穩定，合乎毅行者低內耗配速戰術。目前傷痛風險控制良好。下週拉量期繼續加碼，請督促隊員密切監測夜間靜止心率，嚴防過度疲勞！`;
         } else {
-            lockZone.className = "comment-box";
-            lockTitle.innerText = "🔒 遠程評語尚未解鎖";
-            lockTitle.style.color = "#ff4d4d";
-            lockContent.style.color = "rgba(255,255,255,0.6)";
-            lockContent.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週毅行者核心特訓戰術方針！";
+            lockZone.className = "comment-box"; lockTitle.innerText = "🔒 遠程評語尚未解鎖"; lockTitle.style.color = "#ff4d4d";
+            lockContent.style.color = "rgba(255,255,255,0.6)"; lockContent.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週毅行者核心特訓戰術方針！";
         }
     });
 
-    // 啟動全量大數據加載
     fetchAllData();
 </script>
 
