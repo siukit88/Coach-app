@@ -43,7 +43,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v16.5</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v17.0</p>
     </div>
 
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
@@ -55,7 +55,7 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select" required>
-                    <option value="">載入中...</option>
+                    <option value="">正在載入跑手...</option>
                 </select>
                 <input type="hidden" name="entry.477574654" id="real-entry-name">
                 <div id="new-name-zone" class="hidden-group">
@@ -66,7 +66,7 @@
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select" required>
-                    <option value="">載入中...</option>
+                    <option value="">正在載入週數...</option>
                 </select>
                 <input type="hidden" name="entry.1489498214" id="real-entry-week">
                 <div id="new-week-zone" class="hidden-group">
@@ -88,18 +88,18 @@
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑時間</label>
-                    <input type="text" name="entry.2120014022" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                    <input type="text" name="entry.1180292056" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步頻 (spm)</label>
-                    <input type="number" name="entry.753896590" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
+                    <input type="number" name="entry.1706083544" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
                 </div>
             </div>
 
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>平均心率 (bpm)</label>
-                    <input type="number" name="entry.1697204990" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+                    <input type="number" name="entry.1835781605" id="form-hr" class="native-input" placeholder="e.g. 142" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步距 (m)</label>
@@ -109,7 +109,7 @@
 
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
-                <input type="hidden" name="entry.1437190861" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
+                <input type="hidden" name="entry.1920350515" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
                 <div class="tag-container" id="risk-tags-zone">
                     <div class="multiselect-tag selected" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</div>
                     <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞 (靜止心率偏高、體感重)</div>
@@ -124,7 +124,7 @@
 
             <div class="form-group">
                 <label>環境天氣 (可複選)</label>
-                <input type="hidden" name="entry.629396342" id="real-entry-weather" value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">
+                <input type="hidden" name="entry.1919206278" id="real-entry-weather" value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">
                 <div class="tag-container" id="weather-tags-zone">
                     <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">天氣涼爽舒適</div>
                     <div class="multiselect-tag" data-value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水</div>
@@ -133,7 +133,7 @@
 
             <div class="form-group">
                 <label>補給問題 (可複選)</label>
-                <input type="hidden" name="entry.122176466" id="real-entry-supply" value="正常 (水份、能量膠與食物吸收良好)">
+                <input type="hidden" name="entry.53803926" id="real-entry-supply" value="正常 (水份、能量膠與食物吸收良好)">
                 <div class="tag-container" id="supply-tags-zone">
                     <div class="multiselect-tag selected" data-value="正常 (水份、能量膠與食物吸收良好)">補給吸收良好</div>
                     <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴、心率偏高)">補水不足</div>
@@ -312,8 +312,8 @@
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                // 💡 強固防呆：全面防禦 Undefined 空行引起的崩潰
-                if(row && row.length >= 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                    // 💡 全新 11 題目排位：A0=時間, B1=姓名, C2=週數, D3=距離, E4=時間, F5=步頻, G6=步距, H7=心率, I8=風險, J9=天氣, K10=補給, L11=爬升
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0",
@@ -324,7 +324,6 @@
                 }
             }
 
-            // 💡 零數據乾淨表格安全初始化
             if (names.size === 0) {
                 initSelectsWithNewOption();
                 return;
