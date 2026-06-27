@@ -43,7 +43,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v18.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v19.0</p>
     </div>
 
     <div class="card">
@@ -207,10 +207,13 @@
         });
     });
 
-    function getSelectedTagsString(containerId) {
+    // 💡 關鍵修復：將選中的多個項目，建立成重複 ID 的陣列
+    function getSelectedTagsArray(containerId) {
         const arr = [];
-        document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => arr.push(t.getAttribute('data-value')));
-        return arr.join(', ');
+        document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => {
+            arr.push(t.getAttribute('data-value'));
+        });
+        return arr;
     }
 
     function initSelectsWithNewOption() {
@@ -244,21 +247,36 @@
         const cadence = document.getElementById('form-cadence').value || "";
         const hr = document.getElementById('form-hr').value || "";
         const stride = document.getElementById('form-stride').value || "";
-        
-        const risk = getSelectedTagsString('risk-tags-zone');
-        const weather = getSelectedTagsString('weather-tags-zone');
-        const supply = getSelectedTagsString('supply-tags-zone');
 
         if(!finalName || !finalWeek) {
             alert("請填寫姓名與週數！");
             return;
         }
 
-        // 建立安全預填官方通道長網址
-        const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform?usp=pp_url";
-        const finalFormUrl = `${baseUrl}&entry.477574654=${encodeURIComponent(finalName)}&entry.1489498214=${encodeURIComponent(finalWeek)}&entry.148761576=${encodeURIComponent(distance)}&entry.1312042737=${encodeURIComponent(climb)}&entry.1180292056=${encodeURIComponent(timeStr)}&entry.1706083544=${encodeURIComponent(cadence)}&entry.1835781605=${encodeURIComponent(hr)}&entry.772436490=${encodeURIComponent(stride)}&entry.1920350515=${encodeURIComponent(risk)}&entry.1919206278=${encodeURIComponent(weather)}&entry.53803926=${encodeURIComponent(supply)}`;
+        // 建立基本 URL
+        let finalFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform?usp=pp_url";
         
-        // 直接安全開啟
+        // 填入常規單選/輸入欄位
+        finalFormUrl += `&entry.477574654=${encodeURIComponent(finalName)}`;
+        finalFormUrl += `&entry.1489498214=${encodeURIComponent(finalWeek)}`;
+        finalFormUrl += `&entry.148761576=${encodeURIComponent(distance)}`;
+        finalFormUrl += `&entry.1312042737=${encodeURIComponent(climb)}`;
+        finalFormUrl += `&entry.1180292056=${encodeURIComponent(timeStr)}`;
+        finalFormUrl += `&entry.1706083544=${encodeURIComponent(cadence)}`;
+        finalFormUrl += `&entry.1835781605=${encodeURIComponent(hr)}`;
+        finalFormUrl += `&entry.772436490=${encodeURIComponent(stride)}`;
+        
+        // 💡 複選題專用建立邏輯：重複 Entry ID
+        const risks = getSelectedTagsArray('risk-tags-zone');
+        risks.forEach(val => { finalFormUrl += `&entry.1920350515=${encodeURIComponent(val)}`; });
+
+        const weathers = getSelectedTagsArray('weather-tags-zone');
+        weathers.forEach(val => { finalFormUrl += `&entry.1919206278=${encodeURIComponent(val)}`; });
+
+        const supplies = getSelectedTagsArray('supply-tags-zone');
+        supplies.forEach(val => { finalFormUrl += `&entry.53803926=${encodeURIComponent(val)}`; });
+        
+        // 100% 官方無阻擋安全打開
         window.open(finalFormUrl, '_blank');
     }
 
