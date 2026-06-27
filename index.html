@@ -39,9 +39,10 @@
 <div class="phone-container">
     <div class="header">
         <h1>Ki Coach 團隊特訓大數據平台</h1>
-        <p>毅行者遠程智慧特訓平台 v5.5 (智慧記憶選單版)</p>
+        <p>毅行者遠程智慧特訓平台 v5.8 (無刪減專業指標版)</p>
     </div>
 
+    <!-- 1. 步驟一：手動回報區（完整導入你的專業選項） -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coach-native-form" class="custom-form">
@@ -90,26 +91,39 @@
                 <label>平均心率 (bpm)</label>
                 <input type="number" id="form-hr" class="native-input" placeholder="e.g. 142" required>
             </div>
+
+            <!-- 💡 根據 image_7c58ab.png 100% 完整填入的身體風險 -->
             <div class="form-group">
                 <label>身體風險 (複選體感)</label>
                 <select id="form-risk" class="native-select">
                     <option value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</option>
-                    <option value="輕微疲勞 (肌肉酸痛)">輕微疲勞 (肌肉酸痛)</option>
+                    <option value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞 (靜止心率偏高、體感重)</option>
+                    <option value="睡眠不足 (通宵、返工 OT 嚴重缺眠)">睡眠不足 (通宵、返工 OT 嚴重缺眠)</option>
+                    <option value="上山肌力不足 (大腿提早力竭、抽筋)">上山肌力不足 (大腿提早力竭、抽筋)</option>
+                    <option value="落山習慣拗柴 (腳腕穩定度不足)">落山習慣拗柴 (腳腕穩定度不足)</option>
+                    <option value="ITB (膝蓋外側髂脛束發炎刺痛)">ITB (膝蓋外側髂脛束發炎刺痛)</option>
+                    <option value="Achilles (阿基里斯腱發炎緊繃)">Achilles (阿基里斯腱發炎緊繃)</option>
                     <option value="心理焦慮 (進度落後、賽前焦慮)">心理焦慮 (進度落後、賽前焦慮)</option>
                 </select>
             </div>
+
+            <!-- 💡 根據 image_7c58ab.png 100% 完整填入的天氣與補給狀態 -->
             <div class="form-group">
-                <label>環境天氣</label>
+                <label>環境天氣與補給</label>
                 <select id="form-weather" class="native-select">
-                    <option value="正常 (天氣涼爽 / 體感舒適)">正常 (天氣涼爽 / 體感舒適)</option>
-                    <option value="炎熱 (高溫暴曬 / 體能消耗極大)">炎熱 (高溫暴曬 / 體能消耗極大)</option>
-                    <option value="潮濕下雨 (濕滑環境 / 降溫注意)">潮濕下雨 (濕滑環境 / 降溫注意)</option>
+                    <option value="正常 (天氣涼爽 / 原始冷氣 / 體感舒適)">正常 (天氣涼爽 / 體感舒適)</option>
+                    <option value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)</option>
+                    <option value="正常 (水份、能量膠與食物吸收良好)">正常 (水份、能量膠與食物吸收良好)</option>
+                    <option value="補水不足 (出現明顯口渴、心率偏高)">補水不足 (出現明顯口渴、心率偏高)</option>
+                    <option value="胃酸脹氣 (吃高碳水膠導致胃酸倒流、反胃)">胃酸脹氣 (吃高碳水膠導致胃酸倒流、反胃)</option>
                 </select>
             </div>
+            
             <button type="submit" id="submit-btn" class="submit-btn">一鍵上傳特訓功課</button>
         </form>
     </div>
 
+    <!-- 2. 智慧數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (支援歷史重睇)</h2>
         <div class="filter-zone">
@@ -132,6 +146,7 @@
         <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
     </div>
 
+    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
