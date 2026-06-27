@@ -43,11 +43,13 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v14.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v14.5</p>
     </div>
 
+    <!-- 隱藏的背景安全提交通道 -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
 
+    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coach-native-form" class="custom-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
@@ -81,7 +83,7 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>爬升海拔 (米)</label>
-                    <input type="number" name="entry.1166663248" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
+                    <input type="number" name="entry.1312042737" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
                 </div>
             </div>
             
@@ -145,6 +147,7 @@
         </form>
     </div>
 
+    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -170,6 +173,7 @@
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
+    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -185,12 +189,13 @@
 
 <script>
     var submitted = false; 
-    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0ExUDp5FdOBZXnrLXb1t7cRAsYARjjKuaZscM3KdhhW24oqsSKuGMDHf4dYqT3jknHGYxM3oTPLNf/pub?gid=586498673&single=true&output=csv";
+    // 💡 核心修正：已更換為全新發布的專屬 Excel CSV 數據連結
+    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
 
     let allRecords = []; 
 
     function handleFormSubmitted() {
-        alert('🎉 特訓功課已順利寫入雲端 Excel！');
+        alert('🎉 特訓功課已 100% 同步寫入全新雲端 Excel！');
         document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
         document.getElementById('submit-btn').disabled = false;
         document.getElementById('coach-native-form').reset();
@@ -232,7 +237,7 @@
                 if (anySelected === 0) {
                     container.querySelectorAll('.multiselect-tag').forEach(t => {
                         const tv = t.getAttribute('data-value');
-                        if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.add('selected');
+                        if (tv.startsWith("良好") || tv.startsWith("正常")) t.add('selected');
                     });
                 }
             }
@@ -298,7 +303,7 @@
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                if(row && row.length > 4 && row[1]) { 
+                if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
                     // 💡 對齊全新大數據直欄：A=0(時間戳), B=1(姓名), C=2(週數), D=3(距離), E=4(時間), F=5(步頻), G=6(步距), H=7(心率), I=8(風險), J=9(天氣), K=10(補給), L=11(爬升)
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
@@ -360,7 +365,8 @@
             if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900";
             
             document.getElementById('val-risk').innerText = matched.risk; 
-            document.getElementById('val-weather').innerText = matched.weather + " / " + matched.supply;
+            document.getElementById('val-weather').innerText = matched.weather;
+            document.getElementById('val-supply').innerText = matched.supply;
         } else {
             document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
             document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
@@ -368,6 +374,7 @@
             document.getElementById('val-stride').innerText = "--";
             document.getElementById('val-hr').innerText = "--"; document.getElementById('hr-bar').style.width = "0%";
             document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
+            document.getElementById('val-supply').innerText = "--";
         }
     }
 
