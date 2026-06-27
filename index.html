@@ -41,14 +41,16 @@
 </head>
 <body>
 
+<!-- 幕後上傳隱形通道 -->
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){onUploadSuccess();}"></iframe>
 
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v20.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v21.0</p>
     </div>
 
+    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         <form id="coachForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" class="custom-form">
@@ -146,6 +148,7 @@
         </form>
     </div>
 
+    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -171,6 +174,7 @@
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
+    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -216,7 +220,34 @@
         });
     });
 
-    // 💡 直傳提交核心邏輯：動態組裝符合 Google Form 規範的多選一體化表單
+    function getSelectedTagsArray(containerId) {
+        const arr = [];
+        document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => {
+            arr.push(t.getAttribute('data-value'));
+        });
+        return arr;
+    }
+
+    // 💡 核心修復一：將初始化數值完全還原為代碼統一的 "__NEW__" 機制，保證對照完全吻合
+    function initSelectsWithNewOption() {
+        const formNameSelect = document.getElementById('form-name-select');
+        formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他跑手...</option>';
+        document.getElementById('new-name-zone').style.display = "block";
+
+        const formWeekSelect = document.getElementById('form-week-select');
+        formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他週數...</option>';
+        document.getElementById('new-week-zone').style.display = "block";
+    }
+
+    // 💡 核心修復二：物理精準綁定監聽器與文字輸入框的觸發機制
+    document.getElementById('form-name-select').addEventListener('change', function(e) {
+        document.getElementById('new-name-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
+    });
+    document.getElementById('form-week-select').addEventListener('change', function(e) {
+        document.getElementById('new-week-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
+    });
+
+    // 直傳提交邏輯
     function submitDataDirectly() {
         const nameSelect = document.getElementById('form-name-select').value;
         const finalName = nameSelect === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : nameSelect;
@@ -229,47 +260,38 @@
             return;
         }
 
-        // 填入隱藏的單選數據
         document.getElementById('google-name').value = finalName;
         document.getElementById('google-week').value = finalWeek;
 
-        // 1. 動態建立身體風險多選格子
+        // 建立符合 Google 規範的物理獨立多選節點
         const riskContainer = document.getElementById('google-risk-inputs');
         riskContainer.innerHTML = '';
         document.querySelectorAll('#risk-tags-zone .multiselect-tag.selected').forEach(t => {
-            const val = t.getAttribute('data-value');
-            riskContainer.innerHTML += `<input type="hidden" name="entry.1920350515" value="${val}">`;
+            riskContainer.innerHTML += `<input type="hidden" name="entry.1920350515" value="${t.getAttribute('data-value')}">`;
         });
 
-        // 2. 動態建立環境天氣多選格子
         const weatherContainer = document.getElementById('google-weather-inputs');
         weatherContainer.innerHTML = '';
         document.querySelectorAll('#weather-tags-zone .multiselect-tag.selected').forEach(t => {
-            const val = t.getAttribute('data-value');
-            weatherContainer.innerHTML += `<input type="hidden" name="entry.1919206278" value="${val}">`;
+            weatherContainer.innerHTML += `<input type="hidden" name="entry.1919206278" value="${t.getAttribute('data-value')}">`;
         });
 
-        // 3. 動態建立補給問題多選格子
         const supplyContainer = document.getElementById('google-supply-inputs');
         supplyContainer.innerHTML = '';
         document.querySelectorAll('#supply-tags-zone .multiselect-tag.selected').forEach(t => {
-            const val = t.getAttribute('data-value');
-            supplyContainer.innerHTML += `<input type="hidden" name="entry.53803926" value="${val}">`;
+            supplyContainer.innerHTML += `<input type="hidden" name="entry.53803926" value="${t.getAttribute('data-value')}">`;
         });
 
-        // 執行幕後發送
         submitted = true;
         document.getElementById('submitBtnText').innerText = "正在傳輸至雲端 Excel...";
         document.getElementById('coachForm').submit();
     }
 
-    // 當隱藏通道完成傳輸時執行
     function onUploadSuccess() {
         const btn = document.getElementById('submitBtnText');
         btn.className = "submit-btn success";
         btn.innerText = "✅ 功課已成功上傳 Excel！";
         
-        // 3秒後重新載入看板數據，讓學員看到自己剛剛填的結果
         setTimeout(() => {
             btn.className = "submit-btn";
             btn.innerText = "確認並直接提交上傳 ➔";
