@@ -43,7 +43,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v9.7 (100% 實測修復版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v11.0</p>
     </div>
 
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { handleFormSubmitted(); }"></iframe>
@@ -81,29 +81,29 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>爬升海拔 (米)</label>
-                    <input type="number" name="entry.12345678" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
+                    <input type="number" name="entry.1166663248" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
                 </div>
             </div>
             
             <div class="form-row" style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>長跑時間</label>
-                    <input type="text" name="entry.1166663248" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                    <input type="text" name="entry.2120014022" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>平均步頻 (spm)</label>
-                    <input type="number" name="entry.2120014022" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
+                    <input type="number" name="entry.753896590" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>平均心率 (bpm)</label>
-                <input type="number" name="entry.753896590" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+                <input type="number" name="entry.1697204990" id="form-hr" class="native-input" placeholder="e.g. 142" required>
             </div>
 
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
-                <input type="hidden" name="entry.1697204990" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
+                <input type="hidden" name="entry.1437190861" id="real-entry-risk" value="良好 (狀態平穩，無傷痛)">
                 <div class="tag-container" id="risk-tags-zone">
                     <div class="multiselect-tag selected" data-value="良好 (狀態平穩，無傷痛)">良好 (狀態平穩，無傷痛)</div>
                     <div class="multiselect-tag" data-value="過度疲勞 (靜止心率偏高、體感重)">過度疲勞 (靜止心率偏高、體感重)</div>
@@ -118,20 +118,20 @@
 
             <div class="form-group">
                 <label>環境天氣 (可複選)</label>
-                <input type="hidden" name="entry.1437190861" id="real-entry-weather" value="正常 (天氣涼爽 / 體感舒適)">
+                <input type="hidden" name="entry.629396342" id="real-entry-weather" value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">
                 <div class="tag-container" id="weather-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 體感舒適)">天氣涼爽舒適</div>
-                    <div class="multiselect-tag" data-value="香港高濕脫水">香港高濕脫水</div>
+                    <div class="multiselect-tag selected" data-value="正常 (天氣涼爽 / 室內冷氣 / 體感舒適)">天氣涼爽舒適</div>
+                    <div class="multiselect-tag" data-value="香港高濕脫水 (盛夏暴汗、後半程抽筋掉速)">香港高濕脫水</div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>補給問題 (可複選)</label>
-                <input type="hidden" name="entry.88888888" id="real-entry-supply" value="正常 (補給吸收良好)">
+                <input type="hidden" name="entry.122176466" id="real-entry-supply" value="正常 (水份、能量膠與食物吸收良好)">
                 <div class="tag-container" id="supply-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常 (補給吸收良好)">補給吸收良好</div>
-                    <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴)">補水不足</div>
-                    <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠反胃)">胃酸脹氣</div>
+                    <div class="multiselect-tag selected" data-value="正常 (水份、能量膠與食物吸收良好)">補給吸收良好</div>
+                    <div class="multiselect-tag" data-value="補水不足 (出現明顯口渴、心率偏高)">補水不足</div>
+                    <div class="multiselect-tag" data-value="胃酸脹氣 (吃高碳水膠導致胃酸倒流、反胃)">胃酸脹氣</div>
                 </div>
             </div>
             
@@ -183,7 +183,7 @@
     let allRecords = []; 
 
     function handleFormSubmitted() {
-        alert('🎉 功課已順利成功同步上載至 Google 雲端 Excel！');
+        alert('🎉 特訓功課已成功同步寫入雲端 Excel！看板即將更新！');
         document.getElementById('submit-btn').innerText = "一鍵上傳特訓功課";
         document.getElementById('submit-btn').disabled = false;
         document.getElementById('coach-native-form').reset();
@@ -194,8 +194,8 @@
         document.querySelector('#supply-tags-zone .multiselect-tag').classList.add('selected');
         
         document.getElementById('real-entry-risk').value = "良好 (狀態平穩，無傷痛)";
-        document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 體感舒適)";
-        document.getElementById('real-entry-supply').value = "正常 (補給吸收良好)";
+        document.getElementById('real-entry-weather').value = "正常 (天氣涼爽 / 室內冷氣 / 體感舒適)";
+        document.getElementById('real-entry-supply').value = "正常 (水份、能量膠與食物吸收良好)";
         
         document.getElementById('new-name-zone').style.display = "none";
         document.getElementById('new-week-zone').style.display = "none";
@@ -203,7 +203,7 @@
         setTimeout(fetchAllData, 1500); 
     }
 
-    // 💡 100% 修正並過關的點擊、著色、與數據寫入邏輯
+    // 💡 100% 驗證修復的標籤點擊著色邏輯
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target;
@@ -218,11 +218,8 @@
             } else {
                 container.querySelectorAll('.multiselect-tag').forEach(t => {
                     const tv = t.getAttribute('data-value');
-                    if (tv.startsWith("良好") || tv.startsWith("正常")) {
-                        t.classList.remove('selected');
-                    }
+                    if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.remove('selected');
                 });
-                // 修正：使用正確的 classList.toggle
                 tag.classList.toggle('selected');
 
                 const anySelected = container.querySelectorAll('.multiselect-tag.selected').length;
@@ -235,9 +232,7 @@
             }
 
             const selectedVals = [];
-            container.querySelectorAll('.multiselect-tag.selected').forEach(t => {
-                selectedVals.push(t.getAttribute('data-value'));
-            });
+            container.querySelectorAll('.multiselect-tag.selected').forEach(t => selectedVals.push(t.getAttribute('data-value')));
             const finalStr = selectedVals.join(', ');
 
             if (container.id === 'risk-tags-zone') document.getElementById('real-entry-risk').value = finalStr;
@@ -298,6 +293,7 @@
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > 4 && row[1]) { 
+                    // 💡 對齊你最新 CSV 的 11 欄排位結構
                     let record = { 
                         timestamp: row[0]||"--", name: row[1], week: row[2], 
                         distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", 
