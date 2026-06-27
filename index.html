@@ -46,7 +46,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v22.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v23.0</p>
     </div>
 
     <div class="card">
@@ -256,7 +256,6 @@
         document.getElementById('google-name').value = finalName;
         document.getElementById('google-week').value = finalWeek;
 
-        // 💡 核心打包：將多選項目打包成純文字，直接安全送入簡答題中
         document.getElementById('google-risk').value = getSelectedTagsString('risk-tags-zone');
         document.getElementById('google-weather').value = getSelectedTagsString('weather-tags-zone');
         document.getElementById('google-supply').value = getSelectedTagsString('supply-tags-zone');
@@ -348,6 +347,32 @@
         }
     }
 
+    // 💡 智慧戰術方針生成引擎：由「對照表數據」動態驅動評語
+    function generateDynamicStrategy(record) {
+        let riskComment = "穩定前行，體感控制良好，週間維持正常 Zone 2 堆疊耐力。"; // 預設良好
+        let weatherComment = "";
+        let supplyComment = "";
+
+        const text = record.risk + " " + record.weather + " " + record.supply;
+
+        if (text.includes("過度疲勞") || text.includes("睡眠不足")) {
+            riskComment = "⚠️【教練警告】靜止心率或體感偏重，週間必須強制減量 30%，拉長睡眠，切勿盲目硬拼！";
+        } else if (text.includes("ITB") || text.includes("Achilles") || text.includes("拗柴")) {
+            riskComment = "🚨【傷痛預警】關關節與肌群已發出警號，請立即加強滾筒放鬆，減少下坡衝擊，必要時轉為單車交叉訓練。";
+        } else if (text.includes("心理焦慮")) {
+            riskComment = "💡 賽前心理波動屬於正常現象，相信之前的累積，這週專注於補給與節奏演練，放鬆心情。";
+        }
+
+        if (text.includes("香港高濕")) {
+            weatherComment = "應對香港極端高濕，此數據已包含高額脫水內耗。建議往後長課每小時強制補水至少 600-800ml，並增加電解質鹽丸。";
+        }
+        if (text.includes("補水不足") || text.includes("胃酸脹氣")) {
+            supplyComment = "收到補給異常回報，長距離高碳水膠常伴隨胃部不適，下階段試著微調補給時機或更換高難度越野專用補給品。";
+        }
+
+        return `${riskComment} ${weatherComment} ${supplyComment}`;
+    }
+
     function updateDisplay(selectedName, selectedWeek) {
         const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
         if (matched) {
@@ -377,6 +402,10 @@
             document.getElementById('val-risk').innerText = matched.risk; 
             document.getElementById('val-weather').innerText = matched.weather;
             document.getElementById('val-supply').innerText = matched.supply;
+
+            // 💡 密碼驗證與動態評語連動
+            window.currentRecordForStrategy = matched; 
+            triggerStrategyCheck();
         } else {
             document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
             document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
@@ -388,13 +417,33 @@
         }
     }
 
+    function triggerStrategyCheck() {
+        const val = document.getElementById('pwd-input').value;
+        const matched = window.currentRecordForStrategy;
+        if (!matched) return;
+        const currentName = matched.name; 
+        const currentWeek = matched.week;
+        
+        if (parseInt(val) + 888 === 2122) { 
+            document.getElementById('lock-zone').className = "comment-box unlocked"; 
+            document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] 第 ${currentWeek} 週 戰術方針：`; 
+            document.getElementById('lock-title').style.color = "#00ffcc"; 
+            document.getElementById('lock-content').style.color = "#ffffff"; 
+            
+            // 💡 真正呼叫生成引擎，根據學生資料動態變更方針
+            document.getElementById('lock-content').innerText = generateDynamicStrategy(matched); 
+        } else {
+            document.getElementById('lock-zone').className = "comment-box";
+            document.getElementById('lock-title').innerText = "🔒 遠程評語尚未解鎖";
+            document.getElementById('lock-title').style.color = "#ff4d4d";
+            document.getElementById('lock-content').style.color = "rgba(255,255,255,0.6)";
+            document.getElementById('lock-content').innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！";
+        }
+    }
+
     document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
     document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
-    
-    document.getElementById('pwd-input').addEventListener('input', (e) => {
-        const val = e.target.value; const currentName = document.getElementById('filter-name').value || "學員"; const currentWeek = document.getElementById('filter-week').value || "當週";
-        if (parseInt(val) + 888 === 2122) { document.getElementById('lock-zone').className = "comment-box unlocked"; document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] ${currentWeek} 戰術方針：`; document.getElementById('lock-title').style.color = "#00ffcc"; document.getElementById('lock-content').style.color = "#ffffff"; document.getElementById('lock-content').innerText = `對照當週大數據指標與正宗 EPH 推進效率評補，耐力配速策略運作正常。週間維持低內耗 Zone 2 特訓，嚴防過度疲勞！`; }
-    });
+    document.getElementById('pwd-input').addEventListener('input', triggerStrategyCheck);
 
     fetchAllData();
 </script>
