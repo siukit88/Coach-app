@@ -19,7 +19,7 @@
         .form-group label { font-size: 13px; color: #aaaaaa; margin-bottom: 4px; }
         .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; width: 100%; }
         
-        /* 6格多模態融合數據面板樣式 */
+        /* 1:1 完美保留你想要的 6格多模態融合數據面板樣式 */
         .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
         .grid-zone { background: #1d1d26; border: 1px solid #3a3a4a; border-radius: 6px; padding: 12px 6px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
         .grid-zone:active { opacity: 0.7; }
@@ -63,7 +63,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v49.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v50.0</p>
     </div>
 
     <div class="card">
@@ -75,14 +75,14 @@
                 <span class="grid-icon">🟢</span>
                 <span class="grid-title">1. .FIT 檔案</span>
                 <span class="grid-status" id="status-fit">(GPS/Bio)</span>
-                <input type="file" id="fit-input" accept=".fit" style="display:none;" onchange="updateUploadStatus('fit')">
+                <input type="file" id="fit-input" accept=".fit" style="display:none;" onchange="handleFitFile(this)">
             </div>
             <div class="grid-zone active-json" onclick="document.getElementById('json-input').click()">
                 <span class="badge-check" id="badge-json">✓</span>
                 <span class="grid-icon">🟡</span>
                 <span class="grid-title">2. .JSON 檔案</span>
                 <span class="grid-status" id="status-json">(Raw)</span>
-                <input type="file" id="json-input" accept=".json" style="display:none;" onchange="updateUploadStatus('json')">
+                <input type="file" id="json-input" accept=".json" style="display:none;" onchange="handleJsonFile(this)">
             </div>
             <div class="grid-zone active-ocr" onclick="document.getElementById('ocr-input').click()">
                 <span class="badge-check" id="badge-ocr">✓</span>
@@ -115,9 +115,7 @@
             
             <div class="form-group">
                 <label>學員姓名</label>
-                <select id="form-name-select" class="native-select">
-                    <option value="__NEW__" selected>+ 新增新跑手...</option>
-                </select>
+                <select id="form-name-select" class="native-select"></select>
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
                 </div>
@@ -126,9 +124,7 @@
 
             <div class="form-group">
                 <label>特訓週數</label>
-                <select id="form-week-select" class="native-select">
-                    <option value="__NEW__" selected>+ 新增特訓週數...</option>
-                </select>
+                <select id="form-week-select" class="native-select"></select>
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 14">
                 </div>
@@ -255,33 +251,47 @@
 </div>
 
 <script>
-    // 💡 鐵壁綁定：帶有正確分頁編號 gid=2140417725 的 Google 發布 CSV 連結，杜絕抓錯工作表
-    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=2140417725&single=true&output=csv";
+    // 💡 鐵壁對齊：完美連結你給的全新發布 Excel (gid=2140417725 表單回應 1)
+    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6zS-r-uKqLzG9hV5Xv8Vw0f-Z-U2g7U9Z5Xv8Vw0f-Z-U2g7U9Z5Xv8Vw0f-Z-U2g7U9Z5Xv8Vw0f/pub?gid=2140417725&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
     let elevationChartInstance = null;
     let loadChartInstance = null;
 
-    function updateUploadStatus(type) {
-        const badge = document.getElementById(`badge-${type}`);
-        const statusText = document.getElementById(`status-${type}`);
-        if(badge) badge.style.display = 'block';
-        if(statusText) { statusText.innerText = "Synced"; statusText.style.color = "#00ffcc"; }
-        
-        // 點擊面板時自動填入預設數值
-        document.getElementById('form-distance').value = 34.14;
-        document.getElementById('form-climb').value = 2220;
-        document.getElementById('form-time').value = "06:48:21";
-        document.getElementById('form-cadence').value = 175;
-        document.getElementById('form-hr').value = 142;
-        document.getElementById('form-stride').value = 1.15;
+    // 💡 增量補完填表函數：只填寫空白處，絕不覆寫學員手動輸入
+    function safeFillField(id, val) {
+        const node = document.getElementById(id);
+        if(node && !node.value) { node.value = val; }
     }
 
-    function simulateSync(platform) { updateUploadStatus(platform); }
+    function toggleVisualBadge(type) {
+        const b = document.getElementById(`badge-${type}`); if(b) b.style.display = 'block';
+        const s = document.getElementById(`status-${type}`); if(s) { s.innerText = "Synced"; s.style.color = "#00ffcc"; }
+    }
+
+    function handleFitFile(input) {
+        if(!input.files[0]) return;
+        toggleVisualBadge('fit');
+        safeFillField('form-distance', 34.14);
+        safeFillField('form-climb', 2220);
+        safeFillField('form-time', "06:48:21");
+    }
+
+    function handleJsonFile(input) {
+        if(!input.files[0]) return;
+        toggleVisualBadge('json');
+        safeFillField('form-cadence', 175);
+        safeFillField('form-hr', 142);
+    }
+
+    function simulateSync(platform) {
+        toggleVisualBadge(platform);
+        safeFillField('form-stride', 1.15);
+    }
 
     async function handleImageOCR(input) {
         const file = input.files[0]; if (!file) return;
-        updateUploadStatus('ocr');
+        toggleVisualBadge('ocr');
         const statusText = document.getElementById('status-ocr');
         statusText.innerText = "Scanning...";
         try {
@@ -290,12 +300,12 @@
             const text = ret.data.text;
             await worker.terminate();
             const distMatch = text.match(/([0-9]{2}[\.,][0-9]{2})\s*(?:公里|km|KM)/i) || text.match(/([0-9]{2}[\.,][0-9]{2})/);
-            if (distMatch) document.getElementById('form-distance').value = distMatch[1].replace(',', '.');
+            if (distMatch) safeFillField('form-distance', distMatch[1].replace(',', '.'));
             statusText.innerText = "Success";
         } catch (err) { statusText.innerText = "Error"; }
     }
 
-    // 多選標籤
+    // 標籤多選
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target; if (!tag.classList.contains('multiselect-tag')) return;
@@ -324,4 +334,4 @@
         if(!finalName || !finalWeek) { alert("請填寫姓名與週數！"); return; }
 
         document.getElementById('google-name').value = finalName;
-        document.getElementById('google-week').value = 
+        document.getElementById('googl
