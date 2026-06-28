@@ -45,7 +45,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v46.0 (欄位智慧自適應版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v47.0</p>
     </div>
 
     <div class="card">
@@ -55,7 +55,8 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select">
-                    </select>
+                    <option value="__NEW__" selected>+ 新增新跑手...</option>
+                </select>
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
                 </div>
@@ -65,7 +66,8 @@
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select">
-                    </select>
+                    <option value="__NEW__" selected>+ 新增特訓週數...</option>
+                </select>
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
                 </div>
@@ -186,7 +188,7 @@
     let allRecords = []; 
     let submitted = false;
 
-    // 多選標籤控制
+    // 點擊變更標籤
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target; if (!tag.classList.contains('multiselect-tag')) return;
@@ -235,7 +237,7 @@
         const parts = timeStr.split(':').map(Number); return parts.length === 3 ? parts[0] + (parts[1] / 60) + (parts[2] / 3600) : 0;
     }
 
-    // 工業級狀態機 CSV 解析引擎
+    // 💡 工業級標準 RFC 4180 狀態機解析引擎（完美容錯多選標籤引號內嵌逗號）
     function parseStandardCSV(csvText) {
         let lines = []; let currentLine = []; let currentCell = ''; let inQuotes = false;
         let normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -254,10 +256,12 @@
         try {
             const response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
             const data = await response.text();
+            
+            // 呼叫高容錯解析引擎
             const lines = parseStandardCSV(data);
-            if(lines.length === 0) return;
+            if(!lines || lines.length === 0) { initSelectsWithNewOption(); return; }
 
-            // 💡 終極黑科技：動態盲測欄位。自動尋找「學員姓名」、「特訓週數」等關鍵字在哪個 row 索引！
+            // 💡 智慧盲測機制：自動偵測「學員姓名」、「特訓週數」究竟排在 Excel 的哪一欄，100% 杜絕錯位過濾
             const headers = lines[0];
             let idxName = headers.findIndex(h => h.includes("姓名") || h.includes("跑手") || h.includes("Name"));
             let idxWeek = headers.findIndex(h => h.includes("週") || h.includes("Week"));
@@ -271,7 +275,7 @@
             let idxWeather = headers.findIndex(h => h.includes("天氣") || h.includes("環境") || h.includes("Weather"));
             let idxSupply = headers.findIndex(h => h.includes("補給") || h.includes("Supply"));
 
-            // 退回最安全的預設預判（萬一 Header 完全找不到字眼）
+            // 退回最常規的預設配置（防止 Header 讀取完全損壞）
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2; if(idxDist === -1) idxDist = 3; if(idxClimb === -1) idxClimb = 4;
             if(idxTime === -1) idxTime = 5; if(idxCadence === -1) idxCadence = 6; if(idxHr === -1) idxHr = 7; if(idxStride === -1) idxStride = 8;
             if(idxRisk === -1) idxRisk = 9; if(idxWeather === -1) idxWeather = 10; if(idxSupply === -1) idxSupply = 11;
@@ -281,18 +285,10 @@
                 let row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() !== "" && row[idxName] !== "學員姓名") { 
                     let record = { 
-                        timestamp: row[0]||"--", 
-                        name: row[idxName], 
-                        week: row[idxWeek], 
-                        distance: row[idxDist]||"0", 
-                        climb: row[idxClimb]||"0", 
-                        time: row[idxTime]||"--", 
-                        cadence: row[idxCadence]||"0", 
-                        hr: row[idxHr]||"0", 
-                        stride: row[idxStride]||"0", 
-                        risk: row[idxRisk]||"良好", 
-                        weather: row[idxWeather]||"正常", 
-                        supply: row[idxSupply]||"正常" 
+                        timestamp: row[0]||"--", name: row[idxName], week: row[idxWeek], distance: row[idxDist]||"0", 
+                        climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
+                        hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
+                        weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常" 
                     };
                     allRecords.push(record); names.add(record.name); weeks.add(record.week);
                 }
@@ -303,16 +299,17 @@
             const nameSelect = document.getElementById('filter-name'); 
             const weekSelect = document.getElementById('filter-week');
 
+            // 💡 鐵壁安全渲染：不管陣列長度是多少，最上面的填表區都絕對強固可用
             if (names.size === 0) {
                 if(formNameSelect) formNameSelect.innerHTML = '<option value="__NEW__" selected>+ 新增新跑手...</option>';
                 if(formWeekSelect) formWeekSelect.innerHTML = '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
-                const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "block";
-                const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "block";
                 if(nameSelect) nameSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
                 if(weekSelect) weekSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
+                document.getElementById('new-name-zone').style.display = "block";
+                document.getElementById('new-week-zone').style.display = "block";
             } else {
                 if(formNameSelect) {
                     formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
                     names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
                     formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
-          
+ 
