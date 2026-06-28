@@ -64,7 +64,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v32.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v33.0</p>
     </div>
 
     <div class="card">
@@ -246,7 +246,6 @@
     let elevationChartInstance = null;
     let currentSplitTextForExcel = ""; 
 
-    // 原始 FIT 檔案解析
     function handleFitFile(input) {
         const file = input.files[0];
         if (!file) return;
@@ -344,6 +343,6 @@
         reader.readAsArrayBuffer(file);
     }
 
-    // 智慧增量吸附 OCR
     async function handleImageOCR(input) {
-        const file = i
+        const file = input.files[0];
+        if (!file) ret
