@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: block; text-align: center; color: #ffffff; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; position: relative; box-sizing: border-box; padding-bottom: 40px; text-align: left; }
         .header { background: #ff3366; padding: 25px 20px; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
@@ -45,7 +45,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v42.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v43.0</p>
     </div>
 
     <div class="card">
@@ -55,8 +55,7 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select">
-                    <option value="__NEW__" selected>+ 新增新跑手...</option>
-                </select>
+                    </select>
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
                 </div>
@@ -66,8 +65,7 @@
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select">
-                    <option value="__NEW__" selected>+ 新增特訓週數...</option>
-                </select>
+                    </select>
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
                 </div>
@@ -256,8 +254,22 @@
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
-                    let record = { timestamp: row[0]||"--", name: row[1], week: row[2], distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0", hr: row[7]||"0", risk: row[8]||"良好", weather: row[9]||"正常", supply: row[10]||"正常", climb: row[11] ? row[11].trim() : "0" };
+                // 💡 物理精準映射：對齊 Google 表單送出的 Excel 直欄索引（row[1]=姓名, row[2]=週數, row[3]=距離, row[4]=爬升, row[5]=時間, row[6]=步頻, row[7]=心率, row[8]=步距）
+                if(row && row.length > 5 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                    let record = { 
+                        timestamp: row[0]||"--", 
+                        name: row[1], 
+                        week: row[2], 
+                        distance: row[3]||"0", 
+                        climb: row[4]||"0", 
+                        time: row[5]||"--", 
+                        cadence: row[6]||"0", 
+                        hr: row[7]||"0", 
+                        stride: row[8]||"0", 
+                        risk: row[9]||"良好", 
+                        weather: row[10]||"正常", 
+                        supply: row[11]||"正常" 
+                    };
                     allRecords.push(record); names.add(record.name); weeks.add(record.week);
                 }
             }
@@ -267,10 +279,11 @@
             const nameSelect = document.getElementById('filter-name'); 
             const weekSelect = document.getElementById('filter-week');
 
-            // 💡 沙盒防禦：數據處理完全隔離，不論 names 數量，絕不呼叫可能為 null 的物件屬性
             if (names.size === 0) {
                 if(formNameSelect) formNameSelect.innerHTML = '<option value="__NEW__" selected>+ 新增新跑手...</option>';
                 if(formWeekSelect) formWeekSelect.innerHTML = '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
+                const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "block";
+                const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "block";
                 if(nameSelect) nameSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
                 if(weekSelect) weekSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
             } else {
@@ -278,11 +291,13 @@
                     formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
                     names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
                     formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
+                    const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "none";
                 }
                 if(formWeekSelect) {
                     formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
                     Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
                     formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
+                    const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "none";
                 }
                 if(nameSelect) {
                     nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; 
@@ -293,7 +308,6 @@
                     Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
                 }
                 
-                // 💡 鐵壁保護：只有當確保留有歷史陣列時，才進行指標查找
                 if(allRecords && allRecords.length > 0) { 
                     const last = allRecords[allRecords.length - 1]; 
                     if(last) {
@@ -304,21 +318,11 @@
                 }
             }
         } catch (error) { 
-            console.error("沙盒攔截安全防禦觸發：", error);
+            console.error(error);
         }
     }
 
     function generateDynamicStrategy(record) {
         if(!record) return "";
         let riskComment = "穩定前行，體感控制良好，週間維持正常 Zone 2 堆疊耐力。"; let weatherComment = "";
-        const text = record.risk + " " + record.weather + " " + record.supply;
-        if (text.includes("過度疲勞") || text.includes("睡眠不足")) riskComment = "⚠️【教練警告】靜止心率或體感偏重，週間必須強制減量 30%，拉長睡眠！";
-        if (text.includes("香港高濕")) weatherComment = "應對香港極端高濕，此數據已包含高額脫水內耗。建議往後長課每小時強制補水至少 600-800ml。";
-        return `${riskComment} ${weatherComment}`;
-    }
-
-    function updateDisplay(selectedName, selectedWeek) {
-        if(!allRecords || allRecords.length === 0) return;
-        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
-        if (matched) {
-            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; document.getElementById('val-distance').innerText = matched.distance
+        const text = record.risk + " " + record.w
