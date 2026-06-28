@@ -35,7 +35,7 @@
         .comment-box.unlocked { border-color: #00ffcc; background: #1b2a22; }
         .comment-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
         .comment-text { font-size: 13px; line-height: 1.6; }
-        .hidden-group { display: none; margin-top: 5px; }
+        .hidden-group { display: block; margin-top: 5px; } /* 💡 強制預設顯示輸入框 */
     </style>
 </head>
 <body>
@@ -45,7 +45,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v38.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v39.0</p>
     </div>
 
     <div class="card">
@@ -55,7 +55,7 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select">
-                    <option value="">正在載入跑手...</option>
+                    <option value="__NEW__">+ 新增新跑手...</option>
                 </select>
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
@@ -66,7 +66,7 @@
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select">
-                    <option value="">正在載入週數...</option>
+                    <option value="__NEW__">+ 新增特訓週數...</option>
                 </select>
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
@@ -188,7 +188,7 @@
     let allRecords = []; 
     let submitted = false;
 
-    // 多選標籤控制
+    // 點擊變更標籤
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target; if (!tag.classList.contains('multiselect-tag')) return;
@@ -208,29 +208,6 @@
     function getSelectedTagsString(containerId) {
         const arr = []; document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => { arr.push(t.getAttribute('data-value')); }); return arr.join(', ');
     }
-
-    function initSelectsWithNewOption() {
-        const formNameSelect = document.getElementById('form-name-select');
-        if(formNameSelect) {
-            formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他跑手...</option>';
-            document.getElementById('new-name-zone').style.display = "block";
-        }
-        const formWeekSelect = document.getElementById('form-week-select');
-        if(formWeekSelect) {
-            formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他週數...</option>';
-            document.getElementById('new-week-zone').style.display = "block";
-        }
-    }
-
-    // 獨立、100% 不會被中斷的安全事件監聽
-    document.getElementById('form-name-select').addEventListener('change', function(e) {
-        const zone = document.getElementById('new-name-zone');
-        if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
-    });
-    document.getElementById('form-week-select').addEventListener('change', function(e) {
-        const zone = document.getElementById('new-week-zone');
-        if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
-    });
 
     function submitDataDirectly() {
         const nameSelect = document.getElementById('form-name-select').value;
@@ -284,38 +261,26 @@
                 }
             }
 
-            // 💡 鐵壁保護：如果是乾淨空白試算表，直接強制初始化填表區，並且絕對不往下走可能引發 null 錯誤的看板更新
-            if (names.size === 0) {
-                initSelectsWithNewOption();
-                return; 
+            // 💡 終極修復點：如果名單為空，絕對不再執行「return」，保證下方的事件監聽器全部能被正常掛載！
+            if (names.size > 0) {
+                const formNameSelect = document.getElementById('form-name-select');
+                if(formNameSelect) {
+                    formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
+                    names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+                    formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
+                }
+                const formWeekSelect = document.getElementById('form-week-select');
+                if(formWeekSelect) {
+                    formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+                    Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+                    formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
+                }
+                const nameSelect = document.getElementById('filter-name'); if(nameSelect) { nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; }); }
+                const weekSelect = document.getElementById('filter-week'); if(weekSelect) { weekSelect.innerHTML = '<option value="">選擇週數...</option>'; Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; }); }
+                if(allRecords.length > 0) { const last = allRecords[allRecords.length - 1]; if(nameSelect) nameSelect.value = last.name; if(weekSelect) weekSelect.value = last.week; updateDisplay(last.name, last.week); }
             }
-
-            // 如果有歷史數據，才去渲染下方的看板選單
-            const formNameSelect = document.getElementById('form-name-select');
-            if(formNameSelect) {
-                formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
-                names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
-                formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
-            }
-
-            const formWeekSelect = document.getElementById('form-week-select');
-            if(formWeekSelect) {
-                formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-                Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
-                formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
-            }
-
-            const nameSelect = document.getElementById('filter-name'); if(nameSelect) { nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; }); }
-            const weekSelect = document.getElementById('filter-week'); if(weekSelect) { weekSelect.innerHTML = '<option value="">選擇週數...</option>'; Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; }); }
-            
-            if(allRecords.length > 0) { 
-                const last = allRecords[allRecords.length - 1]; 
-                if(nameSelect) nameSelect.value = last.name; 
-                if(weekSelect) weekSelect.value = last.week; 
-                updateDisplay(last.name, last.week); 
-            }
-        } catch (error) { 
-            initSelectsWithNewOption(); 
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -324,4 +289,16 @@
         let riskComment = "穩定前行，體感控制良好，週間維持正常 Zone 2 堆疊耐力。"; let weatherComment = "";
         const text = record.risk + " " + record.weather + " " + record.supply;
         if (text.includes("過度疲勞") || text.includes("睡眠不足")) riskComment = "⚠️【教練警告】靜止心率或體感偏重，週間必須強制減量 30%，拉長睡眠！";
-        if (text.incl
+        if (text.includes("香港高濕")) weatherComment = "應對香港極端高濕，此數據已包含高額脫水內耗。建議往後長課每小時強制補水至少 600-800ml。";
+        return `${riskComment} ${weatherComment}`;
+    }
+
+    function updateDisplay(selectedName, selectedWeek) {
+        if(allRecords.length === 0) return;
+        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; document.getElementById('val-distance').innerText = matched.distance + " km"; document.getElementById('val-climb').innerText = matched.climb + " 米"; document.getElementById('val-time').innerText = matched.time; document.getElementById('val-cadence').innerText = matched.cadence + " spm"; document.getElementById('val-stride').innerText = matched.stride + " m";
+            const distNum = parseFloat(matched.distance) || 0; const climbNum = parseFloat(matched.climb) || 0; const hoursNum = timeStringToHours(matched.time);
+            if (hoursNum > 0) { document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; } else { document.getElementById('val-eph').innerText = "--"; }
+            const hrNum = parseInt(matched.hr); document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pc
