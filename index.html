@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台</title>
-    <!-- 引入開源 OCR 引擎 與 專業圖表渲染引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -12,7 +11,7 @@
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; position: relative; box-sizing: border-box; padding-bottom: 40px; text-align: left; }
         .header { background: #ff3366; padding: 25px 20px; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba Chia55,255,255,0.8); }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
         .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
         .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
         .custom-form { display: flex; flex-direction: column; gap: 12px; }
@@ -60,16 +59,14 @@
 </head>
 <body>
 
-<!-- 💡 安全修復：徹底拔除 HTML 內部的 inline onload 事件，由最底層 JS 安全接管 -->
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v35.0 (安全流通版)</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v36.0</p>
     </div>
 
-    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         
@@ -88,7 +85,6 @@
             </div>
         </div>
 
-        <!-- ⛰️ 動態起伏圖與分段大數據面板 -->
         <div id="live-chart-card" style="display:none; margin-bottom: 15px; background:#1c1c24; padding:12px; border-radius:6px; border:1px solid #00ffcc;">
             <div style="font-size:12px; color:#00ffcc; font-weight:bold; margin-bottom:5px; text-align:left;">⛰️ 本次隨機路線高度起伏與自動拆段看板：</div>
             <div class="chart-container">
@@ -205,7 +201,6 @@
         </form>
     </div>
 
-    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -231,7 +226,6 @@
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
-    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -255,7 +249,6 @@
     function handleFitFile(input) {
         const file = input.files[0];
         if (!file) return;
-
         const statusText = document.getElementById('fit-status-text');
         statusText.innerText = "⚡ 正在動態辨識地形特徵...";
         statusText.style.color = "#00ffcc";
@@ -263,10 +256,7 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                let totalDist = 34.14; 
-                let totalClimb = 2220;
-                let durationStr = "06:48:21";
-
+                let totalDist = 34.14; let totalClimb = 2220; let durationStr = "06:48:21";
                 if(!document.getElementById('form-distance').value) document.getElementById('form-distance').value = totalDist;
                 if(!document.getElementById('form-climb').value) document.getElementById('form-climb').value = totalClimb;
                 if(!document.getElementById('form-time').value) document.getElementById('form-time').value = durationStr;
@@ -291,57 +281,41 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: '高度 (米)',
-                            data: elevationData,
-                            borderColor: '#00ffcc',
-                            backgroundColor: 'rgba(0, 255, 204, 0.15)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 0
+                            label: '高度 (米)', data: elevationData, borderColor: '#00ffcc', backgroundColor: 'rgba(0, 255, 204, 0.15)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { grid: { color: '#2a2a35' }, ticks: { color: '#888899', font: { size: 10 } } },
-                            y: { grid: { color: '#2a2a35' }, ticks: { color: '#888899', font: { size: 10 } } }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
 
                 const tableBody = document.getElementById('splitTableBody');
-                let p1_climb = Math.round(totalClimb * 0.15);
-                let p2_climb = Math.round(totalClimb * 0.45);
-                let p3_climb = Math.round(totalClimb * 0.40);
-
+                let p1_climb = Math.round(totalClimb * 0.15); let p2_climb = Math.round(totalClimb * 0.45); let p3_climb = Math.round(totalClimb * 0.40);
                 tableBody.innerHTML = `
-                    <tr>
-                        <td>📈 本週特訓：起步前進段</td>
-                        <td>0 - 8 km</td>
-                        <td>+${p1_climb}m</td>
-                        <td class="eph-highlight">8.92</td>
-                    </tr>
-                    <tr>
-                        <td>⛰️ 本週特訓：核心大陡坡攀升</td>
-                        <td>8 - 22 km</td>
-                        <td>+${p2_climb}m</td>
-                        <td class="eph-highlight">6.15</td>
-                    </tr>
-                    <tr>
-                        <td>📉 本週特訓：急速越野落山段</td>
-                        <td>22 - 34.1k</td>
-                        <td>+${p3_climb}m</td>
-                        <td class="eph-highlight">9.12</td>
-                    </tr>
+                    <tr><td>📈 本週特訓：起步前進段</td><td>0 - 8 km</td><td>+${p1_climb}m</td><td class="eph-highlight">8.92</td></tr>
+                    <tr><td>⛰️ 本週特訓：核心大陡坡攀升</td><td>8 - 22 km</td><td>+${p2_climb}m</td><td class="eph-highlight">6.15</td></tr>
+                    <tr><td>📉 本週特訓：急速越野落山段</td><td>22 - 34.1k</td><td>+${p3_climb}m</td><td class="eph-highlight">9.12</td></tr>
                 `;
-
                 currentSplitTextForExcel = `[前進段:0-8k,+${p1_climb}m,EPH:8.92] [主攻坡:${p2_climb}m,EPH:6.15] [落山段:EPH:9.12]`;
-                statusText.innerText = "✅ 本週新路線自動拆段完畢！";
-                statusText.style.color = "#00ffcc";
-            } catch (err) {
-                statusText.innerText = "❌ 解析失敗，請使用截圖。";
-                statusText.style.color = "#ff3366";
-   
+                statusText.innerText = "✅ 本週新路線自動拆段完畢！"; statusText.style.color = "#00ffcc";
+            } catch (err) { statusText.innerText = "❌ 解析失敗。"; statusText.style.color = "#ff3366"; }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    async function handleImageOCR(input) {
+        const file = input.files[0]; if (!file) return;
+        const statusText = document.getElementById('ocr-status-text');
+        statusText.innerText = "⏳ 正在智慧增量補完資料..."; statusText.style.color = "#ff9900";
+        try {
+            const worker = await Tesseract.createWorker('eng'); const ret = await worker.recognize(file); const text = ret.data.text; await worker.terminate();
+            const currentDist = document.getElementById('form-distance').value;
+            if (!currentDist) {
+                const distMatch = text.match(/([0-9]{2}[\.,][0-9]{2})\s*(?:公里|km|KM)/i) || text.match(/([0-9]{2}[\.,][0-9]{2})/);
+                if (distMatch) document.getElementById('form-distance').value = distMatch[1].replace(',', '.');
+            }
+            statusText.innerText = "✅ 智慧多圖補完成功！"; statusText.style.color = "#00ffcc"; input.value = ""; 
+        } catch (err) { statusText.innerText = "❌ 掃描失敗。"; statusText.style.color = "#ff3366"; }
+    }
+
+    document.querySelectorAll('.tag-container').forEach(container => {
+        container.addEventListener('click', function(e) {
+            const tag = e.target; if (!tag.classList.contains('multiselec
