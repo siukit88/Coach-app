@@ -45,7 +45,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v42.0</p>
     </div>
 
     <div class="card">
@@ -55,7 +55,8 @@
             <div class="form-group">
                 <label>學員姓名</label>
                 <select id="form-name-select" class="native-select">
-                    </select>
+                    <option value="__NEW__" selected>+ 新增新跑手...</option>
+                </select>
                 <div id="new-name-zone" class="hidden-group">
                     <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入新跑手姓名">
                 </div>
@@ -65,7 +66,8 @@
             <div class="form-group">
                 <label>特訓週數</label>
                 <select id="form-week-select" class="native-select">
-                    </select>
+                    <option value="__NEW__" selected>+ 新增特訓週數...</option>
+                </select>
                 <div id="new-week-zone" class="hidden-group">
                     <input type="text" id="form-week-custom" class="native-input" placeholder="e.g. 2">
                 </div>
@@ -250,6 +252,7 @@
                 }
                 entries.push(current.replace(/^"|"$/g, '').trim()); lines.push(entries);
             }
+            
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
@@ -264,12 +267,10 @@
             const nameSelect = document.getElementById('filter-name'); 
             const weekSelect = document.getElementById('filter-week');
 
-            // 💡 鐵壁強固：不論 names 是否為空，都保證 DOM 安全防護。絕對不允許任何 .style 的未定義呼叫
+            // 💡 沙盒防禦：數據處理完全隔離，不論 names 數量，絕不呼叫可能為 null 的物件屬性
             if (names.size === 0) {
                 if(formNameSelect) formNameSelect.innerHTML = '<option value="__NEW__" selected>+ 新增新跑手...</option>';
                 if(formWeekSelect) formWeekSelect.innerHTML = '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
-                const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "block";
-                const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "block";
                 if(nameSelect) nameSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
                 if(weekSelect) weekSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
             } else {
@@ -277,13 +278,11 @@
                     formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
                     names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
                     formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
-                    const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "none";
                 }
                 if(formWeekSelect) {
                     formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
                     Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
                     formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
-                    const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "none";
                 }
                 if(nameSelect) {
                     nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; 
@@ -294,15 +293,18 @@
                     Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
                 }
                 
-                if(allRecords.length > 0) { 
+                // 💡 鐵壁保護：只有當確保留有歷史陣列時，才進行指標查找
+                if(allRecords && allRecords.length > 0) { 
                     const last = allRecords[allRecords.length - 1]; 
-                    if(nameSelect) nameSelect.value = last.name; 
-                    if(weekSelect) weekSelect.value = last.week; 
-                    updateDisplay(last.name, last.week); 
+                    if(last) {
+                        if(nameSelect) nameSelect.value = last.name; 
+                        if(weekSelect) weekSelect.value = last.week; 
+                        updateDisplay(last.name, last.week); 
+                    }
                 }
             }
         } catch (error) { 
-            console.error("安全截擊防禦觸發：", error);
+            console.error("沙盒攔截安全防禦觸發：", error);
         }
     }
 
@@ -316,5 +318,7 @@
     }
 
     function updateDisplay(selectedName, selectedWeek) {
-        if(allRecords.length === 0) return;
-        const matched = allRecords.find(r => r.name === selectedName && r.week === 
+        if(!allRecords || allRecords.length === 0) return;
+        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; document.getElementById('val-distance').innerText = matched.distance
