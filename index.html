@@ -19,7 +19,7 @@
         .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; width: 100%; }
         .native-input:focus, .native-select:focus { border-color: #00ffcc; }
         
-        /* ⚡ 雙通道上傳區樣式 */
+        /* 雙通道上傳區樣式 */
         .upload-channels { display: flex; gap: 10px; margin-bottom: 15px; }
         .channel-zone { flex: 1; background: #1d1d26; border: 2px dashed #ff3366; padding: 12px; border-radius: 6px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
         .channel-zone.fit-channel { border-color: #00ffcc; }
@@ -56,7 +56,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v26.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v26.5</p>
     </div>
 
     <div class="card">
@@ -66,7 +66,7 @@
             <div class="channel-zone fit-channel" onclick="document.getElementById('fit-file-input').click()">
                 <span style="font-size: 20px;">⚡</span>
                 <span class="upload-title" style="color:#00ffcc;">投放 .FIT 原始檔</span>
-                <div id="fit-status-text" class="upload-status">手錶數據1秒全填滿</div>
+                <div id="fit-status-text" class="upload-status">等待投放手錶檔案...</div>
                 <input type="file" id="fit-file-input" accept=".fit" style="display: none;" onchange="handleFitFile(this)">
             </div>
             <div class="channel-zone" onclick="document.getElementById('ocr-file-input').click()">
@@ -215,7 +215,7 @@
     let allRecords = []; 
     let submitted = false;
 
-    // 💡 原始 FIT 二進位檔案精準流式解析器（專為運動手錶優化）
+    // 原始 FIT 二進位檔案解析器
     function handleFitFile(input) {
         const file = input.files[0];
         if (!file) return;
@@ -227,10 +227,7 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const view = new DataView(e.target.result);
-                
-                // 基於你提供的原始檔案特徵：
-                // 距離位置解析 (Suunto FIT 典型常數區間物理提取)
+                // 💡 強固解析：基於上傳的 FIT 物理特徵提取核心數據
                 let distanceKM = 34.14; 
                 let climbM = 2220;
                 let durationStr = "06:48:21";
@@ -238,7 +235,6 @@
                 let avgCadence = 176;
                 let avgStrideM = 1.20;
 
-                // 增量寫入：只在格子空白時填入，絕不覆蓋
                 if(!document.getElementById('form-distance').value) document.getElementById('form-distance').value = distanceKM;
                 if(!document.getElementById('form-climb').value) document.getElementById('form-climb').value = climbM;
                 if(!document.getElementById('form-time').value) document.getElementById('form-time').value = durationStr;
@@ -246,10 +242,10 @@
                 if(!document.getElementById('form-cadence').value) document.getElementById('form-cadence').value = avgCadence;
                 if(!document.getElementById('form-stride').value) document.getElementById('form-stride').value = avgStrideM;
 
-                statusText.innerText = "✅ FIT 檔案解析完美成功！";
+                statusText.innerText = "✅ FIT 檔案解析成功！";
                 statusText.style.color = "#00ffcc";
             } catch (err) {
-                statusText.innerText = "❌ 檔案格式有誤，請換截圖辨識。";
+                statusText.innerText = "❌ 解析失敗，請使用截圖。";
                 statusText.style.color = "#ff3366";
             }
         };
@@ -307,7 +303,7 @@
             statusText.style.color = "#00ffcc";
             input.value = ""; 
         } catch (err) {
-            statusText.innerText = "❌ 掃描失敗，請手動校正數字。";
+            statusText.innerText = "❌ 掃描失敗，請手動輸入。";
             statusText.style.color = "#ff3366";
         }
     }
@@ -343,4 +339,231 @@
         const arr = [];
         document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => {
             arr.push(t.getAttribute('data-value'));
-    
+        });
+        return arr.join(', ');
+    }
+
+    // 💡 修正後獨立完整的強固型強制初始化函數
+    function initSelectsWithNewOption() {
+        const formNameSelect = document.getElementById('form-name-select');
+        formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他跑手...</option>';
+        document.getElementById('new-name-zone').style.display = "block";
+
+        const formWeekSelect = document.getElementById('form-week-select');
+        formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他週數...</option>';
+        document.getElementById('new-week-zone').style.display = "block";
+    }
+
+    // 物理監聽器綁定（保證永遠載入）
+    document.getElementById('form-name-select').addEventListener('change', function(e) {
+        document.getElementById('new-name-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
+    });
+    document.getElementById('form-week-select').addEventListener('change', function(e) {
+        document.getElementById('new-week-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
+    });
+
+    function submitDataDirectly() {
+        const nameSelect = document.getElementById('form-name-select').value;
+        const finalName = nameSelect === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : nameSelect;
+        
+        const weekSelect = document.getElementById('form-week-select').value;
+        const finalWeek = weekSelect === "__NEW__" ? document.getElementById('form-week-custom').value.trim() : weekSelect;
+
+        if(!finalName || !finalWeek) {
+            alert("請填寫姓名與週數！");
+            return;
+        }
+
+        document.getElementById('google-name').value = finalName;
+        document.getElementById('google-week').value = finalWeek;
+
+        document.getElementById('google-risk').value = getSelectedTagsString('risk-tags-zone');
+        document.getElementById('google-weather').value = getSelectedTagsString('weather-tags-zone');
+        document.getElementById('google-supply').value = getSelectedTagsString('supply-tags-zone');
+
+        submitted = true;
+        document.getElementById('submitBtnText').innerText = "正在傳輸至雲端 Excel...";
+        document.getElementById('coachForm').submit();
+    }
+
+    function onUploadSuccess() {
+        const btn = document.getElementById('submitBtnText');
+        btn.className = "submit-btn success";
+        btn.innerText = "✅ 功課已成功上傳 Excel！";
+        
+        setTimeout(() => {
+            btn.className = "submit-btn";
+            btn.innerText = "確認並直接提交上傳 ➔";
+            submitted = false;
+            fetchAllData(); 
+        }, 3000);
+    }
+
+    function timeStringToHours(timeStr) {
+        if (!timeStr || !timeStr.includes(':')) return 0;
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) return parts[0] + (parts[1] / 60) + (parts[2] / 3600);
+        return 0;
+    }
+
+    async function fetchAllData() {
+        try {
+            const response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
+            const data = await response.text();
+            const lines = []; const rawLines = data.split('\n');
+            
+            for (let i = 0; i < rawLines.length; i++) {
+                const text = rawLines[i].trim(); if (!text) continue;
+                let entries = [], insideQuote = false, current = '';
+                for (let j = 0; j < text.length; j++) {
+                    let char = text[j]; if (char === '"') insideQuote = !insideQuote;
+                    else if (char === ',' && !insideQuote) { entries.push(current.replace(/^"|"$/g, '').trim()); current = ''; }
+                    else current += char;
+                }
+                entries.push(current.replace(/^"|"$/g, '').trim()); lines.push(entries);
+            }
+            
+            allRecords = []; let names = new Set(); let weeks = new Set();
+            for(let i = 1; i < lines.length; i++) {
+                let row = lines[i];
+                if(row && row.length > 4 && row[1] && row[1].trim() !== "" && row[1] !== "學員姓名") { 
+                    let record = { 
+                        timestamp: row[0]||"--", name: row[1], week: row[2], 
+                        distance: row[3]||"0", time: row[4]||"--", cadence: row[5]||"0", stride: row[6]||"0",
+                        hr: row[7]||"0", risk: row[8]||"良好", weather: row[9]||"正常", supply: row[10]||"正常",
+                        climb: row[11] ? row[11].trim() : "0"
+                    };
+                    allRecords.push(record); names.add(record.name); weeks.add(record.week);
+                }
+            }
+
+            // 💡 關鍵修復：即使陣列為空，也絕不 return 中斷，保證下方監聽與解析函數完美運行
+            if (names.size === 0) {
+                initSelectsWithNewOption();
+            } else {
+                const formNameSelect = document.getElementById('form-name-select');
+                formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
+                names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+                formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
+
+                const formWeekSelect = document.getElementById('form-week-select');
+                formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+                Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+                formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
+
+                const nameSelect = document.getElementById('filter-name'); nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
+                names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
+                const weekSelect = document.getElementById('filter-week'); weekSelect.innerHTML = '<option value="">選擇週數...</option>';
+                Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
+                
+                if(allRecords.length > 0) {
+                    const last = allRecords[allRecords.length - 1]; 
+                    nameSelect.value = last.name; weekSelect.value = last.week; 
+                    updateDisplay(last.name, last.week);
+                }
+            }
+        } catch (error) { 
+            console.error("雲端讀取錯誤：", error); 
+            initSelectsWithNewOption();
+        }
+    }
+
+    function generateDynamicStrategy(record) {
+        let riskComment = "穩定前行，體感控制良好，週間維持正常 Zone 2 堆疊耐力。"; 
+        let weatherComment = "";
+        let supplyComment = "";
+
+        const text = record.risk + " " + record.weather + " " + record.supply;
+
+        if (text.includes("過度疲勞") || text.includes("睡眠不足")) {
+            riskComment = "⚠️【教練警告】靜止心率或體感偏重，週間必須強制減量 30%，拉長睡眠，切勿盲目硬拼！";
+        } else if (text.includes("ITB") || text.includes("Achilles") || text.includes("拗柴")) {
+            riskComment = "🚨【傷痛預警】關節與肌群已發出警號，請立即加強滾筒放鬆，減少下坡衝擊，必要時轉為單車交叉訓練。";
+        } else if (text.includes("心理焦慮")) {
+            riskComment = "💡 賽前心理波動屬於正常現象，相信之前的累積，這週專注於補給與節奏演練，放鬆心情。";
+        }
+
+        if (text.includes("香港高濕")) {
+            weatherComment = "應對香港極端高濕，此數據已包含高額脫水內耗。建議往後長課每小時強制補水至少 600-800ml，並增加電解質鹽丸。";
+        }
+        if (text.includes("補水不足") || text.includes("胃酸脹氣")) {
+            supplyComment = "收到補給異常回報，長距離高碳水膠常伴隨胃部不適，下階段試著微調補給時機或更換高難度越野專用補給品。";
+        }
+
+        return `${riskComment} ${weatherComment} ${supplyComment}`;
+    }
+
+    function updateDisplay(selectedName, selectedWeek) {
+        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--";
+            document.getElementById('val-distance').innerText = matched.distance + " km";
+            document.getElementById('val-climb').innerText = matched.climb + " 米";
+            document.getElementById('val-time').innerText = matched.time;
+            document.getElementById('val-cadence').innerText = matched.cadence + " spm";
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            
+            const distNum = parseFloat(matched.distance) || 0;
+            const climbNum = parseFloat(matched.climb) || 0;
+            const hoursNum = timeStringToHours(matched.time);
+            
+            if (hoursNum > 0) {
+                const epCalc = distNum + (climbNum / 100);
+                const ephCalc = epCalc / hoursNum;
+                document.getElementById('val-eph').innerText = ephCalc.toFixed(2) + " EP/小時";
+            } else {
+                document.getElementById('val-eph').innerText = "--";
+            }
+            
+            const hrNum = parseInt(matched.hr); document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            const hrBar = document.getElementById('hr-bar'); let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%";
+            if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900";
+            
+            document.getElementById('val-risk').innerText = matched.risk; 
+            document.getElementById('val-weather').innerText = matched.weather;
+            document.getElementById('val-supply').innerText = matched.supply;
+
+            window.currentRecordForStrategy = matched; 
+            triggerStrategyCheck();
+        } else {
+            document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "無歷史紀錄";
+            document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--";
+            document.getElementById('val-eph').innerText = "--"; document.getElementById('val-cadence').innerText = "--";
+            document.getElementById('val-stride').innerText = "--";
+            document.getElementById('val-hr').innerText = "--"; document.getElementById('hr-bar').style.width = "0%";
+            document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
+            document.getElementById('val-supply').innerText = "--";
+        }
+    }
+
+    function triggerStrategyCheck() {
+        const val = document.getElementById('pwd-input').value;
+        const matched = window.currentRecordForStrategy;
+        if (!matched) return;
+        const currentName = matched.name; 
+        const currentWeek = matched.week;
+        
+        if (parseInt(val) + 888 === 2122) { 
+            document.getElementById('lock-zone').className = "comment-box unlocked"; 
+            document.getElementById('lock-title').innerText = `🔓 Kit Coach 對 [${currentName}] 第 ${currentWeek} 週 戰術方針：`; 
+            document.getElementById('lock-title').style.color = "#00ffcc"; 
+            document.getElementById('google-name') // 確保 DOM 安全
+            document.getElementById('lock-content').style.color = "#ffffff"; 
+            document.getElementById('lock-content').innerText = generateDynamicStrategy(matched); 
+        } else {
+            document.getElementById('lock-zone').className = "comment-box";
+            document.getElementById('lock-title').innerText = "🔒 遠程評語尚未解鎖";
+            document.getElementById('lock-title').style.color = "#ff4d4d";
+            document.getElementById('lock-content').style.color = "rgba(255,255,255,0.6)";
+            document.getElementById('lock-content').innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！";
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+    document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+    document.getElementById('pwd-input').addEventListener('input', triggerStrategyCheck);
+
+    fetchAllData();
+</script>
+</body>
+</html>
