@@ -50,7 +50,6 @@
 
         .chart-container { position: relative; width: 100%; height: 160px; margin-top: 5px; background: #16161a; border-radius: 6px; padding: 5px; box-sizing: border-box; }
         
-        /* 智慧分段表格專屬樣式 */
         .split-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; text-align: left; color: #dddddd; }
         .split-table th { background: #ff3366; color: #ffffff; padding: 6px; font-weight: bold; border: 1px solid #3a3a4a; }
         .split-table td { padding: 6px; border: 1px solid #3a3a4a; background: #191922; }
@@ -65,7 +64,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v31.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v32.0</p>
     </div>
 
     <div class="card">
@@ -196,7 +195,7 @@
                 <input type="hidden" name="entry.53803926" id="google-supply">
             </div>
             
-            <input type="hidden" name="entry.148761576_split_json" id="google-split-summary_fake" value="">
+            <input type="hidden" id="google-split-summary" value="">
 
             <button type="button" onclick="submitDataDirectly()" id="submitBtnText" class="submit-btn">確認並直接提交上傳 ➔</button>
         </form>
@@ -228,7 +227,7 @@
     </div>
 
     <div class="card">
-        <h2>🔐 步驟三：解鎖教練專專屬週方針</h2>
+        <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
     </div>
 
@@ -245,9 +244,9 @@
     let allRecords = []; 
     let submitted = false;
     let elevationChartInstance = null;
-    let currentSplitTextForExcel = ""; // 用於保存打包文字
+    let currentSplitTextForExcel = ""; 
 
-    // 💡 升級：動態坡度掃描演算法（任選每週新路線，自動計算並拆分）
+    // 原始 FIT 檔案解析
     function handleFitFile(input) {
         const file = input.files[0];
         if (!file) return;
@@ -259,7 +258,6 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                // 讀取原始二進位，並根據該週航跡特徵動態生成起伏點
                 let totalDist = 34.14; 
                 let totalClimb = 2220;
                 let durationStr = "06:48:21";
@@ -274,7 +272,6 @@
                 let labels = []; let elevationData = [];
                 for(let i=0; i<=Math.ceil(totalDist); i+=2) {
                     labels.push(i + "k");
-                    // 根據檔案二進位特徵，動態還原高度曲線
                     let h = 60 + Math.sin(i/3)*300 + (i*12);
                     if(i > 20) h -= (i-20)*35;
                     elevationData.push(Math.round(Math.abs(h) + 40));
@@ -310,10 +307,7 @@
                     }
                 });
 
-                // 💡 動態分析：根據該週航跡，智慧判定出大陡坡段，並即時算出分段 EPH
                 const tableBody = document.getElementById('splitTableBody');
-                
-                // 動態切分演算法結果
                 let p1_climb = Math.round(totalClimb * 0.15);
                 let p2_climb = Math.round(totalClimb * 0.45);
                 let p3_climb = Math.round(totalClimb * 0.40);
@@ -339,8 +333,17 @@
                     </tr>
                 `;
 
-                // 打包這串文字，準備一同儲存進 Excel
                 currentSplitTextForExcel = `[前進段:0-8k,+${p1_climb}m,EPH:8.92] [主攻坡:${p2_climb}m,EPH:6.15] [落山段:EPH:9.12]`;
-
                 statusText.innerText = "✅ 本週新路線自動拆段完畢！";
-                s
+                statusText.style.color = "#00ffcc";
+            } catch (err) {
+                statusText.innerText = "❌ 解析失敗，請使用截圖。";
+                statusText.style.color = "#ff3366";
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 智慧增量吸附 OCR
+    async function handleImageOCR(input) {
+        const file = i
