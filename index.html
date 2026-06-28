@@ -45,7 +45,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v40.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.0</p>
     </div>
 
     <div class="card">
@@ -250,7 +250,6 @@
                 }
                 entries.push(current.replace(/^"|"$/g, '').trim()); lines.push(entries);
             }
-            
             allRecords = []; let names = new Set(); let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
@@ -260,37 +259,31 @@
                 }
             }
 
-            // 💡 核心修復：徹底拆除攔截鎖。不論 names 數量是多少，最上面的表單都一定被完整初始化
             const formNameSelect = document.getElementById('form-name-select');
             const formWeekSelect = document.getElementById('form-week-select');
             const nameSelect = document.getElementById('filter-name'); 
             const weekSelect = document.getElementById('filter-week');
 
+            // 💡 鐵壁強固：不論 names 是否為空，都保證 DOM 安全防護。絕對不允許任何 .style 的未定義呼叫
             if (names.size === 0) {
-                // 如果 Excel 暫時沒有數據
-                if(formNameSelect) {
-                    formNameSelect.innerHTML = '<option value="__NEW__" selected>+ 新增新跑手...</option>';
-                    document.getElementById('new-name-zone').style.display = "block";
-                }
-                if(formWeekSelect) {
-                    formWeekSelect.innerHTML = '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
-                    document.getElementById('new-week-zone').style.display = "block";
-                }
+                if(formNameSelect) formNameSelect.innerHTML = '<option value="__NEW__" selected>+ 新增新跑手...</option>';
+                if(formWeekSelect) formWeekSelect.innerHTML = '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
+                const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "block";
+                const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "block";
                 if(nameSelect) nameSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
                 if(weekSelect) weekSelect.innerHTML = '<option value="">暫無歷史紀錄</option>';
             } else {
-                // 💡 如果 Excel 裡面明明有數據，完美載入並復原全部歷史名單！
                 if(formNameSelect) {
                     formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
                     names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
                     formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
-                    document.getElementById('new-name-zone').style.display = "none";
+                    const nameZone = document.getElementById('new-name-zone'); if(nameZone) nameZone.style.display = "none";
                 }
                 if(formWeekSelect) {
                     formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
                     Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
                     formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
-                    document.getElementById('new-week-zone').style.display = "none";
+                    const weekZone = document.getElementById('new-week-zone'); if(weekZone) weekZone.style.display = "none";
                 }
                 if(nameSelect) {
                     nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; 
@@ -309,7 +302,7 @@
                 }
             }
         } catch (error) { 
-            console.error(error);
+            console.error("安全截擊防禦觸發：", error);
         }
     }
 
@@ -324,4 +317,4 @@
 
     function updateDisplay(selectedName, selectedWeek) {
         if(allRecords.length === 0) return;
-        const matched = allRecords.find(r => r.name === selectedName && r.we
+        const matched = allRecords.find(r => r.name === selectedName && r.week === 
