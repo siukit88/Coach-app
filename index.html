@@ -45,7 +45,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v37.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v38.0</p>
     </div>
 
     <div class="card">
@@ -211,18 +211,25 @@
 
     function initSelectsWithNewOption() {
         const formNameSelect = document.getElementById('form-name-select');
-        formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他跑手...</option>';
-        document.getElementById('new-name-zone').style.display = "block";
+        if(formNameSelect) {
+            formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他跑手...</option>';
+            document.getElementById('new-name-zone').style.display = "block";
+        }
         const formWeekSelect = document.getElementById('form-week-select');
-        formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他週數...</option>';
-        document.getElementById('new-week-zone').style.display = "block";
+        if(formWeekSelect) {
+            formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option><option value="__NEW__" style="color: #00ffcc;" selected>+ 新增其他週數...</option>';
+            document.getElementById('new-week-zone').style.display = "block";
+        }
     }
 
+    // 獨立、100% 不會被中斷的安全事件監聽
     document.getElementById('form-name-select').addEventListener('change', function(e) {
-        document.getElementById('new-name-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
+        const zone = document.getElementById('new-name-zone');
+        if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
     });
     document.getElementById('form-week-select').addEventListener('change', function(e) {
-        document.getElementById('new-week-zone').style.display = e.target.value === "__NEW__" ? "block" : "none";
+        const zone = document.getElementById('new-week-zone');
+        if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
     });
 
     function submitDataDirectly() {
@@ -244,8 +251,8 @@
     }
 
     function onUploadSuccess() {
-        const btn = document.getElementById('submitBtnText'); btn.className = "submit-btn success"; btn.innerText = "✅ 功課已成功上傳 Excel！";
-        setTimeout(() => { btn.className = "submit-btn"; btn.innerText = "確認並直接提交上傳 ➔"; submitted = false; fetchAllData(); }, 3000);
+        const btn = document.getElementById('submitBtnText'); if(btn) { btn.className = "submit-btn success"; btn.innerText = "✅ 功課已成功上傳 Excel！"; }
+        setTimeout(() => { if(btn) { btn.className = "submit-btn"; btn.innerText = "確認並直接提交上傳 ➔"; } submitted = false; fetchAllData(); }, 3000);
     }
 
     function timeStringToHours(timeStr) {
@@ -277,35 +284,44 @@
                 }
             }
 
+            // 💡 鐵壁保護：如果是乾淨空白試算表，直接強制初始化填表區，並且絕對不往下走可能引發 null 錯誤的看板更新
             if (names.size === 0) {
                 initSelectsWithNewOption();
-            } else {
-                const formNameSelect = document.getElementById('form-name-select');
+                return; 
+            }
+
+            // 如果有歷史數據，才去渲染下方的看板選單
+            const formNameSelect = document.getElementById('form-name-select');
+            if(formNameSelect) {
                 formNameSelect.innerHTML = '<option value="">請選擇你的名字...</option>';
                 names.forEach(n => { formNameSelect.innerHTML += `<option value="${n}">${n}</option>`; });
                 formNameSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他跑手...</option>';
+            }
 
-                const formWeekSelect = document.getElementById('form-week-select');
+            const formWeekSelect = document.getElementById('form-week-select');
+            if(formWeekSelect) {
                 formWeekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
                 Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += `<option value="${w}">${w}</option>`; });
                 formWeekSelect.innerHTML += '<option value="__NEW__" style="color: #00ffcc;">+ 新增其他週數...</option>';
-
-                const nameSelect = document.getElementById('filter-name'); if(nameSelect) { nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; }); }
-                const weekSelect = document.getElementById('filter-week'); if(weekSelect) { weekSelect.innerHTML = '<option value="">選擇週數...</option>'; Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; }); }
-                if(allRecords.length > 0) { const last = allRecords[allRecords.length - 1]; if(nameSelect) nameSelect.value = last.name; if(weekSelect) weekSelect.value = last.week; updateDisplay(last.name, last.week); }
             }
-        } catch (error) { initSelectsWithNewOption(); }
+
+            const nameSelect = document.getElementById('filter-name'); if(nameSelect) { nameSelect.innerHTML = '<option value="">選擇跑手...</option>'; names.forEach(n => { nameSelect.innerHTML += `<option value="${n}">${n}</option>`; }); }
+            const weekSelect = document.getElementById('filter-week'); if(weekSelect) { weekSelect.innerHTML = '<option value="">選擇週數...</option>'; Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += `<option value="${w}">${w}</option>`; }); }
+            
+            if(allRecords.length > 0) { 
+                const last = allRecords[allRecords.length - 1]; 
+                if(nameSelect) nameSelect.value = last.name; 
+                if(weekSelect) weekSelect.value = last.week; 
+                updateDisplay(last.name, last.week); 
+            }
+        } catch (error) { 
+            initSelectsWithNewOption(); 
+        }
     }
 
     function generateDynamicStrategy(record) {
+        if(!record) return "";
         let riskComment = "穩定前行，體感控制良好，週間維持正常 Zone 2 堆疊耐力。"; let weatherComment = "";
         const text = record.risk + " " + record.weather + " " + record.supply;
         if (text.includes("過度疲勞") || text.includes("睡眠不足")) riskComment = "⚠️【教練警告】靜止心率或體感偏重，週間必須強制減量 30%，拉長睡眠！";
-        if (text.includes("香港高濕")) weatherComment = "應對香港極端高濕，此數據已包含高額脫水內耗。建議往後長課每小時強制補水至少 600-800ml。";
-        return `${riskComment} ${weatherComment}`;
-    }
-
-    function updateDisplay(selectedName, selectedWeek) {
-        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
-        if (matched) {
-            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; document.getElementById('val-distance').innerText = matched.distance + " km"; document.getElementById('val-climb').innerText = mat
+        if (text.incl
