@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台</title>
+    <!-- 引入開源 OCR 引擎 與 專業圖表渲染引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,7 +12,7 @@
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; position: relative; box-sizing: border-box; padding-bottom: 40px; text-align: left; }
         .header { background: #ff3366; padding: 25px 20px; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba Chia55,255,255,0.8); }
         .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
         .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
         .custom-form { display: flex; flex-direction: column; gap: 12px; }
@@ -59,14 +60,16 @@
 </head>
 <body>
 
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){onUploadSuccess();}"></iframe>
+<!-- 💡 安全修復：徹底拔除 HTML 內部的 inline onload 事件，由最底層 JS 安全接管 -->
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v34.0 (防禦安全版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v35.0 (安全流通版)</p>
     </div>
 
+    <!-- 1. 步驟一：手動回報區 -->
     <div class="card">
         <h2>📝 步驟一：學員功課手動回報</h2>
         
@@ -85,6 +88,7 @@
             </div>
         </div>
 
+        <!-- ⛰️ 動態起伏圖與分段大數據面板 -->
         <div id="live-chart-card" style="display:none; margin-bottom: 15px; background:#1c1c24; padding:12px; border-radius:6px; border:1px solid #00ffcc;">
             <div style="font-size:12px; color:#00ffcc; font-weight:bold; margin-bottom:5px; text-align:left;">⛰️ 本次隨機路線高度起伏與自動拆段看板：</div>
             <div class="chart-container">
@@ -201,6 +205,7 @@
         </form>
     </div>
 
+    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -226,6 +231,7 @@
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
+    <!-- 3. 教練密碼解鎖區 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -338,11 +344,4 @@
             } catch (err) {
                 statusText.innerText = "❌ 解析失敗，請使用截圖。";
                 statusText.style.color = "#ff3366";
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    async function handleImageOCR(input) {
-        const file = input.files[0];
-        if (!f
+   
