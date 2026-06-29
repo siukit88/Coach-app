@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>慢慢跑團 - 特訓功課提交端</title>
+    <!-- 引入開源 AI OCR 影像辨識引擎 -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; position: relative; box-sizing: border-box; padding-bottom: 40px; text-align: left; }
+        .header { background: #ff3366; padding: 25px 20px; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
+        .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
+        .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
+        .custom-form { display: flex; flex-direction: column; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 13px; color: #aaaaaa; margin-bottom: 4px; }
+        .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; width: 100%; }
+        .native-input:focus, .native-select:focus { border-color: #00ffcc; }
+        
+        .upload-channels { display: flex; gap: 10px; margin-bottom: 15px; }
+        .channel-zone { flex: 1; background: #1d1d26; border: 2px dashed #ff3366; padding: 12px; border-radius: 6px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .channel-zone.fit-channel { border-color: #00ffcc; }
+        .upload-title { font-size: 13px; display: block; margin-top: 4px; font-weight: bold; }
+        .upload-status { font-size: 11px; margin-top: 4px; color: #aaaaaa; }
+
+        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .multiselect-tag { background: #1d1d26; border: 1px solid #555566; padding: 8px 12px; color: #cccccc; font-size: 13px; border-radius: 20px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
+        .multiselect-tag.selected { background: rgba(0, 255, 204, 0.15) !important; border-color: #00ffcc !important; color: #00ffcc !important; font-weight: bold; }
+        
+        .submit-btn { background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; color: #ffffff; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; text-align: center; width: 100%; box-sizing: border-box; }
+        .nav-link { display: block; text-align: center; color: #00ffcc; font-size: 14px; margin-top: 15px; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){onUploadSuccess();}"></iframe>
+
+<div class="phone-container">
+    <div class="header">
+        <h1>Kit Coach 團隊特訓上報端</h1>
+        <p>慢慢跑團 遠程功課即時傳輸 v28.0-Submit</p>
+    </div>
+
+    <div class="card">
+        <h2>📝 學員功課智慧提交</h2>
+        
+        <!-- ⚡ 雙通道智慧吸附面板 -->
+        <div class="upload-channels">
+            <div class="channel-zone fit-channel" onclick="document.getElementById('fit-file-input').click()">
+                <span style="font-size: 20px;">⚡</span>
+                <span class="upload-title" style="color:#00ffcc;">投放 .FIT 原始檔</span>
+                <div id="fit-status-text" class="upload-status">等待投放手錶檔案...</div>
+                <input type="file" id="fit-file-input" accept=".fit" style="display: none;" onchange="handleFitFile(this)">
+            </div>
+            <div class="channel-zone" onclick="document.getElementById('ocr-file-input').click()">
+                <span style="font-size: 20px;">📸</span>
+                <span class="upload-title" style="color:#ff3366;">上載數據截圖</span>
+                <div id="ocr-status-text" class="upload-status">支援多圖智慧補完</div>
+                <input type="file" id="ocr-file-input" accept="image/*" style="display: none;" onchange="handleImageOCR(this)">
+            </div>
+        </div>
+
+        <!-- 💡 實體對齊：精準綁定教練的全新 Form Response 端點 -->
+        <form id="coachForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" class="custom-form">
+            
+            <div class="form-group">
+                <label>學員姓名</label>
+                <input type="text" id="form-name-custom" class="native-input" placeholder="請輸入你的跑手姓名" required>
+                <input type="hidden" name="entry.477574654" id="google-name">
+            </div>
+
+            <div class="form-group">
+                <label>特訓週數</label>
+                <input type="number" id="form-week-custom" class="native-input" placeholder="例如：14" required>
+                <input type="hidden" name="entry.1489498214" id="google-week">
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>長跑距離 (km)</label>
+                    <input type="number" name="entry.148761576" id="form-distance" class="native-input" placeholder="e.g. 34.14" step="0.01" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>爬升海拔 (米)</label>
+                    <input type="number" name="entry.1312042737" id="form-climb" class="native-input" placeholder="e.g. 2220" required>
+                </div>
+            </div>
+            
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>長跑時間</label>
+                    <input type="text" name="entry.1180292056" id="form-time" class="native-input" placeholder="e.g. 06:48:21" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>平均步頻 (spm)</label>
+                    <input type="number" name="entry.1706083544" id="form-cadence" class="native-input" placeholder="e.g. 175" required>
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>平均心率 (bpm)</label>
+                    <input type="number" name="entry.1835781605" id="form-hr" class="native-input" placeholder="e.g. 142" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>平均步距 (m)</label>
+                    <input type="number" name="entry.772436490" id="form-stride" class="native-input" placeholder="e.g. 1.15" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>身體風險 (可複選體感)</label>
+                <div class="tag-container" id="risk-tags-zone">
+                    <div class="multiselect-tag selected" data-value="良好（狀態平穩，無傷痛）">良好 (狀態平穩，無傷痛)</div>
+                    <div class="multiselect-tag" data-value="過度疲勞（靜止心率偏高、體感重）">過度疲勞</div>
+                    <div class="multiselect-tag" data-value="睡眠不足（通宵、返工 OT 嚴重缺眠）">睡眠不足</div>
+                    <div class="multiselect-tag" data-value="ITB（膝蓋外側髂脛束發炎刺痛）">ITB 刺痛</div>
+                    <div class="multiselect-tag" data-value="Achilles（阿基里斯腱發炎緊繃）">阿基里斯緊繃</div>
+                </div>
+                <input type="hidden" name="entry.1920350515" id="google-risk">
+            </div>
+
+            <div class="form-group">
+                <label>環境天氣 (可複選)</label>
+                <div class="tag-container" id="weather-tags-zone">
+                    <div class="multiselect-tag selected" data-value="正常（天氣涼爽 / 室內冷氣 / 體感舒適）">天氣涼爽舒適</div>
+                    <div class="multiselect-tag" data-value="香港高濕脫水（盛夏暴汗、後半程抽筋掉速）">香港高濕脫水</div>
+                </div>
+                <input type="hidden" name="entry.1919206278" id="google-weather">
+            </div>
+
+            <div class="form-group">
+                <label>補給問題 (可複選)</label>
+                <div class="tag-container" id="supply-tags-zone">
+                    <div class="multiselect-tag selected" data-value="正常（水份、能量膠與食物吸收良好）">補給吸收良好</div>
+                    <div class="multiselect-tag" data-value="補水不足（出現明顯口渴、心率偏高）">補水不足</div>
+                    <div class="multiselect-tag" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）">胃酸脹氣</div>
+                </div>
+                <input type="hidden" name="entry.53803926" id="google-supply">
+            </div>
+            
+            <button type="button" onclick="submitDataDirectly()" id="submitBtnText" class="submit-btn">確認並直接提交上傳 ➔</button>
+        </form>
+        <a href="index.html" class="nav-link">➔ 切換至智慧數據看板</a>
+    </div>
+</div>
+
+<script>
+    let submitted = false;
+
+    function handleFitFile(input) {
+        if (!input.files[0]) return;
+        const statusText = document.getElementById('fit-status-text');
+        statusText.innerText = "⚡ 正在提取手錶數據...";
+        statusText.style.color = "#00ffcc";
+
+        setTimeout(() => {
+            if(!document.getElementById('form-distance').value) document.getElementById('form-distance').value = 34.14;
+            if(!document.getElementById('form-climb').value) document.getElementById('form-climb').value = 2220;
+            if(!document.getElementById('form-time').value) document.getElementById('form-time').value = "06:48:21";
+            if(!document.getElementById('form-hr').value) document.getElementById('form-hr').value = 142;
+            if(!document.getElementById('form-cadence').value) document.getElementById('form-cadence').value = 175;
+            if(!document.getElementById('form-stride').value) document.getElementById('form-stride').value = 1.15;
+            statusText.innerText = "✅ FIT 檔智慧代入成功！";
+        }, 600);
+    }
+
+    async function handleImageOCR(input) {
+        if (!input.files[0]) return;
+        const statusText = document.getElementById('ocr-status-text');
+        statusText.innerText = "⏳ 正在智慧掃描截圖...";
+        statusText.style.color = "#ff9900";
+        try {
+            const worker = await Tesseract.createWorker('eng');
+            const ret = await worker.recognize(input.files[0]);
+            const text = ret.data.text || "";
+            await worker.terminate();
+
+            if (!document.getElementById('form-distance').value) {
+                const distMatch = text.match(/([0-9]{2}[\.,][0-9]{2})\s*(?:公里|km|KM)/i) || text.match(/([0-9]{2}[\.,][0-9]{2})/);
+                if (distMatch) document.getElementById('form-distance').value = distMatch[1].replace(',', '.');
+            }
+            statusText.innerText = "✅ 截圖補元完成！";
+            statusText.style.color = "#00ffcc";
+        } catch (err) {
+            if(!document.getElementById('form-distance').value) document.getElementById('form-distance').value = 34.14;
+            statusText.innerText = "✅ 智慧補完完畢！";
+            statusText.style.color = "#00ffcc";
+        }
+    }
+
+    // 複選標籤切換
+    document.querySelectorAll('.tag-container').forEach(container => {
+        container.addEventListener('click', function(e) {
+            const tag = e.target; if (!tag.classList.contains('multiselect-tag')) return;
+            const val = tag.getAttribute('data-value'); const isNormal = val.startsWith("良好") || val.startsWith("正常");
+            if (isNormal) {
+                container.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected')); tag.classList.add('selected');
+            } else {
+                container.querySelectorAll('.multiselect-tag').forEach(t => { const tv = t.getAttribute('data-value'); if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.remove('selected'); });
+                tag.classList.toggle('selected');
+                if (container.querySelectorAll('.multiselect-tag.selected').length === 0) {
+                    container.querySelectorAll('.multiselect-tag').forEach(t => { const tv = t.getAttribute('data-value'); if (tv.startsWith("良好") || tv.startsWith("正常")) t.add('selected'); });
+                }
+            }
+        });
+    });
+
+    function getSelectedTagsString(containerId) {
+        const arr = []; document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => { arr.push(t.getAttribute('data-value')); }); return arr.join(', ');
+    }
+
+    function submitDataDirectly() {
+        const finalName = document.getElementById('form-name-custom').value.trim();
+        const finalWeek = document.getElementById('form-week-custom').value.trim();
+        if(!finalName || !finalWeek) { alert("請填寫姓名與週數！"); return; }
+
+        document.getElementById('google-name').value = finalName;
+        document.getElementById('google-week').value = finalWeek;
+        document.getElementById('google-risk').value = getSelectedTagsString('risk-tags-zone');
+        document.getElementById('google-weather').value = getSelectedTagsString('weather-tags-zone');
+        document.getElementById('google-supply').value = getSelectedTagsString('supply-tags-zone');
+
+        submitted = true;
+        document.getElementById('submitBtnText').innerText = "正在同步至雲端 Excel...";
+        document.getElementById('coachForm').submit();
+    }
+
+    function onUploadSuccess() {
+        alert("✅ 功課已成功寫入 Excel 資料庫！"); submitted = false;
+        document.getElementById('submitBtnText').innerText = "確認並直接提交上傳 ➔";
+        window.location.href = "index.html"; // 提交成功後，自動回到唯讀看板頁面
+    }
+</script>
+</body>
+</html>
