@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Kit Coach 團隊特訓數據平台 (基礎還原版)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -18,24 +16,7 @@
         .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 13px; color: #aaaaaa; margin-bottom: 4px; }
         .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; width: 100%; }
-        
-        /* 6格面板外觀 */
-        .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .grid-zone { background: #1d1d26; border: 1px solid #3a3a4a; border-radius: 6px; padding: 12px 6px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
-        .grid-zone.active-fit { border-color: #00ffcc; background: rgba(0, 255, 204, 0.03); }
-        .grid-zone.active-json { border-color: #ffb703; background: rgba(255, 183, 3, 0.03); }
-        .grid-zone.active-ocr { border-color: #ff3366; background: rgba(255, 51, 102, 0.03); }
-        .grid-zone.active-api { border-color: #3a86ff; background: rgba(58, 134, 255, 0.03); }
-        .grid-icon { font-size: 20px; display: block; margin-bottom: 4px; }
-        .grid-title { font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px; }
-        .grid-status { font-size: 9px; color: #aaaaaa; display: block; }
-        .badge-check { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #00ffcc; display: none; }
-
-        /* 複選標籤樣式 */
-        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
-        .multiselect-tag { background: #1d1d26; border: 1px solid #555566; padding: 8px 12px; color: #cccccc; font-size: 13px; border-radius: 20px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
-        .multiselect-tag.selected { background: rgba(0, 255, 204, 0.15) !important; border-color: #00ffcc !important; color: #00ffcc !important; font-weight: bold; }
-        
+        .hidden-group { display: none; margin-top: 5px; }
         .submit-btn { background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; color: #ffffff; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; text-align: center; width: 100%; box-sizing: border-box; }
         .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
         .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
@@ -44,9 +25,6 @@
         .clear { clear: both; }
         .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
-        
-        .chart-container { position: relative; width: 100%; height: 140px; margin-top: 15px; background: #16161a; border-radius: 6px; padding: 5px; box-sizing: border-box; }
-        .trend-container { position: relative; width: 100%; height: 130px; margin-top: 15px; background: #16161a; border-radius: 6px; padding: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -55,54 +33,12 @@
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v59.0 (終極無瑕版)</p>
+        <h1>Kit Coach 團隊特訓數據平台</h1>
+        <p>慢慢跑團 遠程智慧特訓平台 v28.5 (黃金純淨基底)</p>
     </div>
 
     <div class="card">
-        <h2>📊 功能面板與手動功課回報</h2>
-        
-        <div class="upload-grid">
-            <div class="grid-zone active-fit" onclick="document.getElementById('fit-input').click()">
-                <span class="badge-check" id="badge-fit">✓</span>
-                <span class="grid-icon">🟢</span>
-                <span class="grid-title">1. .FIT 檔案</span>
-                <span class="grid-status" id="status-fit">(GPS/Bio)</span>
-                <input type="file" id="fit-input" accept=".fit" style="display:none;" onchange="handleFitFile(this)">
-            </div>
-            <div class="grid-zone active-json" onclick="document.getElementById('json-input').click()">
-                <span class="badge-check" id="badge-json">✓</span>
-                <span class="grid-icon">🟡</span>
-                <span class="grid-title">2. .JSON 檔案</span>
-                <span class="grid-status" id="status-json">(Raw)</span>
-                <input type="file" id="json-input" accept=".json" style="display:none;" onchange="handleJsonFile(this)">
-            </div>
-            <div class="grid-zone active-ocr" onclick="simulateSync('ocr')">
-                <span class="badge-check" id="badge-ocr">✓</span>
-                <span class="grid-icon">📷</span>
-                <span class="grid-title">3. Screenshot</span>
-                <span class="grid-status" id="status-ocr">OCR</span>
-            </div>
-            <div class="grid-zone active-api" onclick="simulateSync('strava')">
-                <span class="badge-check" id="badge-strava">✓</span>
-                <span class="grid-icon">🧡</span>
-                <span class="grid-title">4. Strava</span>
-                <span class="grid-status" id="status-strava">Sync</span>
-            </div>
-            <div class="grid-zone active-api" onclick="simulateSync('coros')">
-                <span class="badge-check" id="badge-coros">✓</span>
-                <span class="grid-icon">🔴</span>
-                <span class="grid-title">5. Coros</span>
-                <span class="grid-status" id="status-coros">Sync</span>
-            </div>
-            <div class="grid-zone active-api" onclick="simulateSync('garmin')">
-                <span class="badge-check" id="badge-garmin">✓</span>
-                <span class="grid-icon">🔷</span>
-                <span class="grid-title">6. Garmin</span>
-                <span class="grid-status" id="status-garmin">Sync</span>
-            </div>
-        </div>
-
+        <h2>📊 手動功課回報面板</h2>
         <form id="coachForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" class="custom-form">
             
             <div class="form-group">
@@ -157,34 +93,18 @@
             </div>
 
             <div class="form-group">
-                <label>身體風險 (可複選體感)</label>
-                <div class="tag-container" id="risk-tags-zone">
-                    <div class="multiselect-tag selected" data-value="良好（狀態平穩，無傷痛）">良好 (狀態平穩)</div>
-                    <div class="multiselect-tag" data-value="過度疲勞（靜止心率偏高、體感重）">過度疲勞</div>
-                    <div class="multiselect-tag" data-value="睡眠不足（通宵、返工 OT 嚴重缺眠）">睡眠不足</div>
-                    <div class="multiselect-tag" data-value="ITB（膝蓋外側髂脛束發炎刺痛）">ITB刺痛</div>
-                    <div class="multiselect-tag" data-value="Achilles（阿基里斯腱發炎緊繃）">阿基里斯緊繃</div>
-                </div>
-                <input type="hidden" name="entry.1920350515" id="google-risk">
+                <label>身體風險（單選體感）</label>
+                <input type="text" name="entry.1920350515" id="form-risk" class="native-input" value="良好（狀態平穩，無傷痛）">
             </div>
 
             <div class="form-group">
-                <label>環境天氣 (可複選)</label>
-                <div class="tag-container" id="weather-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常（天氣涼爽 / 室內冷氣 / 體感舒適）">天氣涼爽舒適</div>
-                    <div class="multiselect-tag" data-value="香港高濕脫水（盛夏暴汗、後半程抽筋掉速）">香港高濕脫水</div>
-                </div>
-                <input type="hidden" name="entry.1919206278" id="google-weather">
+                <label>環境天氣</label>
+                <input type="text" name="entry.1919206278" id="form-weather" class="native-input" value="正常（天氣涼爽 / 室內冷氣 / 體感舒適）">
             </div>
 
             <div class="form-group">
-                <label>補給問題 (可複選)</label>
-                <div class="tag-container" id="supply-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常（水份、能量膠與食物吸收良好）">補給吸收良好</div>
-                    <div class="multiselect-tag" data-value="補水不足（出現明顯口渴、心率偏高）">補水不足</div>
-                    <div class="multiselect-tag" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）">胃酸脹氣</div>
-                </div>
-                <input type="hidden" name="entry.53803926" id="google-supply">
+                <label>補給問題</label>
+                <input type="text" name="entry.53803926" id="form-supply" class="native-input" value="正常（水份、能量膠與食物吸收良好）">
             </div>
             
             <button type="button" onclick="submitDataDirectly()" id="submitBtnText" class="submit-btn">確認並直接提交上傳 ➔</button>
@@ -192,18 +112,13 @@
     </div>
 
     <div class="card">
-        <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
+        <h2>📊 數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
             <select id="filter-name" class="filter-select"><option value="">選擇跑手...</option></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
         
-        <div class="chart-container">
-            <canvas id="elevationProfileChart"></canvas>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
-        <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
+        <div class="data-row" style="margin-top: 15px;">訓練日期 <span id="val-date" class="data-val">--</span></div>
         <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請選取上方篩選數據</span></div>
         <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
         <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
@@ -215,90 +130,16 @@
             <div class="clear"></div>
             <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
         </div>
-
-        <div class="trend-container">
-            <canvas id="trainingLoadChart"></canvas>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
-        <div class="data-row">身體風險 / 分段EPH <span id="val-risk" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
+        <div class="data-row" style="margin-top: 15px;">身體風險 <span id="val-risk" class="data-val">--</span></div>
         <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 </div>
 
 <script>
-    // 💡 堅守 v28.5 黃金數據通道連結
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
-    let elevationChartInstance = null;
-    let loadChartInstance = null;
-
-    // 功能 2：增量吸附代入數值，絕不覆寫學員自填部分
-    function safeFillField(id, val) {
-        const node = document.getElementById(id);
-        if(node && !node.value) { node.value = val; }
-    }
-
-    function toggleVisualBadge(type) {
-        const b = document.getElementById(`badge-${type}`); if(b) b.style.display = 'block';
-        const s = document.getElementById(`status-${type}`); if(s) { s.innerText = "Synced"; s.style.color = "#00ffcc"; }
-    }
-
-    function handleFitFile(input) {
-        if(!input.files[0]) return;
-        toggleVisualBadge('fit');
-        safeFillField('form-distance', 34.14);
-        safeFillField('form-climb', 2220);
-        safeFillField('form-time', "06:48:21");
-        
-        // 功能 4：根據 FIT 資料自動精算分段 EPH，增量加註到身體風險文字框
-        try {
-            const d = 34.14; const c = 2220;
-            const wEPH = ((d * 0.2) + ((c * 0.1)/100)) / 1.2;
-            const mEPH = ((d * 0.5) + ((c * 0.8)/100)) / 4.5;
-            const tEPH = ((d * 0.3) + ((c * 0.1)/100)) / 1.1;
-            const segmentString = `[分段EPH] 熱身:${wEPH.toFixed(2)}|攻坡:${mEPH.toFixed(2)}|落山:${tEPH.toFixed(2)}`;
-            
-            const currentRisk = getSelectedTagsString('risk-tags-zone');
-            document.getElementById('google-risk').value = (currentRisk ? currentRisk + " " : "") + segmentString;
-        } catch(e) { console.error("沙盒阻斷：", e); }
-    }
-
-    function handleJsonFile(input) {
-        if(!input.files[0]) return;
-        toggleVisualBadge('json');
-        safeFillField('form-cadence', 175);
-        safeFillField('form-hr', 142);
-    }
-
-    function simulateSync(platform) {
-        toggleVisualBadge(platform);
-        if(platform === 'ocr') safeFillField('form-distance', 34.14);
-        else safeFillField('form-stride', 1.15);
-    }
-
-    // 膠囊複選框控制腳本
-    document.querySelectorAll('.tag-container').forEach(container => {
-        container.addEventListener('click', function(e) {
-            const tag = e.target; if (!tag.classList.contains('multiselect-tag')) return;
-            const val = tag.getAttribute('data-value'); const isNormal = val.startsWith("良好") || val.startsWith("正常");
-            if (isNormal) {
-                container.querySelectorAll('.multiselect-tag').forEach(t => t.classList.remove('selected')); tag.classList.add('selected');
-            } else {
-                container.querySelectorAll('.multiselect-tag').forEach(t => { const tv = t.getAttribute('data-value'); if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.remove('selected'); });
-                tag.classList.toggle('selected');
-                if (container.querySelectorAll('.multiselect-tag.selected').length === 0) {
-                    container.querySelectorAll('.multiselect-tag').forEach(t => { const tv = t.getAttribute('data-value'); if (tv.startsWith("良好") || tv.startsWith("正常")) t.classList.add('selected'); });
-                }
-            }
-        });
-    });
-
-    function getSelectedTagsString(containerId) {
-        const arr = []; document.querySelectorAll(`#${containerId} .multiselect-tag.selected`).forEach(t => { arr.push(t.getAttribute('data-value')); }); return arr.join(', ');
-    }
 
     function submitDataDirectly() {
         const nameSelect = document.getElementById('form-name-select').value;
@@ -310,12 +151,6 @@
         document.getElementById('google-name').value = finalName;
         document.getElementById('google-week').value = finalWeek;
         
-        if(!document.getElementById('google-risk').value) {
-            document.getElementById('google-risk').value = getSelectedTagsString('risk-tags-zone');
-        }
-        document.getElementById('google-weather').value = getSelectedTagsString('weather-tags-zone');
-        document.getElementById('google-supply').value = getSelectedTagsString('supply-tags-zone');
-
         submitted = true;
         document.getElementById('submitBtnText').innerText = "正在傳輸至 Excel...";
         document.getElementById('coachForm').submit();
@@ -324,7 +159,6 @@
     function onUploadSuccess() {
         alert("✅ 功課已成功上傳 Excel！"); submitted = false;
         document.getElementById('submitBtnText').innerText = "確認並直接提交上傳 ➔";
-        document.getElementById('google-risk').value = ""; 
         fetchAllData();
     }
 
@@ -343,4 +177,123 @@
             else if (c === '\n' && !inQuotes) { currentLine.push(currentCell.trim()); lines.push(currentLine); currentLine = []; currentCell = ''; }
             else { currentCell += c; }
         }
-        if (currentCell || currentLine.length > 0) { currentLi
+        if (currentCell || currentLine.length > 0) { currentLine.push(currentCell.trim()); lines.push(currentLine); }
+        return lines;
+    }
+
+    async function fetchAllData() {
+        try {
+            const response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
+            const data = await response.text();
+            const lines = parseStandardCSV(data);
+            if(!lines || lines.length <= 1) { initSelectsWithNewOption(); return; }
+
+            const headers = lines[0];
+            let idxName = headers.findIndex(h => h.includes("姓名") || h.includes("跑手") || h.includes("Name") || h.includes("學員"));
+            let idxWeek = headers.findIndex(h => h.includes("週") || h.includes("Week"));
+            let idxDist = headers.findIndex(h => h.includes("距離") || h.includes("Distance") || h.includes("km"));
+            let idxClimb = headers.findIndex(h => h.includes("爬升") || h.includes("Climb") || h.includes("海拔"));
+            let idxTime = headers.findIndex(h => h.includes("時間") || h.includes("Time"));
+            let idxCadence = headers.findIndex(h => h.includes("步頻") || h.includes("Cadence"));
+            let idxHr = headers.findIndex(h => h.includes("心率") || h.includes("HR"));
+            let idxStride = headers.findIndex(h => h.includes("步距") || h.includes("Stride"));
+            let idxRisk = headers.findIndex(h => h.includes("風險") || h.includes("身體"));
+            let idxWeather = headers.findIndex(h => h.includes("天氣") || h.includes("環境"));
+            let idxSupply = headers.findIndex(h => h.includes("補給") || h.includes("Supply"));
+
+            if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2; if(idxDist === -1) idxDist = 3; if(idxClimb === -1) idxClimb = 4;
+            if(idxTime === -1) idxTime = 5; if(idxCadence === -1) idxCadence = 6; if(idxHr === -1) idxHr = 7; if(idxStride === -1) idxStride = 8;
+
+            allRecords = []; let names = new Set(); let weeks = new Set();
+            for(let i = 1; i < lines.length; i++) {
+                let row = lines[i];
+                if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() !== "" && row[idxName] !== "學員姓名") { 
+                    allRecords.push({ 
+                        timestamp: row[0]||"--", name: row[idxName], week: row[idxWeek], distance: row[idxDist]||"0", 
+                        climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
+                        hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
+                        weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常" 
+                    });
+                    names.add(row[idxName]); weeks.add(row[idxWeek]);
+                }
+            }
+
+            const formNameSelect = document.getElementById('form-name-select');
+            const formWeekSelect = document.getElementById('form-week-select');
+            const nameSelect = document.getElementById('filter-name'); 
+            const weekSelect = document.getElementById('filter-week');
+
+            if (names.size === 0) {
+                initSelectsWithNewOption();
+            } else {
+                formNameSelect.innerHTML = '<option value="">請選擇名字...</option>';
+                names.forEach(n => { formNameSelect.innerHTML += '<option value="' + n + '">' + n + '</option>'; });
+                formNameSelect.innerHTML += '<option value="__NEW__" selected>+ 新增新跑手...</option>';
+
+                formWeekSelect.innerHTML = '<option value="">請選擇週數...</option>';
+                Array.from(weeks).sort().forEach(w => { formWeekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
+                formWeekSelect.innerHTML += '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
+
+                nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
+                names.forEach(n => { nameSelect.innerHTML += '<option value="' + n + '">' + n + '</option>'; });
+                
+                weekSelect.innerHTML = '<option value="">選擇週數...</option>';
+                Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
+                
+                if(allRecords && allRecords.length > 0) { 
+                    const last = allRecords[allRecords.length - 1]; 
+                    if(last) { nameSelect.value = last.name; weekSelect.value = last.week; updateDisplay(last.name, last.week); }
+                }
+            }
+        } catch (error) { initSelectsWithNewOption(); }
+    }
+
+    function initSelectsWithNewOption() {
+        document.getElementById('form-name-select').innerHTML = '<option value="__NEW__" selected>+ 新增新跑手...</option>';
+        document.getElementById('form-week-select').innerHTML = '<option value="__NEW__" selected>+ 新增特訓週數...</option>';
+        document.getElementById('filter-name').innerHTML = '<option value="">暫無歷史紀錄</option>';
+        document.getElementById('filter-week').innerHTML = '<option value="">暫無歷史紀錄</option>';
+    }
+
+    function updateDisplay(selectedName, selectedWeek) {
+        if(!allRecords || allRecords.length === 0) return;
+        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
+            document.getElementById('val-distance').innerText = matched.distance + " km"; 
+            document.getElementById('val-climb').innerText = matched.climb + " 米"; 
+            document.getElementById('val-time').innerText = matched.time; 
+            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-risk').innerText = matched.risk; 
+            document.getElementById('val-weather').innerText = matched.weather; 
+            document.getElementById('val-supply').innerText = matched.supply;
+            
+            const distNum = parseFloat(matched.distance) || 0; const climbNum = parseFloat(matched.climb) || 0; const hoursNum = timeStringToHours(matched.time);
+            if (hoursNum > 0) { document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; } else { document.getElementById('val-eph').innerText = "--"; }
+            
+            const hrNum = parseInt(matched.hr);
+            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('hidden_iframe').onload = function() { if (submitted) { onUploadSuccess(); } };
+        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+        
+        document.getElementById('form-name-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-name-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+        document.getElementById('form-week-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-week-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+
+        fetchAllData();
+    });
+</script>
+</body>
+</html>
