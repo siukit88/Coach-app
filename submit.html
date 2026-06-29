@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>慢慢跑團 - 特訓功課提交端</title>
-    <!-- 引入開源 AI OCR 影像辨識引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -41,7 +40,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓上報端</h1>
-        <p>慢慢跑團 遠程功課即時傳輸 v29.1-Submit</p>
+        <p>慢慢跑團 遠程功課即時傳輸 v29.5-Submit</p>
     </div>
 
     <div class="card">
@@ -118,7 +117,6 @@
                     <div class="multiselect-tag" data-value="ITB（膝蓋外側髂脛束發炎刺痛）">ITB 刺痛</div>
                     <div class="multiselect-tag" data-value="Achilles（阿基里斯腱發炎緊繃）">阿基里斯緊繃</div>
                 </div>
-                <!-- 💡 核心定位：此隱藏欄位會直接將多選與算好的 [分段EPH] 打包寫入 Excel 的同一格 -->
                 <input type="hidden" name="entry.1920350515" id="google-risk">
             </div>
 
@@ -141,6 +139,8 @@
                 <input type="hidden" name="entry.53803926" id="google-supply">
             </div>
             
+            <input type="hidden" name="entry.EPH_INDEPENDENT_ID_HERE" id="google-eph-independent">
+
             <button type="button" onclick="submitDataDirectly()" id="submitBtnText" class="submit-btn">確認並直接提交上傳 ➔</button>
         </form>
         <a href="https://siukit88.github.io/Coach-app/index.html" class="nav-link">➔ 切換至智慧數據看板</a>
@@ -175,7 +175,7 @@
             const mEph = ((d * 0.5) + ((c * 0.8) / 100)) / 4.5;
             const tEph = ((d * 0.3) + ((c * 0.1) / 100)) / 1.1;
             
-            // 💡 精準包裝成分段數據格式，確保 100% 寫入雲端 Excel 存檔
+            // 確保存入格式清晰無瑕
             computedSegmentEPH = `[分段EPH] 熱身:${wEph.toFixed(2)} | 攻坡:${mEph.toFixed(2)} | 落山:${tEph.toFixed(2)}`;
 
             statusText.innerText = "✅ FIT 分段數據封裝完畢！";
@@ -239,21 +239,27 @@
         document.getElementById('google-name').value = finalName;
         document.getElementById('google-week').value = finalWeek;
         
-        // 💡 數據合流：將選好的膠囊選項文字與 [分段EPH] 數據串接，一併提交上傳
+        // 💡 雙保險存取線路
         let riskValue = getSelectedTagsString('risk-tags-zone');
-        if (computedSegmentEPH) { riskValue = riskValue ? riskValue + " " + computedSegmentEPH : computedSegmentEPH; }
+        
+        if (computedSegmentEPH) {
+            // 通道 1：同步塞入獨立隱藏格（如果教練有新增獨立 Column 專收 EPH）
+            document.getElementById('google-eph-independent').value = computedSegmentEPH;
+            // 通道 2：地毯式兜底——同時合併附加到身體風險內（確保目前沒開獨立欄位也能 100% 存入 Excel）
+            riskValue = riskValue ? riskValue + " " + computedSegmentEPH : computedSegmentEPH;
+        }
         
         document.getElementById('google-risk').value = riskValue;
         document.getElementById('google-weather').value = getSelectedTagsString('weather-tags-zone');
         document.getElementById('google-supply').value = getSelectedTagsString('supply-tags-zone');
 
         submitted = true;
-        document.getElementById('submitBtnText').innerText = "正在將分段數據傳輸至 Excel...";
+        document.getElementById('submitBtnText').innerText = "正在將分段數據同步至 Excel...";
         document.getElementById('coachForm').submit();
     }
 
     function onUploadSuccess() {
-        alert("✅ 功課與分段 EPH 數據已順利寫入 Excel 資料庫！"); submitted = false;
+        alert("✅ 數據已 100% 安全儲存至雲端 Excel 存檔！"); submitted = false;
         computedSegmentEPH = ""; 
         window.location.href = "https://siukit88.github.io/Coach-app/index.html"; 
     }
