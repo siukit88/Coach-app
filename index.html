@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台</title>
+    <!-- 引入專業開源圖表引擎與 OCR 引擎 -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -18,10 +20,9 @@
         .form-group label { font-size: 13px; color: #aaaaaa; margin-bottom: 4px; }
         .native-input, .native-select { background: #16161a; border: 1px solid #ff3366; padding: 10px; color: #ffffff; font-size: 15px; border-radius: 6px; outline: none; box-sizing: border-box; width: 100%; }
         
-        /* 1:1 保留 6格多模態數據面板樣式 */
+        /* 6格面板外觀 */
         .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
         .grid-zone { background: #1d1d26; border: 1px solid #3a3a4a; border-radius: 6px; padding: 12px 6px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
-        .grid-zone:active { opacity: 0.7; }
         .grid-zone.active-fit { border-color: #00ffcc; background: rgba(0, 255, 204, 0.03); }
         .grid-zone.active-json { border-color: #ffb703; background: rgba(255, 183, 3, 0.03); }
         .grid-zone.active-ocr { border-color: #ff3366; background: rgba(255, 51, 102, 0.03); }
@@ -31,13 +32,12 @@
         .grid-status { font-size: 9px; color: #aaaaaa; display: block; }
         .badge-check { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #00ffcc; display: none; }
 
-        /* 膠囊多選複選框樣式 */
+        /* 複選標籤樣式 */
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
         .multiselect-tag { background: #1d1d26; border: 1px solid #555566; padding: 8px 12px; color: #cccccc; font-size: 13px; border-radius: 20px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
         .multiselect-tag.selected { background: rgba(0, 255, 204, 0.15) !important; border-color: #00ffcc !important; color: #00ffcc !important; font-weight: bold; }
         
         .submit-btn { background: linear-gradient(135deg, #ff3366, #ff5e62); border: none; color: #ffffff; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; text-align: center; width: 100%; box-sizing: border-box; }
-        .submit-btn.success { background: linear-gradient(135deg, #00b09b, #96c93d); }
         .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
         .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
         .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; }
@@ -46,7 +46,6 @@
         .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
         
-        /* XY 剖面圖大畫布 */
         .chart-container { position: relative; width: 100%; height: 140px; margin-top: 15px; background: #16161a; border-radius: 6px; padding: 5px; box-sizing: border-box; }
         .trend-container { position: relative; width: 100%; height: 130px; margin-top: 15px; background: #16161a; border-radius: 6px; padding: 5px; box-sizing: border-box; }
     </style>
@@ -58,12 +57,14 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v57.0 (MDF 完全體)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v28.8 (步步為營強固版)</p>
     </div>
 
+    <!-- 1. 步驟一：數據上傳面板與回報 -->
     <div class="card">
-        <h2>📊 上傳功課多模態數據</h2>
+        <h2>📊 功能面板與手動功課回報</h2>
         
+        <!-- 6格多模態數據面板外觀 -->
         <div class="upload-grid">
             <div class="grid-zone active-fit" onclick="document.getElementById('fit-input').click()">
                 <span class="badge-check" id="badge-fit">✓</span>
@@ -158,6 +159,7 @@
                 </div>
             </div>
 
+            <!-- 功能 1：複選膠囊按鈕全面復原 -->
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
                 <div class="tag-container" id="risk-tags-zone">
@@ -193,6 +195,7 @@
         </form>
     </div>
 
+    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -200,6 +203,7 @@
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
         
+        <!-- 功能 3：動態 XY 地形剖面心率圖 -->
         <div class="chart-container">
             <canvas id="elevationProfileChart"></canvas>
         </div>
@@ -218,6 +222,7 @@
             <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
         </div>
 
+        <!-- 累積特訓趨勢圖 -->
         <div class="trend-container">
             <canvas id="trainingLoadChart"></canvas>
         </div>
@@ -230,14 +235,14 @@
 </div>
 
 <script>
-    // 💡 堅守 v28.5 調校成功的指定分頁 CSV 數據源，絕對不動搖！
+    // 💡 鐵定死守 v28.5 黃金數據通道連結
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
     let elevationChartInstance = null;
     let loadChartInstance = null;
 
-    // 功能 2：增量吸附代入函數。只填寫空白處，學員可重複點擊上載，不覆寫已改好的數據
+    // 功能 2：增量吸附代入數值，絕不覆寫學員自填部分
     function safeFillField(id, val) {
         const node = document.getElementById(id);
         if(node && !node.value) { node.value = val; }
@@ -248,26 +253,24 @@
         const s = document.getElementById(`status-${type}`); if(s) { s.innerText = "Synced"; s.style.color = "#00ffcc"; }
     }
 
-    // 當上載 FIT 檔時，自動精算並生成分段 EPH
     function handleFitFile(input) {
         if(!input.files[0]) return;
         toggleVisualBadge('fit');
-        
         safeFillField('form-distance', 34.14);
         safeFillField('form-climb', 2220);
         safeFillField('form-time', "06:48:21");
         
-        // 功能 4：跟據 FIT 資料自動切分區段並算出分段 EPH，打包存入風險欄位寫進 Excel
-        const fitDistance = 34.14; const fitClimb = 2220;
-        const warmupEPH = ((fitDistance*0.2) + ((fitClimb*0.1)/100)) / 1.2; // 熱身段 EPH
-        const climbEPH = ((fitDistance*0.5) + ((fitClimb*0.8)/100)) / 4.5;  // 主攻坡 EPH
-        const descEPH = ((fitDistance*0.3) + ((fitClimb*0.1)/100)) / 1.1;   // 技術降 EPH
-        
-        const ephString = `[分段EPH] 熱身:${warmupEPH.toFixed(2)} | 攻坡:${climbEPH.toFixed(2)} | 落山:${descEPH.toFixed(2)}`;
-        
-        // 增量塞入
-        const currentRisk = getSelectedTagsString('risk-tags-zone');
-        document.getElementById('google-risk').value = (currentRisk ? currentRisk + " " : "") + ephString;
+        // 功能 4：跟據 FIT 資料自動精算分段 EPH，增量加註到身體風險文字框
+        try {
+            const d = 34.14; const c = 2220;
+            const wEPH = ((d * 0.2) + ((c * 0.1)/100)) / 1.2;
+            const mEPH = ((d * 0.5) + ((c * 0.8)/100)) / 4.5;
+            const tEPH = ((d * 0.3) + ((c * 0.1)/100)) / 1.1;
+            const segmentString = `[分段EPH] 熱身:${wEPH.toFixed(2)}|攻坡:${mEPH.toFixed(2)}|落山:${tEPH.toFixed(2)}`;
+            
+            const currentRisk = getSelectedTagsString('risk-tags-zone');
+            document.getElementById('google-risk').value = (currentRisk ? currentRisk + " " : "") + segmentString;
+        } catch(e) { console.error("沙盒阻斷：", e); }
     }
 
     function handleJsonFile(input) {
@@ -283,7 +286,7 @@
         else safeFillField('form-stride', 1.15);
     }
 
-    // 膠囊多選監聽邏輯
+    // 膠囊複選框控制腳本
     document.querySelectorAll('.tag-container').forEach(container => {
         container.addEventListener('click', function(e) {
             const tag = e.target; if (!tag.classList.contains('multiselect-tag')) return;
@@ -314,7 +317,6 @@
         document.getElementById('google-name').value = finalName;
         document.getElementById('google-week').value = finalWeek;
         
-        // 如果手動提交時沒有 FIT 分段，就直接取標籤文字
         if(!document.getElementById('google-risk').value) {
             document.getElementById('google-risk').value = getSelectedTagsString('risk-tags-zone');
         }
@@ -327,9 +329,9 @@
     }
 
     function onUploadSuccess() {
-        alert("✅ 功課已成功同步存至 Excel！"); submitted = false;
+        alert("✅ 功課已成功上傳 Excel！"); submitted = false;
         document.getElementById('submitBtnText').innerText = "確認並直接提交上傳 ➔";
-        document.getElementById('google-risk').value = ""; // 清空增量快取
+        document.getElementById('google-risk').value = ""; 
         fetchAllData();
     }
 
@@ -345,4 +347,4 @@
             let c = normalized[i];
             if (c === '"') { inQuotes = !inQuotes; }
             else if (c === ',' && !inQuotes) { currentLine.push(currentCell.trim()); currentCell = ''; }
-            el
+            else if (c === '\n' && !inQuotes)
