@@ -28,22 +28,41 @@
         .comment-box.unlocked { border-color: #00ffcc; background: #1b2a22; }
         .comment-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
         .comment-text { font-size: 13px; line-height: 1.6; }
+        
+        /* 密碼驗證彈窗樣式 */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: #22222b; border: 1px solid #ff3366; padding: 30px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
+        .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
+        .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
+        .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .login-box button:active { background: #dd2255; }
+        .error-msg { color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="phone-container">
+<div id="login-screen" class="login-overlay">
+    <div class="login-box">
+        <h3>🔒 慢慢跑團・智慧特訓系統</h3>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">請輸入教練發放的個人特訓密碼</p>
+        <input type="password" id="user-pwd" placeholder="請輸入 4 位數密碼" maxlength="8">
+        <button onclick="verifyIdentity()">進入數據看板</button>
+        <div id="login-err" class="error-msg">❌ 密碼錯誤，請重新輸入</div>
+    </div>
+</div>
+
+<div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v35.0-StableRollback</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.0-GateKeeper</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
 
     <div class="card">
-        <h2>📊 跑手雲端歷史紀錄讀取</h2>
+        <h2>📊 個人雲端歷史紀錄</h2>
         <div class="filter-zone">
-            <select id="filter-name" class="filter-select"><option value="">讀取跑手中...</option></select>
+            <select id="filter-name" class="filter-select" disabled style="background:#333; border-color:#555; color:#aaa;"></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
         
@@ -79,7 +98,7 @@
 
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
-        <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
+        <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入解鎖密碼" maxlength="4">
     </div>
 
     <div id="lock-zone" class="comment-box">
@@ -91,10 +110,36 @@
 </div>
 
 <script>
+    // 💡 🔑 慢跑團「個人密碼」對照表（教練未來要在這裏增加新學生，只需在底下補上一行即可）
+    const passwordRegistry = {
+        "7777": "Test 7",
+        "8888": "Test 8",
+        "1234": "Ki Wong",
+        "5678": "Karis"
+    };
+
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = [];
     let bioChartInstance = null;
     let paceChartInstance = null;
+    let authorizedName = ""; 
+
+    // 密碼驗證控制核心
+    function verifyIdentity() {
+        const inputPwd = document.getElementById('user-pwd').value.trim();
+        const errField = document.getElementById('login-err');
+        
+        if (passwordRegistry[inputPwd]) {
+            authorizedName = passwordRegistry[inputPwd];
+            errField.style.display = 'none';
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            fetchAllData(); // 驗證通過，正式啟動數據抓取
+        } else {
+            errField.style.display = 'block';
+            document.getElementById('user-pwd').value = "";
+        }
+    }
 
     function cleanStringToHours(timeStr) {
         if (!timeStr) return 0;
@@ -146,30 +191,31 @@
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2; if(idxDist === -1) idxDist = 3; if(idxClimb === -1) idxClimb = 4;
             if(idxTime === -1) idxTime = 5; if(idxCadence === -1) idxCadence = 6; if(idxHr === -1) idxHr = 7; if(idxStride === -1) idxStride = 8;
 
-            allRecords = []; let names = new Set(); let weeks = new Set();
+            allRecords = []; let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() !== "") { 
+                // 🛡️ 安全核心過濾：在記憶體中只儲存與解鎖姓名相符的行數，其餘數據絕不落地
+                if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() === authorizedName) { 
                     allRecords.push({ 
-                        timestamp: row[0]||"--", name: row[idxName], week: row[idxWeek], distance: row[idxDist]||"0", 
+                        timestamp: row[0]||"--", name: row[idxName].trim(), week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
                         climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                         hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
                         weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常",
                         location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
                     });
-                    names.add(row[idxName]); weeks.add(row[idxWeek]);
+                    weeks.add(row[idxWeek].trim());
                 }
             }
 
             const nameSelect = document.getElementById('filter-name'); const weekSelect = document.getElementById('filter-week');
-            nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
-            names.forEach(n => { nameSelect.innerHTML += '<option value="' + n + '">' + n + '</option>'; });
+            nameSelect.innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
+            
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
             
             if(allRecords && allRecords.length > 0) { 
                 const last = allRecords[allRecords.length - 1]; 
-                if(last) { nameSelect.value = last.name; weekSelect.value = last.week; updateDisplay(last.name, last.week); }
+                if(last) { weekSelect.value = last.week; updateDisplay(authorizedName, last.week); }
             }
         } catch (error) { console.error(error); }
     }
@@ -214,8 +260,6 @@
             
             try {
                 const xLabels = ['0km', '5km\n(熱身)', '12km\n(鞍部)', '22km\n(攻坡頂)', '26km\n(落山中)', '30km\n(終點)'];
-                
-                // 圖表 1：生理強度看板
                 const ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -229,18 +273,9 @@
                             { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } },
-                        scales: {
-                            yBio: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#aaaaaa' } },
-                            yPower: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#bc00dd' } },
-                            yElevation: { type: 'linear', display: false, min: 0 }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yBio: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#aaaaaa' } }, yPower: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#bc00dd' } }, yElevation: { type: 'linear', display: false, min: 0 } } }
                 });
 
-                // 圖表 2：配速與智慧 EPH 戰術板
                 const ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
@@ -253,17 +288,8 @@
                             { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } },
-                        scales: {
-                            yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3a86ff' } },
-                            yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#00ffcc' } },
-                            yElevation: { type: 'linear', display: false, min: 0 }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3a86ff' } }, yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#00ffcc' } }, yElevation: { type: 'linear', display: false, min: 0 } } }
                 });
-
             } catch(chartErr) { console.error(chartErr); }
             checkPassword();
         }
@@ -285,10 +311,9 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
-        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(authorizedName, e.target.value); });
         document.getElementById('pwd-input').addEventListener('input', checkPassword);
-        fetchAllData();
+        // 預設不直接跑載入，等待密碼框驗證
     });
 </script>
 </body>
