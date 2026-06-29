@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v35.0-RollbackStable</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v37.0-FullSync</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -151,13 +151,13 @@
                 let row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() !== "") { 
                     allRecords.push({ 
-                        timestamp: row[0]||"--", name: row[idxName], week: row[idxWeek], distance: row[idxDist]||"0", 
+                        timestamp: row[0]||"--", name: row[idxName].trim(), week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
                         climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                         hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
                         weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常",
                         location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
                     });
-                    names.add(row[idxName]); weeks.add(row[idxWeek]);
+                    names.add(row[idxName].trim()); weeks.add(row[idxWeek].trim());
                 }
             }
 
@@ -212,22 +212,43 @@
             const cadenceNum = parseInt(matched.cadence) || 175;
             const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
             
-            // 使用原本完全成功的固定比例基礎渲染，確保 100% 復活
+            // 💡 關鍵修正：將動態標籤字串與陣列「深度綁定」到圖表生成週期中
             try {
-                const xLabels = ['0km', '5km\n(熱身)', '12km\n(鞍部)', '22km\n(攻坡頂)', '26km\n(落山中)', '30km\n(終點)'];
+                const step1 = (distNum * 0.2).toFixed(1);
+                const step2 = (distNum * 0.65).toFixed(1);
+                const step3 = (distNum * 0.85).toFixed(1);
+
+                // 🟢 讓 X 軸的「真實公里數」與「文字段落名稱」完全融為一體並同步刷新
+                const xLabels = ['0km', step1+'km\n(熱身段)', step2+'km\n(主攻坡)', step3+'km\n(落山段)', distNum+'km\n(終點)'];
                 
-                // 圖表 1：生理強度看板
+                // 🟢 讓背景地形剖面高度完全跟隨當前這一課的真實 climbNum 進行動態分配
+                const bgElevation = [
+                    Math.round(climbNum * 0.02), 
+                    Math.round(climbNum * 0.25), 
+                    climbNum, 
+                    Math.round(climbNum * 0.35), 
+                    Math.round(climbNum * 0.01)
+                ];
+
+                const dynamicHrData = [hrNum - 20, hrNum - 4, hrNum, hrNum - 8, hrNum - 14];
+                const dynamicPowerData = [120, Math.round(130 + (climbNum*0.015)), Math.round(155 + (climbNum*0.022)), 115, 95];
+                const dynamicPaceData = [5.6, 5.1, Math.min(12, parseFloat((5.5 + (climbNum / 650)).toFixed(1))), 4.9, 4.5];
+
+                // 🛑 深度安全防禦：每次刷新數據，徹底銷毀（Destroy）舊圖表實體，防止圖表快取死鎖不更新
+                if (bioChartInstance) { bioChartInstance.destroy(); bioChartInstance = null; }
+                if (paceChartInstance) { paceChartInstance.destroy(); paceChartInstance = null; }
+
+                // 重新渲染圖表 1
                 const ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
-                if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
                     type: 'line',
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '心率 (bpm)', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '步頻 (spm)', data: [cadenceNum - 6, cadenceNum, cadenceNum - 2, cadenceNum + 3, cadenceNum + 1, cadenceNum - 2], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '功率 (W)', data: [120, 165, 140, 210, 115, 95], borderColor: '#bc00dd', fill: false, tension: 0.2, yAxisID: 'yPower' },
-                            { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '心率 (bpm)', data: dynamicHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'yBio' },
+                            { label: '步頻 (spm)', data: [cadenceNum - 6, cadenceNum, cadenceNum + 2, cadenceNum + 1, cadenceNum - 2], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
+                            { label: '功率 (W)', data: dynamicPowerData, borderColor: '#bc00dd', fill: false, tension: 0.2, yAxisID: 'yPower' },
+                            { label: `爬升地形剖面 (${climbNum}m)`, data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.18)', backgroundColor: 'rgba(0, 255, 204, 0.03)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
                     options: {
@@ -236,22 +257,21 @@
                         scales: {
                             yBio: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#aaaaaa' } },
                             yPower: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#bc00dd' } },
-                            yElevation: { type: 'linear', display: false }
+                            yElevation: { type: 'linear', display: false, min: 0, max: climbNum * 1.1 }
                         }
                     }
                 });
 
-                // 圖表 2：配速與智慧 EPH 戰術板
+                // 重新渲染圖表 2
                 const ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '即時配速 (min/km)', data: [5.6, 5.1, 5.8, 8.4, 4.9, 4.6], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
-                            { label: '分段 EPH 效率', data: [wEphVal * 0.4, wEphVal, wEphVal * 0.8, mEphVal, tEphVal, tEphVal * 0.6], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
-                            { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '即時配速 (min/km)', data: dynamicPaceData, borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
+                            { label: '分段 EPH 效率', data: [wEphVal * 0.4, wEphVal, mEphVal, tEphVal, tEphVal * 0.6], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
+                            { label: `爬升地形剖面 (${climbNum}m)`, data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.18)', backgroundColor: 'rgba(0, 255, 204, 0.03)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
                     options: {
@@ -260,12 +280,12 @@
                         scales: {
                             yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3a86ff' } },
                             yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#00ffcc' } },
-                            yElevation: { type: 'linear', display: false }
+                            yElevation: { type: 'linear', display: false, min: 0, max: climbNum * 1.1 }
                         }
                     }
                 });
 
-            } catch(chartErr) { console.error(chartErr); }
+            } catch(chartErr) { console.error("沙盒阻斷：", chartErr); }
             checkPassword();
         }
     }
@@ -286,11 +306,4 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
-        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
-        document.getElementById('pwd-input').addEventListener('input', checkPassword);
-        fetchAllData();
-    });
-</script>
-</body>
-</html>
+        document.getElementById('filter-name').addEventListener(
