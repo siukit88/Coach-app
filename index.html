@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v39.7-Fixed</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v39.8-StrictFixed</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -196,6 +196,7 @@
             let climbNum = parseFloat(matched.climb) || 0; 
             let hoursNum = cleanStringToHours(matched.time);
             
+            // 💡 徹底修正變數拼寫錯誤（統一全小寫開頭變數，拒絕大小寫模糊衝突）
             let rawExcelEphStr = matched.segEph || "";
             document.getElementById('val-seg-eph').innerText = rawExcelEphStr ? rawExcelEphStr : "等待手錶原始檔同步...";
             
@@ -204,6 +205,7 @@
                 let matchW = rawExcelEphStr.match(/熱身[:：]\s*([0-9\.]+)/);
                 let matchM = rawExcelEphStr.match(/攻坡[:：]\s*([0-9\.]+)/);
                 let matchT = rawExcelEphStr.match(/落山[:：]\s*([0-9\.]+)/) || rawExcelEphStr.match(/下坡[:：]\s*([0-9\.]+)/);
+                
                 if(matchW) wEphVal = parseFloat(matchW[1]);
                 if(matchM) mEphVal = parseFloat(matchM[1]);
                 if(matchT) tEphVal = parseFloat(matchT[1]);
@@ -304,4 +306,4 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
-        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('f
+        document.getElementById('filter-week').add
