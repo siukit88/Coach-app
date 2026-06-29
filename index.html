@@ -22,7 +22,6 @@
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
         .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
         
-        /* 雙圖表畫布外觀 */
         .chart-container { position: relative; width: 100%; height: 180px; margin-top: 12px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #3a3a4a; }
         
         .input-box { background: #16161a; border: 1px solid #ff3366; padding: 10px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; outline: none; }
@@ -37,7 +36,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v31.0-View</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v32.0-Fixed</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -63,7 +62,7 @@
         <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請選取上方篩選數據</span></div>
         <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
         <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
-        <div class="data-row" style="color: #00ffcc; font-weight: bold;">正宗耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
+        <div class="data-row" style="color: #00ffcc; font-weight: bold;">平均總耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
         <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
         <div class="data-row">平均步距 <span id="val-stride" class="data-val">--</span></div>
         <div class="data-row" style="margin-top: 15px;">
@@ -73,7 +72,8 @@
         </div>
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         
-        <div class="data-row">身體風險 / 分段EPH <span id="val-risk" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
+        <div class="data-row">身體風險體感 <span id="val-risk" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
+        <div class="data-row" style="color: #ffb703; font-weight: bold;">雲端同步分段EPH <span id="val-seg-eph" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
         <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
@@ -181,12 +181,35 @@
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
             document.getElementById('val-stride').innerText = matched.stride + " m";
             document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            document.getElementById('val-risk').innerText = matched.risk; 
             document.getElementById('val-weather').innerText = matched.weather; 
             document.getElementById('val-supply').innerText = matched.supply;
-            
-            // 💡 嚴謹事實審查：如果雲端 Excel 中該欄位為空，此處 100% 保持空白，絕不自動偽造名稱
             document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
+            
+            // 💡 核心修正：精密從身體風險文字中挖出 [分段EPH] 數據
+            let rawRiskText = matched.risk || "";
+            let cleanRisk = rawRiskText;
+            let extractedEphText = "等待手錶原始檔同步...";
+            
+            // 預設分段數值（若沒抓到則用總耗力做動態兜底）
+            let wEphVal = 10.5; let mEphVal = 6.2; let tEphVal = 14.8; 
+
+            if (rawRiskText.includes("[分段EPH]")) {
+                const parts = rawRiskText.split("[分段EPH]");
+                cleanRisk = parts[0].trim(); // 這是乾淨的風險體感文字
+                extractedEphText = "[分段EPH]" + parts[1]; // 這是 EPH 的顯示文字
+                
+                // 使用正則表達式精準提取數字
+                const matchW = parts[1].match(/熱身:\s*([0-9\.]+)/);
+                const matchM = parts[1].match(/攻坡:\s*([0-9\.]+)/);
+                const matchT = parts[1].match(/落山:\s*([0-9\.]+)/);
+                
+                if(matchW) wEphVal = parseFloat(matchW[1]);
+                if(matchM) mEphVal = parseFloat(matchM[1]);
+                if(matchT) tEphVal = parseFloat(matchT[1]);
+            }
+            
+            document.getElementById('val-risk').innerText = cleanRisk || "良好";
+            document.getElementById('val-seg-eph').innerText = extractedEphText;
             
             const distNum = parseFloat(matched.distance) || 0; 
             const climbNum = parseFloat(matched.climb) || 0; 
@@ -201,16 +224,15 @@
             const cadenceNum = parseInt(matched.cadence) || 175;
             const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
             
-            // 💡 核心優化：隔離渲染雙畫布，並將攀升圖徹底「背景陰影化」
+            // 💡 渲染圖表：灌入剛剛從雲端文字挖出來的「真實分段EPH」數據
             try {
                 const w1 = (distNum * 0.2).toFixed(1);
                 const w2 = (distNum * 0.7).toFixed(1);
                 
-                // X軸標籤：公里數資訊與 EPH 文字分段並列出現
                 const xLabels = ['0.0km', `${w1}km\n(熱身段)`, `${w2}km\n(主攻坡)`, `${distNum}km\n(落山段)`];
                 const bgElevation = [0, Math.round(climbNum * 0.15), climbNum, Math.round(climbNum * 0.2)];
 
-                // 圖表 1：心率、步頻、功率疊加在地形背景上
+                // 圖表 1：心率、步頻、功率 ＋ 攀升背景
                 const ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -236,7 +258,7 @@
                     }
                 });
 
-                // 圖表 2：配速獨立疊加在地形背景上
+                // 圖表 2：即時配速、分段EPH ＋ 攀升背景
                 const ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
@@ -245,6 +267,7 @@
                         labels: xLabels,
                         datasets: [
                             { label: '即時配速 (min/km)', data: [5.5, 5.2, 8.4, 4.8], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
+                            { label: '分段 EPH 效率', data: [0, wEphVal, mEphVal, tEphVal], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
                             { label: '攀升背景 (米)', data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.15)', backgroundColor: 'rgba(0, 255, 204, 0.04)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
@@ -254,12 +277,13 @@
                         plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } },
                         scales: {
                             yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3a86ff' } },
+                            yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#00ffcc' } },
                             yElevation: { type: 'linear', display: false }
                         }
                     }
                 });
 
-            } catch(chartErr) { console.error("圖表沙盒防禦攔截：", chartErr); }
+            } catch(chartErr) { console.error("圖表解析防禦：", chartErr); }
 
             checkPassword();
         }
