@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v38.0-IronStable</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v39.5-Connected</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -72,7 +72,7 @@
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         
         <div class="data-row">身體風險體感 <span id="val-risk" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
-        <div class="data-row" style="color: #00ffcc; font-weight: bold;">智慧即時分段EPH <span id="val-seg-eph" class="data-val" style="font-size:12px; color:#00ffcc;">--</span></div>
+        <div class="data-row" style="color: #00ffcc; font-weight: bold;">雲端解鎖分段EPH <span id="val-seg-eph" class="data-val" style="font-size:12px; color:#00ffcc;">--</span></div>
         <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
@@ -139,11 +139,15 @@
             let idxWeather = headers.findIndex(h => h.includes("天氣") || h.includes("環境"));
             let idxSupply = headers.findIndex(h => h.includes("補給") || h.includes("Supply"));
             let idxLoc = headers.findIndex(h => h.includes("地名") || h.includes("路線") || h.includes("Location"));
+            
+            // 💡 讀取 GAS 剛剛生成的專屬獨立列
+            let idxSegEph = headers.findIndex(h => h.includes("分段EPH"));
+            let idxTrajectory = headers.findIndex(h => h.includes("高度軌跡"));
 
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2; if(idxDist === -1) idxDist = 3; if(idxClimb === -1) idxClimb = 4;
             if(idxTime === -1) idxTime = 5; if(idxCadence === -1) idxCadence = 6; if(idxHr === -1) idxHr = 7; if(idxStride === -1) idxStride = 8;
 
-            allRecords = []; let names = new Set(); let weeks = new Set();
+            allRecords = [];
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() !== "") { 
@@ -152,21 +156,25 @@
                         climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                         hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
                         weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常",
-                        location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
+                        location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "",
+                        segEph: (idxSegEph !== -1 && row[idxSegEph]) ? row[idxSegEph] : "",
+                        trajectory: (idxTrajectory !== -1 && row[idxTrajectory]) ? row[idxTrajectory] : ""
                     });
-                    names.add(row[idxName].trim()); weeks.add(row[idxWeek].trim());
                 }
             }
 
+            // 更新篩選選單
+            let names = new Set(allRecords.map(r => r.name));
+            let weeks = new Set(allRecords.map(r => r.week));
             const nameSelect = document.getElementById('filter-name'); const weekSelect = document.getElementById('filter-week');
             nameSelect.innerHTML = '<option value="">選擇跑手...</option>';
             names.forEach(n => { nameSelect.innerHTML += '<option value="' + n + '">' + n + '</option>'; });
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
             
-            if(allRecords && allRecords.length > 0) { 
+            if(allRecords.length > 0) { 
                 const last = allRecords[allRecords.length - 1]; 
-                if(last) { nameSelect.value = last.name; weekSelect.value = last.week; updateDisplay(last.name, last.week); }
+                nameSelect.value = last.name; weekSelect.value = last.week; updateDisplay(last.name, last.week); 
             }
         } catch (error) { console.error(error); }
     }
@@ -185,97 +193,108 @@
             document.getElementById('val-weather').innerText = matched.weather; 
             document.getElementById('val-supply').innerText = matched.supply;
             document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
-            
-            let cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
-            document.getElementById('val-risk').innerText = cleanRiskText || "良好";
+            document.getElementById('val-risk').innerText = matched.risk;
             
             let distNum = parseFloat(matched.distance) || 0; 
             let climbNum = parseFloat(matched.climb) || 0; 
             let hoursNum = cleanStringToHours(matched.time);
             
-            let rawEph = 0; let wEphVal = 0; let mEphVal = 0; let tEphVal = 0;
-            if (hoursNum > 0) { 
-                rawEph = (distNum + (climbNum / 100)) / hoursNum;
-                document.getElementById('val-eph').innerText = rawEph.toFixed(2) + " EP/小時"; 
+            // 💡 優先讀取雲端獨立列的 EPH 數據，若無則現場兜底計算
+            let segEphStr = matched.segEph || "";
+            let wEphVal = 0, mEphVal = 0, tEphVal = 0;
+            if (!segEphStr && hoursNum > 0) {
                 wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
                 mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
                 tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
-                document.getElementById('val-seg-eph').innerText = `熱身段:${wEphVal.toFixed(2)} | 主攻坡:${mEphVal.toFixed(2)} | 落山段:${tEphVal.toFixed(2)}`;
-            } else { 
-                document.getElementById('val-eph').innerText = "--"; document.getElementById('val-seg-eph').innerText = "--";
+                segEphStr = `熱身:${wEphVal.toFixed(2)} | 攻坡:${mEphVal.toFixed(2)} | 下坡:${tEphVal.toFixed(2)}`;
+            } else if (segEphStr) {
+                let mW = segEphStr.match(/熱身[:：]\s*([0-9\.]+)/);
+                let mM = segEphStr.match(/攻坡[:：]\s*([0-9\.]+)/);
+                let mT = segEphStr.match(/落山[:：]\s*([0-9\.]+)/) || segEphStr.match(/下坡[:：]\s*([0-9\.]+)/);
+                if(mW) wEphVal = parseFloat(mW[1]);
+                if(mM) mEphVal = parseFloat(mM[1]);
+                if(mT) tEphVal = parseFloat(mT[1]);
+            }
+            document.getElementById('val-seg-eph').innerText = segEphStr || "--";
+            
+            if (hoursNum > 0) {
+                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
             }
             
             let hrNum = parseInt(matched.hr) || 142;
             let cadenceNum = parseInt(matched.cadence) || 175;
-            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
+            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
             
-            // 🧱 終極防禦：用最死板、最安全的局部變數徹底隔離圖表渲染，確保 100% 成功連動
+            // 💡 聯動 Chart.js 讀取雲端 GAS 真實解析的高度軌跡
             try {
-                // 1. 公里數標籤
                 let s1 = (distNum * 0.2).toFixed(1);
-                let s2 = (distNum * 0.7).toFixed(1);
-                let xLabels = ['0km', s1+'km\n(熱身)', s2+'km\n(主攻坡)', distNum+'km\n(終點)'];
+                let s2 = (distNum * 0.45).toFixed(1);
+                let s3 = (distNum * 0.7).toFixed(1);
+                let s4 = (distNum * 0.85).toFixed(1);
                 
-                // 2. 背景攀升圖高度：完美的按爬升比例生成，絕不卡死
-                let bgElevation = [10, Math.round(climbNum * 0.2), climbNum, 20];
+                // 動態對齊的橫軸標籤
+                let xLabels = ['0km', s1+'km\n(熱身)', s2+'km\n(鞍部)', s3+'km\n(攻坡頂)', s4+'km\n(落山)', distNum+'km\n(終點)'];
+                
+                // 🟢 核心解鎖：優先解析 GAS 從 .fit 提取出來的真實地形數據
+                let bgElevation = [0, Math.round(climbNum*0.25), Math.round(climbNum*0.12), climbNum, Math.round(climbNum*0.3), 0];
+                if (matched.trajectory) {
+                    let parsedArray = matched.trajectory.split(',').map(Number);
+                    if (parsedArray.length >= 4) { bgElevation = parsedArray; }
+                }
 
-                // 3. 生理曲線動態陣列
-                let dynamicHr = [hrNum - 20, hrNum - 5, hrNum, hrNum - 12];
-                let dynamicPower = [120, Math.round(135 + (climbNum * 0.01)), Math.round(160 + (climbNum * 0.02)), 95];
-                let dynamicPace = [5.6, 5.2, Math.min(12, parseFloat((5.5 + (climbNum / 700)).toFixed(1))), 4.6];
+                let dynamicHr = [hrNum - 20, hrNum - 5, hrNum - 12, hrNum, hrNum - 6, hrNum - 15];
+                let dynamicPower = [110, 140, 125, 181, 115, 90];
+                let dynamicPace = [5.6, 5.2, 5.9, Math.min(12, parseFloat((5.5 + (climbNum / 700)).toFixed(1))), 4.8, 4.5];
 
-                // 🛑 每次刷新數據，徹底銷毀（Destroy）舊圖表實體，防止圖表快取死鎖不更新
-                if (bioChartInstance) { bioChartInstance.destroy(); bioChartInstance = null; }
-                if (paceChartInstance) { paceChartInstance.destroy(); paceChartInstance = null; }
+                if (bioChartInstance) { bioChartInstance.destroy(); }
+                if (paceChartInstance) { paceChartInstance.destroy(); }
 
-                // 重新建立圖表 1
                 let ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 bioChartInstance = new Chart(ctxBio, {
                     type: 'line',
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '心率 (bpm)', data: dynamicHr, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '步頻 (spm)', data: [cadenceNum - 6, cadenceNum, cadenceNum + 2, cadenceNum - 2], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '功率 (W)', data: dynamicPower, borderColor: '#bc00dd', fill: false, tension: 0.2, yAxisID: 'yPower' },
-                            { label: `爬升背景 (${climbNum}m)`, data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.15)', backgroundColor: 'rgba(0, 255, 204, 0.03)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '心率 (bpm)', data: dynamicHr, borderColor: '#ff3366', fill: false, yAxisID: 'yBio' },
+                            { label: '步頻 (spm)', data: [cadenceNum - 6, cadenceNum, cadenceNum - 2, cadenceNum + 3, cadenceNum + 1, cadenceNum - 2], borderColor: '#ffb703', fill: false, yAxisID: 'yBio' },
+                            { label: '功率 (W)', data: dynamicPower, borderColor: '#bc00dd', fill: false, yAxisID: 'yPower' },
+                            { label: '真實剖面地形', data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.2)', backgroundColor: 'rgba(0, 255, 204, 0.03)', fill: true, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } },
+                        plugins: { legend: { display: true, labels: { color: '#ffffff', font: { size: 9 } } } },
                         scales: {
-                            yBio: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#aaaaaa' } },
-                            yPower: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#bc00dd' } },
-                            yElevation: { type: 'linear', display: false, min: 0 }
+                            yBio: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.03)' } },
+                            yPower: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
+                            yElevation: { type: 'linear', display: false }
                         }
                     }
                 });
 
-                // 重新建立圖表 2
                 let ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '即時配速 (min/km)', data: dynamicPace, borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
-                            { label: '分段 EPH', data: [wEphVal * 0.5, wEphVal, mEphVal, tEphVal], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
-                            { label: `爬升背景 (${climbNum}m)`, data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.15)', backgroundColor: 'rgba(0, 255, 204, 0.03)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '即時配速 (min/km)', data: dynamicPace, borderColor: '#3a86ff', fill: false, yAxisID: 'yPace' },
+                            { label: '分段 EPH 效率', data: [wEphVal*0.5, wEphVal, wEphVal*0.8, mEphVal, tEphVal, tEphVal*0.6], borderColor: '#00ffcc', fill: false, yAxisID: 'yEph' },
+                            { label: '真實剖面地形', data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.2)', backgroundColor: 'rgba(0, 255, 204, 0.03)', fill: true, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } },
+                        plugins: { legend: { display: true, labels: { color: '#ffffff', font: { size: 9 } } } },
                         scales: {
-                            yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3a86ff' } },
-                            yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#00ffcc' } },
-                            yElevation: { type: 'linear', display: false, min: 0 }
+                            yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.03)' } },
+                            yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
+                            yElevation: { type: 'linear', display: false }
                         }
                     }
                 });
 
-            } catch(chartErr) { console.error("防禦跳過：", chartErr); }
+            } catch(chartErr) { console.error(chartErr); }
             checkPassword();
         }
     }
@@ -288,7 +307,7 @@
         if (pwd === "8888") {
             zone.className = "comment-box unlocked";
             title.innerText = "🟢 [" + name + "] 第 " + week + " 週・教練核心戰術方針已解鎖"; title.style.color = "#00ffcc";
-            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
+            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推蹬力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
         } else {
             zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
             content.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！"; content.style.color = "rgba(255,255,255,0.6)";
@@ -296,11 +315,4 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
-        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
-        document.getElementById('pwd-input').addEventListener('input', checkPassword);
-        fetchAllData();
-    });
-</script>
-</body>
-</html>
+   
