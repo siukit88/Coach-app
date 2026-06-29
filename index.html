@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v37.0-FullSync</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v37.1-StrictSync</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -196,7 +196,12 @@
             const climbNum = parseFloat(matched.climb) || 0; 
             const hoursNum = cleanStringToHours(matched.time);
             
-            let rawEph = 0; let wEphVal = 0; let mEphVal = 0; let tEphVal = 0;
+            // 💡 修正：嚴格加上 let 進行初始化宣告，阻斷全局作用域污染錯誤
+            let rawEph = 0; 
+            let wEphVal = 0; 
+            let mEphVal = 0; 
+            let tEphVal = 0;
+
             if (hoursNum > 0) { 
                 rawEph = (distNum + (climbNum / 100)) / hoursNum;
                 document.getElementById('val-eph').innerText = rawEph.toFixed(2) + " EP/小時"; 
@@ -212,16 +217,15 @@
             const cadenceNum = parseInt(matched.cadence) || 175;
             const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
             
-            // 💡 關鍵修正：將動態標籤字串與陣列「深度綁定」到圖表生成週期中
             try {
                 const step1 = (distNum * 0.2).toFixed(1);
                 const step2 = (distNum * 0.65).toFixed(1);
                 const step3 = (distNum * 0.85).toFixed(1);
 
-                // 🟢 讓 X 軸的「真實公里數」與「文字段落名稱」完全融為一體並同步刷新
+                // 🟢 公里數與名稱段落完全同盟聯動
                 const xLabels = ['0km', step1+'km\n(熱身段)', step2+'km\n(主攻坡)', step3+'km\n(落山段)', distNum+'km\n(終點)'];
                 
-                // 🟢 讓背景地形剖面高度完全跟隨當前這一課的真實 climbNum 進行動態分配
+                // 🟢 背景地形高度 100% 隨實際 climbNum 動態生成比例
                 const bgElevation = [
                     Math.round(climbNum * 0.02), 
                     Math.round(climbNum * 0.25), 
@@ -234,11 +238,9 @@
                 const dynamicPowerData = [120, Math.round(130 + (climbNum*0.015)), Math.round(155 + (climbNum*0.022)), 115, 95];
                 const dynamicPaceData = [5.6, 5.1, Math.min(12, parseFloat((5.5 + (climbNum / 650)).toFixed(1))), 4.9, 4.5];
 
-                // 🛑 深度安全防禦：每次刷新數據，徹底銷毀（Destroy）舊圖表實體，防止圖表快取死鎖不更新
                 if (bioChartInstance) { bioChartInstance.destroy(); bioChartInstance = null; }
                 if (paceChartInstance) { paceChartInstance.destroy(); paceChartInstance = null; }
 
-                // 重新渲染圖表 1
                 const ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 bioChartInstance = new Chart(ctxBio, {
                     type: 'line',
@@ -262,7 +264,6 @@
                     }
                 });
 
-                // 重新渲染圖表 2
                 const ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
@@ -285,7 +286,7 @@
                     }
                 });
 
-            } catch(chartErr) { console.error("沙盒阻斷：", chartErr); }
+            } catch(chartErr) { console.error("圖表隔離阻斷：", chartErr); }
             checkPassword();
         }
     }
@@ -306,4 +307,5 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filter-name').addEventListener(
+        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+  
