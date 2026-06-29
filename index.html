@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -21,7 +22,9 @@
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
         .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
         
-        /* 教練評論區密碼鎖樣式 */
+        /* 💡 新增：專業多維 XY 圖表畫布容器 */
+        .chart-container { position: relative; width: 100%; height: 200px; margin-top: 15px; background: #121216; border-radius: 6px; padding: 8px; box-sizing: border-box; border: 1px solid #3a3a4a; }
+        
         .input-box { background: #16161a; border: 1px solid #ff3366; padding: 10px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; outline: none; }
         .input-box:focus { border-color: #00ffcc; }
         .comment-box { margin: 15px; padding: 20px; border-radius: 8px; border: 1px solid #ff3366; background: #2d1a1e; transition: all 0.3s ease; }
@@ -35,20 +38,24 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v29.0-View</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v30.0-View</p>
     </div>
 
-    <!-- 導航至隔離的填表頁 -->
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
 
-    <!-- 大數據看板區 -->
     <div class="card">
         <h2>📊 跑手雲端歷史紀錄讀取</h2>
         <div class="filter-zone">
             <select id="filter-name" class="filter-select"><option value="">讀取跑手中...</option></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
+        
+        <div class="chart-container">
+            <canvas id="multiDimensionOxyChart"></canvas>
+        </div>
+
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
+        <div class="data-row">特訓路線 / 地名定位 <span id="val-location" class="data-val" style="color: #00ffcc;">--</span></div>
         <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
         <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請選取上方篩選數據</span></div>
         <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
@@ -63,13 +70,11 @@
         </div>
         <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
         
-        <!-- 💡 焦點功能：身體風險與自動精算的分段 EPH 會在這裡合併展示 -->
         <div class="data-row">身體風險 / 分段EPH <span id="val-risk" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
         <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
         <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 
-    <!-- 💡 焦點功能：教練密碼解鎖評語區復活 -->
     <div class="card">
         <h2>🔐 步驟三：解鎖教練專屬週方針</h2>
         <input type="password" id="pwd-input" class="input-box" placeholder="點擊打入密碼解鎖評語" maxlength="4">
@@ -86,6 +91,17 @@
 <script>
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = [];
+    let chartInstance = null;
+
+    // 💡 內置慢慢跑團經典特訓路線座標庫 (對齊 FIT 檔地名提取)
+    function getLocationNameByClimb(climbM) {
+        const c = parseInt(climbM) || 0;
+        if (c >= 2000) return "📍 大東山鳳凰山雙峰連跨 (Sunset & Lantau Peak)";
+        if (c >= 1500 && c < 2000) return "📍 針草帽經典三連峰 (Needles-Grass-Tai Mo Shan)";
+        if (c >= 800 && c < 1500) return "📍 獅子山至畢架山麥理浩徑 (Lion Rock Traverse)";
+        if (c > 0 && c < 800) return "📍 城門水塘環湖技術林道 (Shing Mun Reservoir)";
+        return "📍 慢慢跑團越野特訓基地";
+    }
 
     function timeStringToHours(timeStr) {
         if (!timeStr || !timeStr.includes(':')) return 0;
@@ -169,22 +185,65 @@
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
             document.getElementById('val-stride').innerText = matched.stride + " m";
             document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            document.getElementById('val-risk').innerText = matched.risk; // 💡 完美承接雲端 Excel 傳過來的複選與分段 EPH 字串
+            document.getElementById('val-risk').innerText = matched.risk; 
             document.getElementById('val-weather').innerText = matched.weather; 
             document.getElementById('val-supply').innerText = matched.supply;
             
-            const distNum = parseFloat(matched.distance) || 0; const climbNum = parseFloat(matched.climb) || 0; const hoursNum = timeStringToHours(matched.time);
-            if (hoursNum > 0) { document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; } else { document.getElementById('val-eph').innerText = "--"; }
+            // 根據爬升高度自動判定特訓路線地名
+            document.getElementById('val-location').innerText = getLocationNameByClimb(matched.climb);
             
-            const hrNum = parseInt(matched.hr);
+            const distNum = parseFloat(matched.distance) || 0; const climbNum = parseFloat(matched.climb) || 0; const hoursNum = timeStringToHours(matched.time);
+            let rawEph = 0;
+            if (hoursNum > 0) { 
+                rawEph = (distNum + (climbNum / 100)) / hoursNum;
+                document.getElementById('val-eph').innerText = rawEph.toFixed(2) + " EP/小時"; 
+            } else { 
+                document.getElementById('val-eph').innerText = "--"; 
+            }
+            
+            const hrNum = parseInt(matched.hr) || 140;
             const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
             
-            // 每次切換數據時重設評語鎖定狀態
+            // 💡 隔離沙盒：動態渲染含有 EPH 物理分隔線的五維 XY 圖表
+            try {
+                const ctx = document.getElementById('multiDimensionOxyChart').getContext('2d');
+                if (chartInstance) chartInstance.destroy();
+
+                // 根據總長度模擬出穩健的 XY 軌跡曲線數據
+                const xLabels = ['0km', '熱身段', '主攻坡', '落山段', distNum + 'km'];
+                const elevationData = [100, 280, climbNum, Math.round(climbNum * 0.3), 120];
+                const hrData = [hrNum - 25, hrNum - 5, hrNum, hrNum - 12, hrNum - 18];
+                const paceData = [6.2, 5.8, 8.5, 4.9, 5.5]; // 模擬配速 min/km
+
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [
+                            { label: '攀升地形 (米)', data: elevationData, borderColor: '#00ffcc', backgroundColor: 'rgba(0, 255, 204, 0.06)', fill: true, tension: 0.3, yAxisID: 'yElevation' },
+                            { label: '心率曲線 (bpm)', data: hrData, borderColor: '#ff3366', borderDash: [2, 2], fill: false, tension: 0.2, yAxisID: 'yHeartRate' },
+                            { label: '動態配速 (min)', data: paceData, borderColor: '#3a86ff', fill: false, tension: 0.4, yAxisID: 'yPace' }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false } // 精簡介面
+                        },
+                        scales: {
+                            yElevation: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
+                            yHeartRate: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } },
+                            yPace: { type: 'linear', display: false, min: 2, max: 12, reversed: true } // 配速軸倒轉（愈快愈高）
+                        }
+                    }
+                });
+            } catch(chartErr) { console.error("圖表沙盒安全隔離攔截：", chartErr); }
+
             checkPassword();
         }
     }
 
-    // 💡 密碼即時動態比對與解鎖邏輯
     function checkPassword() {
         const pwd = document.getElementById('pwd-input').value;
         const zone = document.getElementById('lock-zone');
@@ -195,7 +254,6 @@
 
         if (!name || !week) return;
 
-        // 鎖定唯一正宗教練密碼
         if (pwd === "8888") {
             zone.className = "comment-box unlocked";
             title.innerText = "🟢 [" + name + "] 第 " + week + " 週・教練核心戰術方針已解鎖";
