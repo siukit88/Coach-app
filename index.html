@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓數據平台 (FIT 功能版)</title>
+    <title>Kit Coach 團隊特訓數據平台 (FIT 功能修正版)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -44,10 +44,12 @@
 
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
+<input type="file" id="fit-input" accept=".fit" style="display:none;" onchange="handleFitFile(this)">
+
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v28.6 (FIT功能通車版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v28.7 (物理矯正版)</p>
     </div>
 
     <div class="card">
@@ -59,7 +61,6 @@
                 <span class="grid-icon">🟢</span>
                 <span class="grid-title">1. .FIT 檔案</span>
                 <span class="grid-status" id="status-fit">(GPS/Bio)</span>
-                <input type="file" id="fit-input" accept=".fit" style="display:none;" onchange="handleFitFile(this)">
             </div>
             <div class="grid-zone active-json" onclick="simulateSync('json')">
                 <span class="badge-check" id="badge-json">✓</span>
@@ -147,7 +148,7 @@
             </div>
 
             <div class="form-group">
-                <label>身體風險 (體感描述)</label>
+                <label>身體風險（單選體感）</label>
                 <input type="text" name="entry.1920350515" id="form-risk" class="native-input" value="良好（狀態平穩，無傷痛）">
             </div>
 
@@ -192,7 +193,6 @@
 </div>
 
 <script>
-    // 堅定使用指定分頁黃金數據連結
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
@@ -212,7 +212,7 @@
         if(!input.files[0]) return;
         toggleBadge('fit');
         
-        // 模擬抄取 FIT 檔內 GPS/Bio 核心軌跡數據
+        // 模擬精準抄取 FIT 檔軌跡數據
         safeFillField('form-distance', 34.14);
         safeFillField('form-climb', 2220);
         safeFillField('form-time', "06:48:21");
@@ -343,4 +343,5 @@
     }
 
     function updateDisplay(selectedName, selectedWeek) {
-        if(!allRecords || al
+        if(!allRecords || allRecords.length === 0) return;
+        const matc
