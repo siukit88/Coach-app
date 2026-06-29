@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v36.0-DynamicEngine</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v36.1-SolidEngine</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -171,13 +171,14 @@
                 const last = allRecords[allRecords.length - 1]; 
                 if(last) { nameSelect.value = last.name; weekSelect.value = last.week; updateDisplay(last.name, last.week); }
             }
-        } catch (error) { console.error(error); }
+        } catch (error) { console.error("資料獲取層安全隔離：", error); }
     }
 
     function updateDisplay(selectedName, selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
         const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
         if (matched) {
+            // 💡 鐵壁保全：核心文字與數據解鎖優先同步渲染，確保網頁基礎功能 100% 正常
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
             document.getElementById('val-climb').innerText = matched.climb + " 米"; 
@@ -212,18 +213,16 @@
             const cadenceNum = parseInt(matched.cadence) || 175;
             const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
             
-            // 💡 智慧動態地形演算核心：完全擺脫死數據，100% 隨 climbNum 動態生成地形起伏與生理連動
+            // 💡 圖表渲染沙盒物理隔離：包覆在單獨的 Try-Catch 內，就算圖表引擎出錯，也絕對不會波及上述數據讀取！
             try {
-                const w0 = 0;
                 const w1 = (distNum * 0.2).toFixed(1);
-                const w1_mid = (distNum * 0.45).toFixed(1);
+                const w1_m = (distNum * 0.45).toFixed(1);
                 const w2 = (distNum * 0.7).toFixed(1);
-                const w2_mid = (distNum * 0.85).toFixed(1);
+                const w2_m = (distNum * 0.85).toFixed(1);
                 const w3 = distNum.toFixed(1);
 
-                const xLabels = [`${w0}km`, `${w1}km\n(熱身)`, `${w1_mid}km\n(鞍部)`, `${w2}km\n(攻坡頂)`, `${w2_mid}km\n(落山中)`, `${w3}km\n(終點)`];
+                const xLabels = ['0.0km', w1+'km (熱身)', w1_m+'km (鞍部)', w2+'km (攻坡頂)', w2_m+'km (落山中)', w3+'km (終點)'];
                 
-                // 🟢 地形背景線完全隨真實 climbNum 動態按比例起伏生成！
                 const bgElevation = [
                     Math.round(climbNum * 0.01), 
                     Math.round(climbNum * 0.25), 
@@ -233,12 +232,9 @@
                     Math.round(climbNum * 0.02)
                 ];
 
-                // 🟢 生理曲線（心率、功率）隨動態坡度進行高擬真智慧連動
                 const dynamicHrData = [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15];
                 const dynamicPowerData = [120, Math.round(130 + (climbNum*0.02)), Math.round(120 + (climbNum*0.01)), Math.round(150 + (climbNum*0.025)), 110, 95];
-
-                // 🟢 即時配速隨爬坡、下坡起伏進行物理倒置（坡度越陡，配速數值越大/越慢）
-                const dynamicPaceData = [5.6, 5.1, 5.8, Math.min(12, (5.5 + (climbNum / 600)).toFixed(1)), 4.9, 4.6];
+                const dynamicPaceData = [5.6, 5.1, 5.8, Math.min(12, parseFloat((5.5 + (climbNum / 600)).toFixed(1))), 4.9, 4.6];
 
                 // 圖表 1：生理強度看板
                 const ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
@@ -251,7 +247,7 @@
                             { label: '心率 (bpm)', data: dynamicHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'yBio' },
                             { label: '步頻 (spm)', data: [cadenceNum - 6, cadenceNum, cadenceNum - 2, cadenceNum + 3, cadenceNum + 1, cadenceNum - 2], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
                             { label: '功率 (W)', data: dynamicPowerData, borderColor: '#bc00dd', fill: false, tension: 0.2, yAxisID: 'yPower' },
-                            { label: `動態地形剖面 (${climbNum}m)`, data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.22)', backgroundColor: 'rgba(0, 255, 204, 0.04)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '動態地形剖面', data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.22)', backgroundColor: 'rgba(0, 255, 204, 0.04)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
                     options: {
@@ -275,7 +271,7 @@
                         datasets: [
                             { label: '即時配速 (min/km)', data: dynamicPaceData, borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
                             { label: '分段 EPH 效率', data: [wEphVal * 0.4, wEphVal, wEphVal * 0.8, mEphVal, tEphVal, tEphVal * 0.6], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
-                            { label: `動態地形剖面 (${climbNum}m)`, data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.22)', backgroundColor: 'rgba(0, 255, 204, 0.04)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '動態地形剖面', data: bgElevation, borderColor: 'rgba(0, 255, 204, 0.22)', backgroundColor: 'rgba(0, 255, 204, 0.04)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
                     options: {
@@ -289,7 +285,7 @@
                     }
                 });
 
-            } catch(chartErr) { console.error(chartErr); }
+            } catch(chartErr) { console.error("圖表防禦沙盒攔截到渲染錯誤，已自動安全跳過：", chartErr); }
             checkPassword();
         }
     }
@@ -302,8 +298,12 @@
         if (pwd === "8888") {
             zone.className = "comment-box unlocked";
             title.innerText = "🟢 [" + name + "] 第 " + week + " 週・教練核心戰術方針已解鎖"; title.style.color = "#00ffcc";
-            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推蹬力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
+            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
         } else {
             zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
             content.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！"; content.style.color = "rgba(255,255,255,0.6)";
         }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('filter-name').addEventListener('chang
