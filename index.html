@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓數據平台 (多選膠囊復活版)</title>
+    <title>Kit Coach 團隊特訓數據平台 (安全還原版)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -25,11 +25,6 @@
         .clear { clear: both; }
         .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
-
-        /* 💡 新增：穩健的複選膠囊樣式 */
-        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
-        .multiselect-tag { background: #1d1d26; border: 1px solid #555566; padding: 8px 12px; color: #cccccc; font-size: 13px; border-radius: 20px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
-        .multiselect-tag.selected { background: rgba(0, 255, 204, 0.15) !important; border-color: #00ffcc !important; color: #00ffcc !important; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -39,10 +34,9 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 (v61.0 複選膠囊穩健版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 (基礎純淨版)</p>
     </div>
 
-    <!-- 1. 數據上報表單 -->
     <div class="card">
         <h2>📝 步驟一：上報今日特訓功課</h2>
         <form id="coachForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" class="custom-form">
@@ -98,45 +92,25 @@
                 </div>
             </div>
 
-            <!-- 💡 身體風險改回多選膠囊 -->
             <div class="form-group">
-                <label>身體風險 (可複選體感)</label>
-                <div class="tag-container" id="risk-tags-zone">
-                    <div class="multiselect-tag selected" data-value="良好（狀態平穩，無傷痛）">良好 (狀態平穩)</div>
-                    <div class="multiselect-tag" data-value="過度疲勞（靜止心率偏高、體感重）">過度疲勞</div>
-                    <div class="multiselect-tag" data-value="睡眠不足（通宵、返工 OT 嚴重缺眠）">睡眠不足</div>
-                    <div class="multiselect-tag" data-value="ITB（膝蓋外側髂脛束發炎刺痛）">ITB刺痛</div>
-                    <div class="multiselect-tag" data-value="Achilles（阿基里斯腱發炎緊繃）">阿基里斯緊繃</div>
-                </div>
-                <input type="hidden" name="entry.1920350515" id="google-risk">
+                <label>身體風險 (體感描述)</label>
+                <input type="text" name="entry.1920350515" id="form-risk" class="native-input" value="良好（狀態平穩，無傷痛）">
             </div>
 
-            <!-- 💡 環境天氣改回多選膠囊 -->
             <div class="form-group">
-                <label>環境天氣 (可複選)</label>
-                <div class="tag-container" id="weather-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常（天氣涼爽 / 室內冷氣 / 體感舒適）">天氣涼爽舒適</div>
-                    <div class="multiselect-tag" data-value="香港高濕脫水（盛夏暴汗、後半程抽筋掉速）">香港高濕脫水</div>
-                </div>
-                <input type="hidden" name="entry.1919206278" id="google-weather">
+                <label>環境天氣</label>
+                <input type="text" name="entry.1919206278" id="form-weather" class="native-input" value="正常（天氣涼爽 / 室內冷氣 / 體感舒適）">
             </div>
 
-            <!-- 💡 補給問題改回多選膠囊 -->
             <div class="form-group">
-                <label>補給問題 (可複選)</label>
-                <div class="tag-container" id="supply-tags-zone">
-                    <div class="multiselect-tag selected" data-value="正常（水份、能量膠與食物吸收良好）">補給吸收良好</div>
-                    <div class="multiselect-tag" data-value="補水不足（出現明顯口渴、心率偏高）">補水不足</div>
-                    <div class="multiselect-tag" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）">胃酸脹氣</div>
-                </div>
-                <input type="hidden" name="entry.53803926" id="google-supply">
+                <label>補給問題</label>
+                <input type="text" name="entry.53803926" id="form-supply" class="native-input" value="正常（水份、能量膠與食物吸收良好）">
             </div>
             
             <button type="button" onclick="submitDataDirectly()" id="submitBtnText" class="submit-btn">確認並直接提交上傳 ➔</button>
         </form>
     </div>
 
-    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -168,42 +142,6 @@
     let allRecords = []; 
     let submitted = false;
 
-    // 💡 新增：最安穩、絕不引發死鎖的多選標籤膠囊點擊監聽邏輯
-    document.querySelectorAll('.tag-container').forEach(function(container) {
-        container.addEventListener('click', function(e) {
-            const tag = e.target; 
-            if (!tag.classList.contains('multiselect-tag')) return;
-            const val = tag.getAttribute('data-value'); 
-            const isNormal = val.indexOf("良好") === 0 || val.indexOf("正常") === 0;
-            
-            if (isNormal) {
-                container.querySelectorAll('.multiselect-tag').forEach(function(t) { t.classList.remove('selected'); }); 
-                tag.classList.add('selected');
-            } else {
-                container.querySelectorAll('.multiselect-tag').forEach(function(t) { 
-                    const tv = t.getAttribute('data-value'); 
-                    if (tv.indexOf("良好") === 0 || tv.indexOf("正常") === 0) t.classList.remove('selected'); 
-                });
-                tag.classList.toggle('selected');
-                if (container.querySelectorAll('.multiselect-tag.selected').length === 0) {
-                    container.querySelectorAll('.multiselect-tag').forEach(function(t) { 
-                        const tv = t.getAttribute('data-value'); 
-                        if (tv.indexOf("良好") === 0 || tv.indexOf("正常") === 0) t.classList.add('selected'); 
-                    });
-                }
-            }
-        });
-    });
-
-    // 💡 新增：收集選中文字轉成逗號字串
-    function getSelectedTagsString(containerId) {
-        const arr = []; 
-        document.querySelectorAll("#" + containerId + " .multiselect-tag.selected").forEach(function(t) { 
-            arr.push(t.getAttribute('data-value')); 
-        }); 
-        return arr.join(', ');
-    }
-
     function submitDataDirectly() {
         const nameSelect = document.getElementById('form-name-select').value;
         const finalName = nameSelect === "__NEW__" ? document.getElementById('form-name-custom').value.trim() : nameSelect;
@@ -213,11 +151,6 @@
 
         document.getElementById('google-name').value = finalName;
         document.getElementById('google-week').value = finalWeek;
-        
-        // 💡 在提交前，把膠囊多選結果塞進對應的隱藏輸入格傳送
-        document.getElementById('google-risk').value = getSelectedTagsString('risk-tags-zone');
-        document.getElementById('google-weather').value = getSelectedTagsString('weather-tags-zone');
-        document.getElementById('google-supply').value = getSelectedTagsString('supply-tags-zone');
         
         submitted = true;
         document.getElementById('submitBtnText').innerText = "正在傳輸至 Excel...";
@@ -332,4 +265,36 @@
             document.getElementById('val-climb').innerText = matched.climb + " 米"; 
             document.getElementById('val-time').innerText = matched.time; 
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
-            document.getElementById('val-stri
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-risk').innerText = matched.risk; 
+            document.getElementById('val-weather').innerText = matched.weather; 
+            document.getElementById('val-supply').innerText = matched.supply;
+            
+            const distNum = parseFloat(matched.distance) || 0; const climbNum = parseFloat(matched.climb) || 0; const hoursNum = timeStringToHours(matched.time);
+            if (hoursNum > 0) { document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; } else { document.getElementById('val-eph').innerText = "--"; }
+            
+            const hrNum = parseInt(matched.hr);
+            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('hidden_iframe').onload = function() { if (submitted) { onUploadSuccess(); } };
+        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+        
+        document.getElementById('form-name-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-name-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+        document.getElementById('form-week-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-week-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+
+        fetchAllData();
+    });
+</script>
+</body>
+</html>
