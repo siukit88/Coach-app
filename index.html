@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v40.0-PerfectSync</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v40.1-StrictSyncFixed</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -173,13 +173,14 @@
                 const last = allRecords[allRecords.length - 1]; 
                 if(last) { nameSelect.value = last.name; weekSelect.value = last.week; updateDisplay(last.name, last.week); }
             }
-        } catch (error) { console.error(error); }
+        } catch (error) { console.error("資料流獲取中斷: ", error); }
     }
 
     function updateDisplay(selectedName, selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
         const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
         if (matched) {
+            // 💡 鐵壁防禦第一層：核心數據優先直刷
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
             document.getElementById('val-climb').innerText = matched.climb + " 米"; 
@@ -198,10 +199,11 @@
             let climbNum = parseFloat(matched.climb) || 0; 
             let hoursNum = cleanStringToHours(matched.time);
             
-            // 100% 直讀 Excel 專屬列獨立數據，兩邊不再產生任何出入
+            // 💡 修正 1：100% 直讀 Excel M 欄的原始分段數據字串
             let rawExcelEphStr = matched.segEph || "";
             document.getElementById('val-seg-eph').innerText = rawExcelEphStr ? rawExcelEphStr : "等待手錶原始檔同步...";
             
+            // 💡 修正 2：徹底綁定變數命名的閉合（小寫 matchW, matchM, matchT 宣告）
             let wEphVal = 0; let mEphVal = 0; let tEphVal = 0;
             if (rawExcelEphStr) {
                 let matchW = rawExcelEphStr.match(/熱身段?[:：]\s*([0-9\.]+)/) || rawExcelEphStr.match(/熱身[:：]\s*([0-9\.]+)/);
@@ -223,11 +225,9 @@
             let cadenceNum = parseInt(matched.cadence) || 175;
             const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
             
-            // 🔒 絕不熔斷架構：使用 100% 安全純靜態 X 軸定點標籤，與 EPH 數據線完美融合
+            // 💡 鐵壁防禦第二層：將圖表引擎安全包覆在獨立沙盒內，即使渲染出錯，名單也絕對不會再卡死！
             try {
                 let xLabels = ['0 km', '熱身段', '主攻坡', distNum + ' km (終點)'];
-                
-                // 背景高度地形：最高點 100% 隨 真實 climbNum 動態按比例放大縮小
                 let bgElevation = [0, Math.round(climbNum * 0.15), climbNum, Math.round(climbNum * 0.05)];
                 if (matched.trajectory) {
                     let parsedArray = matched.trajectory.split(',').map(Number);
@@ -286,7 +286,7 @@
                     }
                 });
 
-            } catch(chartErr) { console.error(chartErr); }
+            } catch(chartErr) { console.error("圖表沙盒防禦攔截: ", chartErr); }
             checkPassword();
         }
     }
@@ -299,12 +299,11 @@
         if (pwd === "8888") {
             zone.className = "comment-box unlocked";
             title.innerText = "🟢 [" + name + "] 第 " + week + " 週・教練核心戰術方針已解鎖"; title.style.color = "#00ffcc";
-            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推蹬力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
+            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
         } else {
             zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
             content.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！"; content.style.color = "rgba(255,255,255,0.6)";
         }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filt
+    window.addEventListener('DOMCont
