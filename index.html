@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓數據平台 (第一步：圖片抄取)</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <title>Kit Coach 團隊特訓數據平台 (安全還原版)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -26,31 +25,20 @@
         .clear { clear: both; }
         .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
-
-        /* 圖片上傳按鈕樣式 */
-        .upload-btn { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; padding: 12px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; margin-bottom: 15px; }
-        .upload-btn:active { opacity: 0.7; }
     </style>
 </head>
 <body>
 
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
-<input type="file" id="ocr-input" accept="image/*" style="display:none;" onchange="handleImageOCR(this)">
-
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 (第 1 步：安全圖片抄取版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 (基礎純淨版)</p>
     </div>
 
     <div class="card">
         <h2>📝 步驟一：上報今日特訓功課</h2>
-        
-        <div class="upload-btn" onclick="document.getElementById('ocr-input').click()">
-            📷 上載圖片自動抄取數據 <span id="ocr-status" style="font-size:12px; color:#aaaaaa; margin-left:8px;">(等待上載)</span>
-        </div>
-
         <form id="coachForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" class="custom-form">
             
             <div class="form-group">
@@ -153,45 +141,6 @@
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
-
-    // --- 本次新增：獨立且封裝的圖片掃描邏輯 ---
-    async function handleImageOCR(input) {
-        const file = input.files[0];
-        if (!file) return;
-
-        const statusEl = document.getElementById('ocr-status');
-        if (statusEl) { statusEl.innerText = "掃描中..."; statusEl.style.color = "#ffb703"; }
-
-        try {
-            const worker = await Tesseract.createWorker('eng');
-            const ret = await worker.recognize(file);
-            const text = ret.data.text || "";
-            await worker.terminate();
-
-            // 嘗試從文字中找出距離與時間
-            const distMatch = text.match(/([0-9]{2}[\.,][0-9]{2})\s*(?:公里|km|KM)/i) || text.match(/([0-9]{2}[\.,][0-9]{2})/);
-            const timeMatch = text.match(/([0-9]{2}:[0-9]{2}:[0-9]{2})/) || text.match(/([0-9]{1,2}:[0-9]{2}:[0-9]{2})/);
-
-            // 安全寫入：只在該欄位為空時才寫入，不會覆寫原有內容
-            const nodeDist = document.getElementById('form-distance');
-            if (nodeDist && !nodeDist.value) { nodeDist.value = distMatch ? distMatch[1].replace(',', '.') : 34.14; }
-
-            const nodeTime = document.getElementById('form-time');
-            if (nodeTime && !nodeTime.value) { nodeTime.value = timeMatch ? timeMatch[1] : "06:48:21"; }
-            
-            const nodeClimb = document.getElementById('form-climb');
-            if (nodeClimb && !nodeClimb.value) { nodeClimb.value = 2220; }
-            
-            const nodeHr = document.getElementById('form-hr');
-            if (nodeHr && !nodeHr.value) { nodeHr.value = 142; }
-
-            if (statusEl) { statusEl.innerText = "完成！"; statusEl.style.color = "#00ffcc"; }
-        } catch (err) {
-            console.error(err);
-            if (statusEl) { statusEl.innerText = "辨識失敗或遇到錯誤"; statusEl.style.color = "#ff3366"; }
-        }
-    }
-    // ----------------------------------------
 
     function submitDataDirectly() {
         const nameSelect = document.getElementById('form-name-select').value;
@@ -332,4 +281,20 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('hidden_iframe').onload = function() { if (submitted) { onUploadSuccess(); } };
-        document.getElem
+        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+        
+        document.getElementById('form-name-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-name-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+        document.getElementById('form-week-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-week-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+
+        fetchAllData();
+    });
+</script>
+</body>
+</html>
