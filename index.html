@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓數據平台 (FIT 功能修正版)</title>
+    <title>Kit Coach 團隊特訓數據平台 (基礎還原版)</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -25,75 +25,20 @@
         .clear { clear: both; }
         .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
         .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
-        
-        /* 6格多模態數據面板樣式 */
-        .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .grid-zone { background: #1d1d26; border: 1px solid #3a3a4a; border-radius: 6px; padding: 12px 6px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
-        .grid-zone:active { opacity: 0.7; }
-        .grid-zone.active-fit { border-color: #00ffcc; background: rgba(0, 255, 204, 0.03); }
-        .grid-zone.active-json { border-color: #ffb703; background: rgba(255, 183, 3, 0.03); }
-        .grid-zone.active-ocr { border-color: #ff3366; background: rgba(255, 51, 102, 0.03); }
-        .grid-zone.active-api { border-color: #3a86ff; background: rgba(58, 134, 255, 0.03); }
-        .grid-icon { font-size: 20px; display: block; margin-bottom: 4px; }
-        .grid-title { font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px; }
-        .grid-status { font-size: 9px; color: #aaaaaa; display: block; }
-        .badge-check { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #00ffcc; display: none; }
     </style>
 </head>
 <body>
 
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
-<input type="file" id="fit-input" accept=".fit" style="display:none;" onchange="handleFitFile(this)">
-
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v28.7 (物理矯正版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 (基礎還原版)</p>
     </div>
 
     <div class="card">
-        <h2>📊 上傳功課多模態數據</h2>
-        
-        <div class="upload-grid">
-            <div class="grid-zone active-fit" onclick="document.getElementById('fit-input').click()">
-                <span class="badge-check" id="badge-fit">✓</span>
-                <span class="grid-icon">🟢</span>
-                <span class="grid-title">1. .FIT 檔案</span>
-                <span class="grid-status" id="status-fit">(GPS/Bio)</span>
-            </div>
-            <div class="grid-zone active-json" onclick="simulateSync('json')">
-                <span class="badge-check" id="badge-json">✓</span>
-                <span class="grid-icon">🟡</span>
-                <span class="grid-title">2. .JSON 檔案</span>
-                <span class="grid-status" id="status-json">(Raw)</span>
-            </div>
-            <div class="grid-zone active-ocr" onclick="simulateSync('ocr')">
-                <span class="badge-check" id="badge-ocr">✓</span>
-                <span class="grid-icon">📷</span>
-                <span class="grid-title">3. Screenshot</span>
-                <span class="grid-status" id="status-ocr">OCR</span>
-            </div>
-            <div class="grid-zone active-api" onclick="simulateSync('strava')">
-                <span class="badge-check" id="badge-strava">✓</span>
-                <span class="grid-icon">🧡</span>
-                <span class="grid-title">4. Strava</span>
-                <span class="grid-status" id="status-strava">Sync</span>
-            </div>
-            <div class="grid-zone active-api" onclick="simulateSync('coros')">
-                <span class="badge-check" id="badge-coros">✓</span>
-                <span class="grid-icon">🔴</span>
-                <span class="grid-title">5. Coros</span>
-                <span class="grid-status" id="status-coros">Sync</span>
-            </div>
-            <div class="grid-zone active-api" onclick="simulateSync('garmin')">
-                <span class="badge-check" id="badge-garmin">✓</span>
-                <span class="grid-icon">🔷</span>
-                <span class="grid-title">6. Garmin</span>
-                <span class="grid-status" id="status-garmin">Sync</span>
-            </div>
-        </div>
-
+        <h2>📝 步驟一：上報今日特訓功課</h2>
         <form id="coachForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_iframe" class="custom-form">
             
             <div class="form-group">
@@ -148,7 +93,7 @@
             </div>
 
             <div class="form-group">
-                <label>身體風險（單選體感）</label>
+                <label>身體風險 (體感描述)</label>
                 <input type="text" name="entry.1920350515" id="form-risk" class="native-input" value="良好（狀態平穩，無傷痛）">
             </div>
 
@@ -196,37 +141,6 @@
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
-
-    // 💡 增量代入核心：若原本無輸入，則由 FIT 檔資訊自動抄取填補；重複點擊不會影響原本已填寫好嘅資料
-    function safeFillField(id, val) {
-        const node = document.getElementById(id);
-        if(node && !node.value) { node.value = val; }
-    }
-
-    function toggleBadge(type) {
-        const b = document.getElementById(`badge-${type}`); if(b) b.style.display = 'block';
-        const s = document.getElementById(`status-${type}`); if(s) { s.innerText = "Synced"; s.style.color = "#00ffcc"; }
-    }
-
-    function handleFitFile(input) {
-        if(!input.files[0]) return;
-        toggleBadge('fit');
-        
-        // 模擬精準抄取 FIT 檔軌跡數據
-        safeFillField('form-distance', 34.14);
-        safeFillField('form-climb', 2220);
-        safeFillField('form-time', "06:48:21");
-    }
-
-    function simulateSync(platform) {
-        toggleBadge(platform);
-        if(platform === 'json') {
-            safeFillField('form-cadence', 175);
-            safeFillField('form-hr', 142);
-        } else {
-            safeFillField('form-stride', 1.15);
-        }
-    }
 
     function submitDataDirectly() {
         const nameSelect = document.getElementById('form-name-select').value;
@@ -344,4 +258,43 @@
 
     function updateDisplay(selectedName, selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
-        const matc
+        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
+            document.getElementById('val-distance').innerText = matched.distance + " km"; 
+            document.getElementById('val-climb').innerText = matched.climb + " 米"; 
+            document.getElementById('val-time').innerText = matched.time; 
+            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-risk').innerText = matched.risk; 
+            document.getElementById('val-weather').innerText = matched.weather; 
+            document.getElementById('val-supply').innerText = matched.supply;
+            
+            const distNum = parseFloat(matched.distance) || 0; const climbNum = parseFloat(matched.climb) || 0; const hoursNum = timeStringToHours(matched.time);
+            if (hoursNum > 0) { document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; } else { document.getElementById('val-eph').innerText = "--"; }
+            
+            const hrNum = parseInt(matched.hr);
+            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('hidden_iframe').onload = function() { if (submitted) { onUploadSuccess(); } };
+        document.getElementById('filter-name').addEventListener('change', (e) => { updateDisplay(e.target.value, document.getElementById('filter-week').value); });
+        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+        
+        document.getElementById('form-name-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-name-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+        document.getElementById('form-week-select').addEventListener('change', function(e) {
+            const zone = document.getElementById('new-week-zone');
+            if(zone) zone.style.display = e.target.value === "__NEW__" ? "block" : "none";
+        });
+
+        fetchAllData();
+    });
+</script>
+</body>
+</html>
