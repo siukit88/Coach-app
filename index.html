@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台</title>
-    <!-- 引入專業開源圖表引擎與 OCR 引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -57,14 +56,12 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v28.8 (步步為營強固版)</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v59.0 (終極無瑕版)</p>
     </div>
 
-    <!-- 1. 步驟一：數據上傳面板與回報 -->
     <div class="card">
         <h2>📊 功能面板與手動功課回報</h2>
         
-        <!-- 6格多模態數據面板外觀 -->
         <div class="upload-grid">
             <div class="grid-zone active-fit" onclick="document.getElementById('fit-input').click()">
                 <span class="badge-check" id="badge-fit">✓</span>
@@ -159,7 +156,6 @@
                 </div>
             </div>
 
-            <!-- 功能 1：複選膠囊按鈕全面復原 -->
             <div class="form-group">
                 <label>身體風險 (可複選體感)</label>
                 <div class="tag-container" id="risk-tags-zone">
@@ -195,7 +191,6 @@
         </form>
     </div>
 
-    <!-- 2. 大數據看板 -->
     <div class="card">
         <h2>📊 步驟二：智慧數據看板 (雲端同步讀取)</h2>
         <div class="filter-zone">
@@ -203,7 +198,6 @@
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
         
-        <!-- 功能 3：動態 XY 地形剖面心率圖 -->
         <div class="chart-container">
             <canvas id="elevationProfileChart"></canvas>
         </div>
@@ -222,7 +216,6 @@
             <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
         </div>
 
-        <!-- 累積特訓趨勢圖 -->
         <div class="trend-container">
             <canvas id="trainingLoadChart"></canvas>
         </div>
@@ -235,7 +228,7 @@
 </div>
 
 <script>
-    // 💡 鐵定死守 v28.5 黃金數據通道連結
+    // 💡 堅守 v28.5 黃金數據通道連結
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     let allRecords = []; 
     let submitted = false;
@@ -260,7 +253,7 @@
         safeFillField('form-climb', 2220);
         safeFillField('form-time', "06:48:21");
         
-        // 功能 4：跟據 FIT 資料自動精算分段 EPH，增量加註到身體風險文字框
+        // 功能 4：根據 FIT 資料自動精算分段 EPH，增量加註到身體風險文字框
         try {
             const d = 34.14; const c = 2220;
             const wEPH = ((d * 0.2) + ((c * 0.1)/100)) / 1.2;
@@ -347,4 +340,7 @@
             let c = normalized[i];
             if (c === '"') { inQuotes = !inQuotes; }
             else if (c === ',' && !inQuotes) { currentLine.push(currentCell.trim()); currentCell = ''; }
-            else if (c === '\n' && !inQuotes)
+            else if (c === '\n' && !inQuotes) { currentLine.push(currentCell.trim()); lines.push(currentLine); currentLine = []; currentCell = ''; }
+            else { currentCell += c; }
+        }
+        if (currentCell || currentLine.length > 0) { currentLi
