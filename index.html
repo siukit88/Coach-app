@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
-    <!-- 引入開源圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -41,20 +40,23 @@
     </style>
 
     <script>
-        // 全面防禦機制
-        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
-                e.preventDefault(); return false;
-            }
-        });
-
-        // 📡 1. 主數據發佈通道（表單回應 3）
+        // 📡 1. 主數據發佈通道（精準直連表單回應 3）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔐 2. 雲端密碼校對安全中樞網址（已完美鎖定教練最新的正式發佈網址）
-        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbw8XDj-z9zMc4A4zrfaqllt-mXS230jC32LbvTmZQOYoP0mNEdhePh2da-2jshV6M7a/exec"; 
-        
+        // 🔒 本地寫死對照表：100% 免疫雲端故障
+        var passMap = {
+            "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
+            "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
+            "1011": "Alwyn", "1012": "Camille", "1013": "Fion", "1014": "Daniel", "1015": "KingYan",
+            "1016": "Szero", "1017": "Frances", "1018": "Bianca", "1019": "Mabel", "1020": "Avis",
+            "1021": "Jason", "1022": "Jerry", "1023": "Rita", "1024": "Ruby", "1025": "Calvin Siu",
+            "1026": "Thomas", "1027": "Yin Wai", "1028": "Gary", "1029": "Lois", "1030": "Gaby",
+            "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
+        };
+
+        // 所有學員名單（教練切換用）
+        var allMembers = Object.values(passMap);
+
         var authorizedName = "";
         var isCoachMode = false;
         var allRecords = [];
@@ -69,53 +71,45 @@
             
             if (inputPwd === "") return;
             
-            errField.style.display = 'block';
-            errField.style.color = '#00ffcc';
-            errField.innerText = "⚡ 安全雲端通道加密核對中...";
-            
-            fetch(gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd))
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        errField.style.display = 'none';
-                        document.getElementById('login-screen').style.display = 'none';
-                        document.getElementById('app-content').style.display = 'block';
-                        
-                        if (data.role === "coach") {
-                            isCoachMode = true;
-                            var optionsHtml = '';
-                            if (data.members && data.members.length > 0) {
-                                data.members.forEach(function(m) {
-                                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
-                                });
-                                authorizedName = data.members[0]; 
-                            } else {
-                                optionsHtml += '<option value="Kit">👑 檢視教練自己 (Kit)</option>';
-                                authorizedName = "Kit";
-                            }
-                            nameSelect.innerHTML = optionsHtml;
-                            nameSelect.removeAttribute('disabled');
-                            nameSelect.style.background = "#2a2a35";
-                            nameSelect.style.color = "#ffffff";
-                        } else {
-                            isCoachMode = false;
-                            authorizedName = data.name;
-                            nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
-                            nameSelect.setAttribute('disabled', 'true');
-                        }
-                        
-                        setTimeout(function() { startLoadingData(); }, 100);
-                    } else {
-                        errField.style.color = '#ff4d4d';
-                        errField.innerText = "❌ 密碼錯誤：" + (data.msg || "核對失敗");
-                        document.getElementById('user-pwd').value = "";
-                    }
-                })
-                .catch(function(err) {
-                    errField.style.color = '#ff4d4d';
-                    errField.innerText = "❌ 雲端連線失敗，請稍後再試。";
-                    console.error(err);
+            // 👑 狀況 1：最高教練密碼 1000
+            if (inputPwd === "1000") {
+                isCoachMode = true;
+                authorizedName = allMembers[0]; 
+                
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                
+                var optionsHtml = '';
+                allMembers.forEach(function(m) {
+                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
                 });
+                nameSelect.innerHTML = optionsHtml;
+                nameSelect.removeAttribute('disabled');
+                nameSelect.style.background = "#2a2a35";
+                nameSelect.style.color = "#ffffff";
+                
+                startLoadingData();
+                return;
+            }
+            
+            // 👤 狀況 2：學員專屬密碼
+            if (passMap[inputPwd]) {
+                isCoachMode = false;
+                authorizedName = passMap[inputPwd];
+                
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                
+                nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
+                nameSelect.setAttribute('disabled', 'true');
+                
+                startLoadingData();
+            } else {
+                errField.style.display = 'block';
+                errField.style.color = '#ff4d4d';
+                errField.innerText = "❌ 密碼不正確，請聯絡 Kit 教練";
+                document.getElementById('user-pwd').value = "";
+            }
         }
     </script>
 </head>
@@ -124,7 +118,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全渠道無感對接終極體 v47.7-Stable</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">本地密碼對照超穩完工版 v48.0</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -134,7 +128,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v47.7</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v48.0</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -193,27 +187,21 @@
 <script>
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
-        document.getElementById('loading-status').innerText = "🔄 正在連線雲端最新特訓功課表...";
         
-        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "nocache=" + new Date().getTime();
+        // 加上防止緩存隨機變數
+        var finalUrl = csvMainUrl + "?nocache=" + new Date().getTime();
         
         fetch(finalUrl)
-            .then(function(res) { 
-                if (!res.ok) throw new Error("Google 拒絕連線");
-                return res.text(); 
-            })
+            .then(function(res) { return res.text(); })
             .then(function(text) { 
                 cachedCsvText = text; 
                 parseAndFilterData(); 
             })
             .catch(function(err) {
-                document.getElementById('loading-status').innerText = "❌ 雲端主表加載失敗，正嘗試二次加載...";
+                // 二次加載備用機制
                 fetch(csvMainUrl)
                     .then(function(r) { return r.text(); })
-                    .then(function(t) { cachedCsvText = t; parseAndFilterData(); })
-                    .catch(function() {
-                        document.getElementById('loading-status').innerText = "❌ 總表載入鎖死。請確認 Excel「發布到網路」的「表單回應 3」勾選正確。";
-                    });
+                    .then(function(t) { cachedCsvText = t; parseAndFilterData(); });
             });
     }
 
@@ -234,29 +222,25 @@
     function parseAndFilterData() {
         try {
             var lines = parseStandardCSV(cachedCsvText);
-            if(!lines || lines.length <= 1) {
-                document.getElementById('loading-status').innerText = "⚠️ 提示：目前雲端功課表無任何數據。";
-                return;
-            }
+            if(!lines || lines.length <= 1) return;
 
             var headers = lines[0];
             var idxName = -1, idxWeek = -1, idxDist = -1, idxClimb = -1, idxTime = -1, idxCadence = -1, idxHr = -1, idxStride = -1, idxRisk = -1, idxWeather = -1, idxSupply = -1, idxLoc = -1;
             
             for(var k=0; k<headers.length; k++) {
-                var h = headers[k];
-                var cleanH = h.replace(/\s+/g, ""); 
-                if(cleanH.indexOf("姓名")!==-1 || cleanH.indexOf("跑手")!==-1 || cleanH.indexOf("學員")!==-1 || cleanH.indexOf("Name")!==-1) idxName = k;
-                if(cleanH.indexOf("週")!==-1 || cleanH.indexOf("Week")!==-1) idxWeek = k;
-                if(cleanH.indexOf("距離")!==-1 || cleanH.indexOf("Distance")!==-1) idxDist = k;
-                if(cleanH.indexOf("爬升")!==-1 || cleanH.indexOf("Climb")!==-1 || cleanH.indexOf("海拔")!==-1) idxClimb = k;
-                if(cleanH.indexOf("時間")!==-1 || cleanH.indexOf("Time")!==-1) idxTime = k;
-                if(cleanH.indexOf("步頻")!==-1 || cleanH.indexOf("Cadence")!==-1) idxCadence = k;
-                if(cleanH.indexOf("心率")!==-1 || cleanH.indexOf("HR")!==-1) idxHr = k;
-                if(cleanH.indexOf("步距")!==-1 || cleanH.indexOf("Stride")!==-1) idxStride = k;
-                if(cleanH.indexOf("風險")!==-1 || cleanH.indexOf("身體")!==-1) idxRisk = k;
-                if(cleanH.indexOf("天氣")!==-1 || cleanH.indexOf("環境")!==-1) idxWeather = k;
-                if(cleanH.indexOf("補給")!==-1 || cleanH.indexOf("Supply")!==-1) idxSupply = k;
-                if(cleanH.indexOf("地名")!==-1 || cleanH.indexOf("路線")!==-1 || cleanH.indexOf("Location")!==-1) idxLoc = k;
+                var h = headers[k].replace(/\s+/g, ""); 
+                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("學員")!==-1 || h.indexOf("Name")!==-1) idxName = k;
+                if(h.indexOf("週")!==-1 || h.indexOf("Week")!==-1) idxWeek = k;
+                if(h.indexOf("距離")!==-1 || h.indexOf("Distance")!==-1) idxDist = k;
+                if(h.indexOf("爬升")!==-1 || h.indexOf("Climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
+                if(h.indexOf("時間")!==-1 || h.indexOf("Time")!==-1) idxTime = k;
+                if(h.indexOf("步頻")!==-1 || h.indexOf("Cadence")!==-1) idxCadence = k;
+                if(h.indexOf("心率")!==-1 || h.indexOf("HR")!==-1) idxHr = k;
+                if(h.indexOf("步距")!==-1 || h.indexOf("Stride")!==-1) idxStride = k;
+                if(h.indexOf("風險")!==-1 || h.indexOf("身體")!==-1) idxRisk = k;
+                if(h.indexOf("天氣")!==-1 || h.indexOf("環境")!==-1) idxWeather = k;
+                if(h.indexOf("補給")!==-1 || h.indexOf("Supply")!==-1) idxSupply = k;
+                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("Location")!==-1) idxLoc = k;
             }
 
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
@@ -299,7 +283,7 @@
                 var last = allRecords[allRecords.length - 1]; 
                 if(last) { weekSelect.value = last.week; updateDisplay(last.name, last.week); }
             } else {
-                document.getElementById('loading-status').innerText = "⚠️ 提示：新表 [表單回應 3] 中目前無此學員的上報紀錄。";
+                document.getElementById('loading-status').innerText = "⚠️ 提示：新表 [表單回應 3] 目前無此學員的上報紀錄。";
                 document.getElementById('loading-status').style.display = 'block';
                 clearDisplayFields();
             }
@@ -325,7 +309,7 @@
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
         if (matched) {
-            // 🛡️ 終極防空保護盾：防止空白或格式不符的時間戳記卡死網頁
+            // 🛡️ 終極防空保護盾：防止空白日期時間戳記卡死網頁
             if (matched.timestamp && matched.timestamp.indexOf(' ') !== -1) {
                 document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0];
             } else if (matched.timestamp) {
@@ -339,4 +323,21 @@
             document.getElementById('val-time').innerText = matched.time; 
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
             document.getElementById('val-stride').innerText = matched.stride + " m";
- 
+            document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-weather').innerText = matched.weather; 
+            document.getElementById('val-supply').innerText = matched.supply;
+            document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
+            
+            var cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
+            document.getElementById('val-risk').innerText = cleanRiskText || "良好";
+            
+            var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0; var hoursNum = cleanStringToHours(matched.time);
+            if (hoursNum > 0) { 
+                var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
+                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
+                var tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
+                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
+                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
+            }
+            
+            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cad
