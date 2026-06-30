@@ -51,7 +51,7 @@
         // 📡 主數據發佈通道（表單回應 1）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
         
-        // 🔐 雲端安全密碼核對中樞網址（已完美對齊教練的正式 Apps Script 網址）
+        // 🔐 雲端安全密碼核對中樞網址（已完美置換為你的最新發佈網址）
         var gasAuthUrl = "https://script.google.com/macros/s/AKfycbyBV6T3bukmKL5riBD0W0P6KBPBrMEyc4j6Njk5V0ejiUmffbXse3uzQqNbHr19LWOP/exec"; 
         
         var authorizedName = "";
@@ -74,7 +74,7 @@
             errField.innerText = "⚡ 安全加密連線驗證中...";
             loginBtn.setAttribute('disabled', 'true');
             
-            // 📡 發送密碼給雲端傳達員進行核對
+            // 📡 直接向你的 Apps Script 雲端數據庫核對最新自訂密碼
             fetch(gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd))
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
@@ -85,14 +85,14 @@
                         document.getElementById('app-content').style.display = 'block';
                         
                         if (data.role === "coach") {
-                            // 👑 教練最高權限：獲取雲端傳回的全體名單，解鎖下拉選單
+                            // 👑 教練管理員：獲取全體名單，解鎖下拉選單
                             isCoachMode = true;
                             var optionsHtml = '';
                             if (data.members && data.members.length > 0) {
                                 data.members.forEach(function(m) {
                                     optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
                                 });
-                                authorizedName = data.members[0]; // 預設直接加載第一個學員
+                                authorizedName = data.members[0]; 
                             } else {
                                 optionsHtml += '<option value="Kit">👑 檢視教練自己 (Kit)</option>';
                                 authorizedName = "Kit";
@@ -102,7 +102,7 @@
                             nameSelect.style.background = "#2a2a35";
                             nameSelect.style.color = "#ffffff";
                         } else {
-                            // 👤 普通學員：只拿到屬於他自己的名字，選單強制鎖死隔離
+                            // 👤 普通學員：只抓回自己名字，鎖死選單（完全防窺）
                             isCoachMode = false;
                             authorizedName = data.name;
                             nameSelect.innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
@@ -119,7 +119,7 @@
                 .catch(function(err) {
                     loginBtn.removeAttribute('disabled');
                     errField.style.color = '#ff4d4d';
-                    errField.innerText = "❌ 雲端認證連線失敗，請檢查網路。";
+                    errField.innerText = "❌ 雲端認證連線失敗，請稍後再試。";
                     console.error(err);
                 });
         }
@@ -131,7 +131,7 @@
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
         <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">網頁不儲存密碼・確保隱私安全</p>
-        <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
+        <input type="password" id="user-pwd" placeholder="請輸入密碼" maxlength="12">
         <button id="login-btn" onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
     </div>
@@ -330,60 +330,4 @@
                 document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
             }
             
-            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
-            var hrBar = document.getElementById('hr-bar'); if(hrBar) { var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
-            
-            if (typeof Chart === 'undefined') return;
-            try {
-                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
-                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(ctxBio, {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '心率', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2 },
-                            { label: '步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 3, cadenceNum - 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartInstance.destroy();
-                paceChartInstance = new Chart(ctxPace, {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [ { label: '配速', data: [5.6, 5.1, 5.8, 8.4, 4.9, 4.6], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            } catch(chartErr) {}
-            checkPassword();
-        }
-    }
-
-    function checkPassword() {
-        var pwd = document.getElementById('pwd-input').value; var zone = document.getElementById('lock-zone');
-        var title = document.getElementById('lock-title'); var content = document.getElementById('lock-content');
-        var name = authorizedName; var week = document.getElementById('filter-week').value;
-        if (!name || !week) return;
-        if (pwd === "8888") {
-            zone.className = "comment-box unlocked";
-            title.innerText = "🟢 [" + name + "] 第 " + week + " 週・方針解鎖"; title.style.color = "#00ffcc";
-            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
-        } else {
-            zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
-            content.innerText = "【系統提示】：請輸入密碼解鎖本週方針！"; content.style.color = "rgba(255,255,255,0.6)";
-        }
-    }
-
-    document.getElementById('user-pwd').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyIdentity(); });
-    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
-    document.getElementById('pwd-input').addEventListener('input', checkPassword);
-</script>
-</body>
-</html>
+            var hrNum = parseInt(matched.hr) || 
