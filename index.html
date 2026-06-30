@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
+    <!-- 引入開源圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -41,6 +42,7 @@
 </head>
 <body>
 
+<!-- 🔒 第一關：身分驗證登入彈窗 -->
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢慢跑團・智慧特訓系統</h3>
@@ -51,10 +53,11 @@
     </div>
 </div>
 
+<!-- 📊 第二關：主看板界面 (驗證成功才浮現) -->
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.0-GateKeeper</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.1-MultiTenant</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -62,6 +65,7 @@
     <div class="card">
         <h2>📊 個人雲端歷史紀錄</h2>
         <div class="filter-zone">
+            <!-- 姓名下拉選單直接鎖死，學員完全無法切換看別人的歷史 -->
             <select id="filter-name" class="filter-select" disabled style="background:#333; border-color:#555; color:#aaa;"></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
@@ -110,12 +114,20 @@
 </div>
 
 <script>
-    // 💡 🔑 慢跑團「個人密碼」對照表（教練未來要在這裏增加新學生，只需在底下補上一行即可）
+    // 💡 🔑 慢跑團「個人密碼」對照表（已為你預先加載 10 位學員與原始 Test 7 / 8 賬密）
     const passwordRegistry = {
         "7777": "Test 7",
         "8888": "Test 8",
-        "1234": "Ki Wong",
-        "5678": "Karis"
+        "1001": "Student A",
+        "1002": "Student B",
+        "1003": "Student C",
+        "1004": "Student D",
+        "1005": "Student E",
+        "1006": "Student F",
+        "1007": "Student G",
+        "1008": "Student H",
+        "1009": "Student I",
+        "1010": "Student J"
     };
 
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
@@ -124,7 +136,6 @@
     let paceChartInstance = null;
     let authorizedName = ""; 
 
-    // 密碼驗證控制核心
     function verifyIdentity() {
         const inputPwd = document.getElementById('user-pwd').value.trim();
         const errField = document.getElementById('login-err');
@@ -134,7 +145,7 @@
             errField.style.display = 'none';
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            fetchAllData(); // 驗證通過，正式啟動數據抓取
+            fetchAllData(); 
         } else {
             errField.style.display = 'block';
             document.getElementById('user-pwd').value = "";
@@ -194,7 +205,6 @@
             allRecords = []; let weeks = new Set();
             for(let i = 1; i < lines.length; i++) {
                 let row = lines[i];
-                // 🛡️ 安全核心過濾：在記憶體中只儲存與解鎖姓名相符的行數，其餘數據絕不落地
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() === authorizedName) { 
                     allRecords.push({ 
                         timestamp: row[0]||"--", name: row[idxName].trim(), week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
@@ -296,25 +306,4 @@
     }
 
     function checkPassword() {
-        const pwd = document.getElementById('pwd-input').value; const zone = document.getElementById('lock-zone');
-        const title = document.getElementById('lock-title'); const content = document.getElementById('lock-content');
-        const name = document.getElementById('filter-name').value; const week = document.getElementById('filter-week').value;
-        if (!name || !week) return;
-        if (pwd === "8888") {
-            zone.className = "comment-box unlocked";
-            title.innerText = "🟢 [" + name + "] 第 " + week + " 週・教練核心戰術方針已解鎖"; title.style.color = "#00ffcc";
-            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
-        } else {
-            zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
-            content.innerText = "【系統提示】：請選擇跑手與週數，並打入密碼解鎖本週核心特訓戰術方針！"; content.style.color = "rgba(255,255,255,0.6)";
-        }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filter-week').addEventListener('change', (e) => { updateDisplay(authorizedName, e.target.value); });
-        document.getElementById('pwd-input').addEventListener('input', checkPassword);
-        // 預設不直接跑載入，等待密碼框驗證
-    });
-</script>
-</body>
-</html>
+     
