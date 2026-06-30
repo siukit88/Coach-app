@@ -51,8 +51,8 @@
         // 📡 主數據發佈通道（表單回應 1）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
         
-        // 🔐 雲端安全密碼核對中樞網址（已完美置換為你的最新發佈網址）
-        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbyBV6T3bukmKL5riBD0W0P6KBPBrMEyc4j6Njk5V0ejiUmffbXse3uzQqNbHr19LWOP/exec"; 
+        // 🔐 雲端安全密碼核對中樞網址（已替換為你最新發佈的 /exec 連結）
+        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbyI50SLqiAABjf2b4O8cvyPQR8-Nv2D4iDYVqivLIez_k2jLCG0WWCCTmXXB_x_et3C/exec"; 
         
         var authorizedName = "";
         var isCoachMode = false;
@@ -64,35 +64,31 @@
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err');
-            var loginBtn = document.getElementById('login-btn');
             var nameSelect = document.getElementById('filter-name');
             
             if (inputPwd === "") return;
             
             errField.style.display = 'block';
             errField.style.color = '#00ffcc';
-            errField.innerText = "⚡ 安全加密連線驗證中...";
-            loginBtn.setAttribute('disabled', 'true');
+            errField.innerText = "⚡ 安全雲端通道連線核對中...";
             
-            // 📡 直接向你的 Apps Script 雲端數據庫核對最新自訂密碼
             fetch(gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd))
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
-                    loginBtn.removeAttribute('disabled');
                     if (data.success) {
                         errField.style.display = 'none';
                         document.getElementById('login-screen').style.display = 'none';
                         document.getElementById('app-content').style.display = 'block';
                         
                         if (data.role === "coach") {
-                            // 👑 教練管理員：獲取全體名單，解鎖下拉選單
+                            // 👑 教練最高權限模式
                             isCoachMode = true;
                             var optionsHtml = '';
                             if (data.members && data.members.length > 0) {
                                 data.members.forEach(function(m) {
                                     optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
                                 });
-                                authorizedName = data.members[0]; 
+                                authorizedName = data.members[0]; // 預設加載第一個學員
                             } else {
                                 optionsHtml += '<option value="Kit">👑 檢視教練自己 (Kit)</option>';
                                 authorizedName = "Kit";
@@ -102,7 +98,7 @@
                             nameSelect.style.background = "#2a2a35";
                             nameSelect.style.color = "#ffffff";
                         } else {
-                            // 👤 普通學員：只抓回自己名字，鎖死選單（完全防窺）
+                            // 👤 普通學員隔離登入模式
                             isCoachMode = false;
                             authorizedName = data.name;
                             nameSelect.innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
@@ -112,12 +108,11 @@
                         setTimeout(function() { startLoadingData(); }, 100);
                     } else {
                         errField.style.color = '#ff4d4d';
-                        errField.innerText = "❌ 密碼不正確，請聯絡 Kit 教練";
+                        errField.innerText = "❌ 密碼不正確或尚未設定，請聯絡 Kit 教練";
                         document.getElementById('user-pwd').value = "";
                     }
                 })
                 .catch(function(err) {
-                    loginBtn.removeAttribute('disabled');
                     errField.style.color = '#ff4d4d';
                     errField.innerText = "❌ 雲端認證連線失敗，請稍後再試。";
                     console.error(err);
@@ -130,9 +125,9 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">網頁不儲存密碼・確保隱私安全</p>
-        <input type="password" id="user-pwd" placeholder="請輸入密碼" maxlength="12">
-        <button id="login-btn" onclick="verifyIdentity()">安全登入看板</button>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">自訂密碼雲端動態同步版 v46.1</p>
+        <input type="password" id="user-pwd" placeholder="請輸入您的特訓密碼" maxlength="12">
+        <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
     </div>
 </div>
@@ -140,7 +135,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v45.1-ZeroTrustFinal</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v46.1</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -330,4 +325,7 @@
                 document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
             }
             
-            var hrNum = parseInt(matched.hr) || 
+            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
+            var hrBar = document.getElementById('hr-bar'); if(hrBar) { var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
+            
+        
