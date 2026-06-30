@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -15,35 +14,22 @@
         .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
         .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
         .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
-        .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; }
+        .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; padding: 4px 0; border-bottom: 1px solid #2a2a35; }
         .data-val { color: #ffffff; font-weight: bold; float: right; text-align: right; max-width: 60%; }
-        .clear { clear: both; }
-        .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
-        .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
         .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
-        
-        .chart-container { position: relative; width: 100%; height: 180px; margin-top: 12px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #3a3a4a; }
-        .input-box { background: #16161a; border: 1px solid #ff3366; padding: 10px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; outline: none; }
-        .comment-box { margin: 15px; padding: 20px; border-radius: 8px; border: 1px solid #ff3366; background: #2d1a1e; transition: all 0.3s ease; }
-        .comment-box.unlocked { border-color: #00ffcc; background: #1b2a22; }
-        .comment-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
-        .comment-text { font-size: 13px; line-height: 1.6; }
-        
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: #22222b; border: 1px solid #ff3366; padding: 30px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
         .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
         .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .login-box button:active { background: #dd2255; }
-        .error-msg { color: #ff4d4d; font-size: 13px; margin-top: 10px; text-align: center; }
-        .loading-text { font-size: 15px; color: #00ffcc; font-weight: bold; margin: 15px 0; text-align: center; }
+        .loading-text { font-size: 15px; color: #00ffcc; font-weight: bold; margin: 15px 0; text-align: center; line-height: 1.4; }
     </style>
 
     <script>
-        // 📡 1. 主數據正式發佈通道（已精準對齊你最新的表單回應 3）
+        // 📡 1. 填入你提供的發佈網址
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 2. 本地固定密碼對照表
+        // 🔒 2. 密碼對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -59,8 +45,6 @@
         var isCoachMode = false;
         var allRecords = [];
         var cachedCsvText = "";
-        var bioChartInstance = null;
-        var paceChartInstance = null;
 
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
@@ -99,7 +83,7 @@
             } else {
                 errField.style.display = 'block';
                 errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 密碼不正確，請聯絡 Kit 教練";
+                errField.innerText = "❌ 密碼不正確";
                 document.getElementById('user-pwd').value = "";
             }
         }
@@ -109,71 +93,57 @@
 
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
-        <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">位置鎖定硬核保底版 v49.0</p>
+        <h3>🔒 慢跑團・數據看板</h3>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">純資料極速讀取版 v50.0</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
-        <button onclick="verifyIdentity()">安全登入看板</button>
-        <div id="login-err" class="error-msg" style="display:none;"></div>
+        <button onclick="verifyIdentity()">安全登入</button>
+        <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
 
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
-        <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v49.0</p>
+        <h1>Kit Coach 數據看板</h1>
+        <p>慢慢跑團 遠程數據平台</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
 
     <div class="card">
         <h2>📊 雲端歷史特訓紀錄</h2>
-        <div id="loading-status" class="loading-text">🔄 數據同步載入中...</div>
+        <div id="loading-status" class="loading-text">🔄 正在讀取雲端主表資料...</div>
 
         <div class="filter-zone">
             <select id="filter-name" class="filter-select"></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
-        
-        <div class="chart-container">
-            <canvas id="bioMetricsChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <canvas id="paceMetricsChart"></canvas>
-        </div>
 
-        <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
-        <div class="data-row">特訓路線 / 地名定位 <span id="val-location" class="data-val" style="color: #00ffcc;"></span></div>
-        <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
-        <div class="data-row">長跑距離 <span id="val-distance" class="data-val">請選取上方篩選數據</span></div>
-        <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
-        <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
-        <div class="data-row" style="color: #00ffcc; font-weight: bold;">總平均耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
-        <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
-        <div class="data-row">平均步距 <span id="val-stride" class="data-val">--</span></div>
-        <div class="data-row" style="margin-top: 15px;">
-            <div>平均心率 <span id="val-hr" class="data-val">--</span></div>
-            <div class="clear"></div>
-            <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
+        <div style="margin-top: 20px;">
+            <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
+            <div class="data-row">長跑距離 <span id="val-distance" class="data-val">--</span></div>
+            <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
+            <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
+            <div class="data-row">平均步距 <span id="val-stride" class="data-val">--</span></div>
+            <div class="data-row">平均心率 <span id="val-hr" class="data-val">--</span></div>
+            <div class="data-row">身體風險體感 <span id="val-risk" class="data-val">--</span></div>
+            <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
+            <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+            <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
         </div>
-        <hr style="border: 0; border-top: 1px solid #3a3a4a; margin: 15px 0;">
-        
-        <div class="data-row">身體風險體感 <span id="val-risk" class="data-val" style="font-size:12px; color:#ffb703;">--</span></div>
-        <div class="data-row" style="color: #00ffcc; font-weight: bold;">智慧即時分段EPH <span id="val-seg-eph" class="data-val" style="font-size:12px; color:#00ffcc;">--</span></div>
-        <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
-        <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
     </div>
 </div>
 
 <script>
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
-        document.getElementById('loading-status').innerText = "🔄 正在讀取雲端主表資料...";
+        document.getElementById('loading-status').innerText = "🔄 正在連線到 Google 試算表...";
         
-        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "cachebust=" + new Date().getTime();
+        // 加上時間戳記強行破除瀏覽器快取
+        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
         
         fetch(finalUrl)
             .then(function(res) { 
-                if (!res.ok) throw new Error("Google Sheet 拒絕連線");
+                if (!res.ok) throw new Error("Google 拒絕連線");
                 return res.text(); 
             })
             .then(function(text) { 
@@ -181,7 +151,7 @@
                 parseAndFilterData(); 
             })
             .catch(function(err) {
-                document.getElementById('loading-status').innerText = "❌ 讀取失敗。請確認試算表中「檔案➔分享➔發佈到網路」是否依然處於「已發佈」狀態。";
+                document.getElementById('loading-status').innerText = "❌ 讀取失敗。\n請確保 Excel 已執行「檔案 ➔ 分享 ➔ 發佈到網路 ➔ 逗號分隔值(.csv)」。";
             });
     }
 
@@ -203,11 +173,11 @@
         try {
             var lines = parseStandardCSV(cachedCsvText);
             if(!lines || lines.length <= 1) {
-                document.getElementById('loading-status').innerText = "⚠️ 讀取到的主表數據為空。";
+                document.getElementById('loading-status').innerText = "⚠️ 讀取成功，但表格內沒有任何資料。";
                 return;
             }
 
-            // 🚀 盲人摸欄位安全保底：完全跳過表頭中文字比對，強制鎖定標準表單順序
+            // 🚀 絕對物理位置鎖定：完全不管表頭寫什麼，直接依據問卷欄位順序讀取
             var idxName = 1;    // B欄：學員姓名
             var idxWeek = 2;    // C欄：特訓週數
             var idxDist = 3;    // D欄：長跑距離
@@ -235,23 +205,21 @@
                        (cleanTarget === "nein" && cleanCellName === "nien") || 
                        (cleanTarget === "nien" && cleanCellName === "nein")) {
                         
-                        var displayCurrentName = row[idxName].trim();
                         var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                         
                         allRecords.push({ 
                             timestamp: row[0]||"--", 
-                            name: displayCurrentName, 
+                            name: row[idxName].trim(), 
                             week: wValue, 
-                            distance: row[idxDist]||"0", 
-                            climb: row[idxClimb]||"0", 
+                            distance: row[idxDist]||"--", 
                             time: row[idxTime]||"--", 
-                            cadence: row[idxCadence]||"0", 
-                            hr: row[idxHr]||"0", 
-                            stride: row[idxStride]||"0", 
-                            risk: row[idxRisk]||"良好", 
-                            weather: row[idxWeather]||"正常", 
-                            supply: row[idxSupply]||"正常", 
-                            location: "" 
+                            cadence: row[idxCadence]||"--", 
+                            stride: row[idxStride]||"--", 
+                            hr: row[idxHr]||"--", 
+                            risk: row[idxRisk]||"--", 
+                            weather: row[idxWeather]||"--", 
+                            supply: row[idxSupply]||"--", 
+                            climb: row[idxClimb]||"--"
                         });
                         weeks[wValue] = true;
                     }
@@ -263,85 +231,49 @@
             Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
                 weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
             });
+            
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
                 var last = allRecords[allRecords.length - 1]; 
-                if(last) { weekSelect.value = last.week; updateDisplay(last.name, last.week); }
+                if(last) { weekSelect.value = last.week; updateDisplay(last.week); }
             } else {
-                document.getElementById('loading-status').innerText = "⚠️ 提示：總表中目前無該跑手的上報紀錄。";
+                document.getElementById('loading-status').innerText = "⚠️ 提示：Excel 總表中目前找不到這位學員的資料。";
                 document.getElementById('loading-status').style.display = 'block';
                 clearDisplayFields();
             }
-        } catch (error) { document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; }
+        } catch (error) { 
+            document.getElementById('loading-status').innerText = "❌ 數據解析出錯，可能是 Excel 格式不正確。"; 
+        }
     }
 
     function clearDisplayFields() {
         document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "--"; 
-        document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--"; 
-        document.getElementById('val-cadence').innerText = "--"; document.getElementById('val-stride').innerText = "--";
-        document.getElementById('val-hr').innerText = "--"; document.getElementById('val-eph').innerText = "--";
-        document.getElementById('val-seg-eph').innerText = "--"; document.getElementById('val-location').innerText = "";
+        document.getElementById('val-time').innerText = "--"; document.getElementById('val-cadence').innerText = "--"; 
+        document.getElementById('val-stride').innerText = "--"; document.getElementById('val-hr').innerText = "--";
+        document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
+        document.getElementById('val-supply').innerText = "--"; document.getElementById('val-climb').innerText = "--";
     }
 
-    function cleanStringToHours(timeStr) {
-        if (!timeStr) return 0;
-        var match = timeStr.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
-        if (match) { return parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
-        return 0;
-    }
-
-    function updateDisplay(selectedName, selectedWeek) {
+    function updateDisplay(selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
         if (matched) {
-            if (matched.timestamp && matched.timestamp.indexOf(' ') !== -1) {
-                document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0];
-            } else if (matched.timestamp) {
-                document.getElementById('val-date').innerText = matched.timestamp;
-            } else {
-                document.getElementById('val-date').innerText = "--";
-            }
-
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
-            document.getElementById('val-climb').innerText = matched.climb + " 米"; 
             document.getElementById('val-time').innerText = matched.time; 
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
             document.getElementById('val-stride').innerText = matched.stride + " m";
             document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-risk').innerText = matched.risk;
             document.getElementById('val-weather').innerText = matched.weather; 
             document.getElementById('val-supply').innerText = matched.supply;
-            
-            var cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
-            document.getElementById('val-risk').innerText = cleanRiskText || "良好";
-            
-            var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0; var hoursNum = cleanStringToHours(matched.time);
-            if (hoursNum > 0) { 
-                var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
-                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
-                var tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
-                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
-                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
-            }
-            
-            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
-            var hrBar = document.getElementById('hr-bar'); if(hrBar) { var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
-            
-            if (typeof Chart === 'undefined') return;
-            try {
-                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
-                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(ctxBio, {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '心率', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2 },
-                            { label: '步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 3, cadenceNum - 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
+            document.getElementById('val-climb').innerText = matched.climb + " 米";
+        }
+    }
 
-                var ctxPace = document.getElementById('paceMetricsChart').getConte
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
