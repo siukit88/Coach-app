@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
-    <!-- 引入開源圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -42,7 +41,6 @@
 </head>
 <body>
 
-<!-- 🔒 第一關：身分驗證登入彈窗 -->
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢慢跑團・智慧特訓系統</h3>
@@ -53,11 +51,10 @@
     </div>
 </div>
 
-<!-- 📊 第二關：主看板界面 (驗證成功才浮現) -->
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.1-MultiTenant</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.2-MaxRegistry</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -65,7 +62,6 @@
     <div class="card">
         <h2>📊 個人雲端歷史紀錄</h2>
         <div class="filter-zone">
-            <!-- 姓名下拉選單直接鎖死，學員完全無法切換看別人的歷史 -->
             <select id="filter-name" class="filter-select" disabled style="background:#333; border-color:#555; color:#aaa;"></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
@@ -114,7 +110,7 @@
 </div>
 
 <script>
-    // 💡 🔑 慢跑團「個人密碼」對照表（已為你預先加載 10 位學員與原始 Test 7 / 8 賬密）
+    // 💡 🔑 慢跑團「個人密碼」對照表（已完整錄入總共 30 位學員名單）
     const passwordRegistry = {
         "7777": "Test 7",
         "8888": "Test 8",
@@ -127,7 +123,27 @@
         "1007": "Student G",
         "1008": "Student H",
         "1009": "Student I",
-        "1010": "Student J"
+        "1010": "Student J",
+        "1011": "Student K",
+        "1012": "Student L",
+        "1013": "Student M",
+        "1014": "Student N",
+        "1015": "Student O",
+        "1016": "Student P",
+        "1017": "Student Q",
+        "1018": "Student R",
+        "1019": "Student S",
+        "1020": "Student T",
+        "1021": "Student U",
+        "1022": "Student V",
+        "1023": "Student W",
+        "1024": "Student X",
+        "1025": "Student Y",
+        "1026": "Student Z",
+        "1027": "Student AA",
+        "1028": "Student BB",
+        "1029": "Student CC",
+        "1030": "Student DD"
     };
 
     const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
@@ -298,12 +314,4 @@
                             { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3a86ff' } }, yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#00ffcc' } }, yElevation: { type: 'linear', display: false, min: 0 } } }
-                });
-            } catch(chartErr) { console.error(chartErr); }
-            checkPassword();
-        }
-    }
-
-    function checkPassword() {
-     
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yPace: { type: 'linear', display: true, position
