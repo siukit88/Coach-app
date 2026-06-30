@@ -49,10 +49,10 @@
         });
 
         // 📡 1. 主數據發佈通道（表單回應 1）
-        // ⚠️ 秘訣：如果一直卡在讀取，請檢查你的試算表「發佈到網路」產生的網址是否和這串一致
+        // ⚠️ 請在此處填入你剛剛在第一步重新「停止發佈後再重新單獨發佈」獲得的最新 CSV 連結 ⚠️
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
         
-        // 🔐 2. 雲端密碼校對 GAS 網址
+        // 🔐 2. 雲端密碼校對安全中心網址
         var gasAuthUrl = "https://script.google.com/macros/s/AKfycbzybmI6Zj8EPkoHI2O3kwZywcf-vudFGmiGemv5secpy75v5VFQULrUlasGkMdKmknQ/exec"; 
         
         var authorizedName = "";
@@ -113,7 +113,7 @@
                 })
                 .catch(function(err) {
                     errField.style.color = '#ff4d4d';
-                    errField.innerText = "❌ 雲端認證連線失敗，請檢查網路或重試。";
+                    errField.innerText = "❌ 雲端連線失敗，請稍後再試。";
                     console.error(err);
                 });
         }
@@ -124,7 +124,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">數據流防卡死完全體 v46.6</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">數據校對終極完全體 v46.8-Stable</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -134,7 +134,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v46.6</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v46.8</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -195,7 +195,6 @@
         document.getElementById('loading-status').style.display = 'block';
         document.getElementById('loading-status').innerText = "🔄 正在讀取雲端主表資料...";
         
-        // 使用阻斷緩存技術確保抓到最新數據
         var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "cachebust=" + new Date().getTime();
         
         fetch(finalUrl)
@@ -240,24 +239,26 @@
             
             for(var k=0; k<headers.length; k++) {
                 var h = headers[k];
-                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("學員")!==-1 || h.indexOf("Name")!==-1) idxName = k;
-                if(h.indexOf("週")!==-1 || h.indexOf("Week")!==-1) idxWeek = k;
-                if(h.indexOf("距離")!==-1 || h.indexOf("Distance")!==-1) idxDist = k;
-                if(h.indexOf("爬升")!==-1 || h.indexOf("Climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
-                if(h.indexOf("時間")!==-1 || h.indexOf("Time")!==-1) idxTime = k;
-                if(h.indexOf("步頻")!==-1 || h.indexOf("Cadence")!==-1) idxCadence = k;
-                if(h.indexOf("心率")!==-1 || h.indexOf("HR")!==-1) idxHr = k;
-                if(h.indexOf("步距")!==-1 || h.indexOf("Stride")!==-1) idxStride = k;
-                if(h.indexOf("風險")!==-1 || h.indexOf("身體")!==-1) idxRisk = k;
-                if(h.indexOf("天氣")!==-1 || h.indexOf("環境")!==-1) idxWeather = k;
-                if(h.indexOf("補給")!==-1 || h.indexOf("Supply")!==-1) idxSupply = k;
-                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("Location")!==-1) idxLoc = k;
+                var cleanH = h.replace(/\s+/g, ""); // 容錯優化：去除表頭多餘空格
+                if(cleanH.indexOf("姓名")!==-1 || cleanH.indexOf("跑手")!==-1 || cleanH.indexOf("學員")!==-1 || cleanH.indexOf("Name")!==-1) idxName = k;
+                if(cleanH.indexOf("週")!==-1 || cleanH.indexOf("Week")!==-1) idxWeek = k;
+                if(cleanH.indexOf("距離")!==-1 || cleanH.indexOf("Distance")!==-1) idxDist = k;
+                if(cleanH.indexOf("爬升")!==-1 || cleanH.indexOf("Climb")!==-1 || cleanH.indexOf("海拔")!==-1) idxClimb = k;
+                if(cleanH.indexOf("時間")!==-1 || cleanH.indexOf("Time")!==-1) idxTime = k;
+                if(cleanH.indexOf("步頻")!==-1 || cleanH.indexOf("Cadence")!==-1) idxCadence = k;
+                if(cleanH.indexOf("心率")!==-1 || cleanH.indexOf("HR")!==-1) idxHr = k;
+                if(cleanH.indexOf("步距")!==-1 || cleanH.indexOf("Stride")!==-1) idxStride = k;
+                if(cleanH.indexOf("風險")!==-1 || cleanH.indexOf("身體")!==-1) idxRisk = k;
+                if(cleanH.indexOf("天氣")!==-1 || cleanH.indexOf("環境")!==-1) idxWeather = k;
+                if(cleanH.indexOf("補給")!==-1 || cleanH.indexOf("Supply")!==-1) idxSupply = k;
+                if(cleanH.indexOf("地名")!==-1 || cleanH.indexOf("路線")!==-1 || cleanH.indexOf("Location")!==-1) idxLoc = k;
             }
 
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
 
-            var targetName = document.getElementById('filter-name').value;
+            var targetName = document.getElementById('filter-name').value.trim();
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
+            targetName = targetName.trim();
             
             allRecords = []; var weeks = {};
             
@@ -279,7 +280,9 @@
 
             var weekSelect = document.getElementById('filter-week');
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Object.keys(weeks).sort().forEach(function(w) { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
+            Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
+                weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
+            });
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
@@ -329,7 +332,4 @@
             var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0; var hoursNum = cleanStringToHours(matched.time);
             if (hoursNum > 0) { 
                 var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
-                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
-                var tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
-                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
-                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphV
+                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hours
