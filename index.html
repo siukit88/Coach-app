@@ -48,10 +48,11 @@
             }
         });
 
-        // 📡 主數據發佈通道（表單回應 1）
+        // 📡 1. 主數據發佈通道（表單回應 1）
+        // ⚠️ 秘訣：如果一直卡在讀取，請檢查你的試算表「發佈到網路」產生的網址是否和這串一致
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
         
-        // 🔐 雲端密碼校對安全中樞（已精準嵌入教練最新部署網址）
+        // 🔐 2. 雲端密碼校對 GAS 網址
         var gasAuthUrl = "https://script.google.com/macros/s/AKfycbzybmI6Zj8EPkoHI2O3kwZywcf-vudFGmiGemv5secpy75v5VFQULrUlasGkMdKmknQ/exec"; 
         
         var authorizedName = "";
@@ -112,7 +113,7 @@
                 })
                 .catch(function(err) {
                     errField.style.color = '#ff4d4d';
-                    errField.innerText = "❌ 雲端連線失敗，請稍後再試。";
+                    errField.innerText = "❌ 雲端認證連線失敗，請檢查網路或重試。";
                     console.error(err);
                 });
         }
@@ -123,7 +124,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">自訂密碼雲端動態同步完全體 v46.5</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">數據流防卡死完全體 v46.6</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -133,7 +134,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v46.5</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v46.6</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -194,14 +195,21 @@
         document.getElementById('loading-status').style.display = 'block';
         document.getElementById('loading-status').innerText = "🔄 正在讀取雲端主表資料...";
         
-        fetch(csvMainUrl + "&cachebust=" + new Date().getTime())
-            .then(function(res) { return res.text(); })
+        // 使用阻斷緩存技術確保抓到最新數據
+        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "cachebust=" + new Date().getTime();
+        
+        fetch(finalUrl)
+            .then(function(res) { 
+                if (!res.ok) throw new Error("網路回應失敗");
+                return res.text(); 
+            })
             .then(function(text) { 
                 cachedCsvText = text; 
                 parseAndFilterData(); 
             })
             .catch(function(err) {
-                document.getElementById('loading-status').innerText = "❌ 雲端主表加載失敗，請確保「表單回應 1」已發布到網路。";
+                document.getElementById('loading-status').innerText = "❌ 雲端主表加載失敗！提示：請確認試算表已「發布到網路」並設定為 CSV 格式。";
+                console.error(err);
             });
     }
 
@@ -222,7 +230,10 @@
     function parseAndFilterData() {
         try {
             var lines = parseStandardCSV(cachedCsvText);
-            if(!lines || lines.length <= 1) return;
+            if(!lines || lines.length <= 1) {
+                document.getElementById('loading-status').innerText = "⚠️ 讀取到的主表數據為空。";
+                return;
+            }
 
             var headers = lines[0];
             var idxName = -1, idxWeek = -1, idxDist = -1, idxClimb = -1, idxTime = -1, idxCadence = -1, idxHr = -1, idxStride = -1, idxRisk = -1, idxWeather = -1, idxSupply = -1, idxLoc = -1;
@@ -321,8 +332,4 @@
                 var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
                 var tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
                 document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
-                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
-            }
-            
-            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
-            var hrBar = document.getElementById('hr-bar'); if(hrBar) { var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "
+                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphV
