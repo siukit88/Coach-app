@@ -40,10 +40,10 @@
     </style>
 
     <script>
-        // 📡 1. 主數據發佈通道（精準直連表單回應 3）
+        // 📡 1. 主數據發佈通道（表單回應 3）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 本地寫死對照表：100% 免疫雲端故障
+        // 🔒 本地對照表（嚴格對齊教練手冊）
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -54,9 +54,7 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 所有學員名單（教練切換用）
         var allMembers = Object.values(passMap);
-
         var authorizedName = "";
         var isCoachMode = false;
         var allRecords = [];
@@ -71,11 +69,10 @@
             
             if (inputPwd === "") return;
             
-            // 👑 狀況 1：最高教練密碼 1000
+            // 教練權限
             if (inputPwd === "1000") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
-                
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
@@ -92,11 +89,10 @@
                 return;
             }
             
-            // 👤 狀況 2：學員專屬密碼
+            // 學員權限
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
-                
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
@@ -118,7 +114,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">本地密碼對照超穩完工版 v48.0</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">超級防呆模糊比對版 v48.1</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -128,7 +124,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v48.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v48.1</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -187,8 +183,6 @@
 <script>
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
-        
-        // 加上防止緩存隨機變數
         var finalUrl = csvMainUrl + "?nocache=" + new Date().getTime();
         
         fetch(finalUrl)
@@ -197,8 +191,7 @@
                 cachedCsvText = text; 
                 parseAndFilterData(); 
             })
-            .catch(function(err) {
-                // 二次加載備用機制
+            .catch(function() {
                 fetch(csvMainUrl)
                     .then(function(r) { return r.text(); })
                     .then(function(t) { cachedCsvText = t; parseAndFilterData(); });
@@ -228,37 +221,40 @@
             var idxName = -1, idxWeek = -1, idxDist = -1, idxClimb = -1, idxTime = -1, idxCadence = -1, idxHr = -1, idxStride = -1, idxRisk = -1, idxWeather = -1, idxSupply = -1, idxLoc = -1;
             
             for(var k=0; k<headers.length; k++) {
-                var h = headers[k].replace(/\s+/g, ""); 
-                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("學員")!==-1 || h.indexOf("Name")!==-1) idxName = k;
-                if(h.indexOf("週")!==-1 || h.indexOf("Week")!==-1) idxWeek = k;
-                if(h.indexOf("距離")!==-1 || h.indexOf("Distance")!==-1) idxDist = k;
-                if(h.indexOf("爬升")!==-1 || h.indexOf("Climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
-                if(h.indexOf("時間")!==-1 || h.indexOf("Time")!==-1) idxTime = k;
-                if(h.indexOf("步頻")!==-1 || h.indexOf("Cadence")!==-1) idxCadence = k;
-                if(h.indexOf("心率")!==-1 || h.indexOf("HR")!==-1) idxHr = k;
-                if(h.indexOf("步距")!==-1 || h.indexOf("Stride")!==-1) idxStride = k;
+                var h = headers[k].replace(/\s+/g, "").toLowerCase(); 
+                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("學員")!==-1 || h.indexOf("name")!==-1) idxName = k;
+                if(h.indexOf("週")!==-1 || h.indexOf("week")!==-1) idxWeek = k;
+                if(h.indexOf("距離")!==-1 || h.indexOf("distance")!==-1) idxDist = k;
+                if(h.indexOf("爬升")!==-1 || h.indexOf("climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
+                if(h.indexOf("時間")!==-1 || h.indexOf("time")!==-1) idxTime = k;
+                if(h.indexOf("步頻")!==-1 || h.indexOf("cadence")!==-1) idxCadence = k;
+                if(h.indexOf("心率")!==-1 || h.indexOf("hr")!==-1) idxHr = k;
+                if(h.indexOf("步距")!==-1 || h.indexOf("stride")!==-1) idxStride = k;
                 if(h.indexOf("風險")!==-1 || h.indexOf("身體")!==-1) idxRisk = k;
                 if(h.indexOf("天氣")!==-1 || h.indexOf("環境")!==-1) idxWeather = k;
-                if(h.indexOf("補給")!==-1 || h.indexOf("Supply")!==-1) idxSupply = k;
-                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("Location")!==-1) idxLoc = k;
+                if(h.indexOf("補給")!==-1 || h.indexOf("supply")!==-1) idxSupply = k;
+                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("location")!==-1) idxLoc = k;
             }
 
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
 
             var targetName = document.getElementById('filter-name').value.trim();
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
-            targetName = targetName.trim().toLowerCase();
+            
+            // 🛡️ 核心防呆：移除目標名字的所有空格並轉成小寫
+            var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
             
             allRecords = []; var weeks = {};
             
             for(var i = 1; i < lines.length; i++) {
                 var row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName]) {
-                    var currentCellName = row[idxName].trim().toLowerCase();
+                    // 🛡️ 試算表名字同樣移除所有空格並轉小寫
+                    var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
                     
-                    if(currentCellName === targetName || 
-                       (targetName === "nein" && currentCellName === "nien") || 
-                       (targetName === "nien" && currentCellName === "nein")) {
+                    if(cleanCellName === cleanTarget || 
+                       (cleanTarget === "nein" && cleanCellName === "nien") || 
+                       (cleanTarget === "nien" && cleanCellName === "nein")) {
                         
                         var displayCurrentName = row[idxName].trim();
                         allRecords.push({ 
@@ -309,7 +305,6 @@
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
         if (matched) {
-            // 🛡️ 終極防空保護盾：防止空白日期時間戳記卡死網頁
             if (matched.timestamp && matched.timestamp.indexOf(' ') !== -1) {
                 document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0];
             } else if (matched.timestamp) {
@@ -340,4 +335,5 @@
                 document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
             }
             
-            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cad
+            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
+            var hrBar = document.getElementByI
