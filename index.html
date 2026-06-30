@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
+    <!-- 引入開源圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -40,7 +41,7 @@
     </style>
 
     <script>
-        // 全面防禦機制：禁用右鍵與開發者工具
+        // 全面防禦機制
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
@@ -48,11 +49,11 @@
             }
         });
 
-        // 📡 1. 主數據發佈通道（已對齊教練最新建立且發佈的表單回應 3 網址）
+        // 📡 1. 主數據發佈通道（表單回應 3）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔐 2. 雲端密碼校對安全中樞網址（GAS）
-        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbzybmI6Zj8EPkoHI2O3kwZywcf-vudFGmiGemv5secpy75v5VFQULrUlasGkMdKmknQ/exec"; 
+        // 🔐 2. 雲端密碼校對安全中樞網址（已完美鎖定教練最新的正式發佈網址）
+        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbw8XDj-z9zMc4A4zrfaqllt-mXS230jC32LbvTmZQOYoP0mNEdhePh2da-2jshV6M7a/exec"; 
         
         var authorizedName = "";
         var isCoachMode = false;
@@ -123,7 +124,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全渠道無感對接完全體 v47.6-Final</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全渠道無感對接終極體 v47.7-Stable</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -133,7 +134,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v47.6</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v47.7</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -271,7 +272,6 @@
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName]) {
                     var currentCellName = row[idxName].trim().toLowerCase();
                     
-                    // 💡 智能模糊比對：自動包容學員打錯字母或大小寫
                     if(currentCellName === targetName || 
                        (targetName === "nein" && currentCellName === "nien") || 
                        (targetName === "nien" && currentCellName === "nein")) {
@@ -338,4 +338,5 @@
             document.getElementById('val-climb').innerText = matched.climb + " 米"; 
             document.getElementById('val-time').innerText = matched.time; 
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
-            document.getElementById('val-stride
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+ 
