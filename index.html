@@ -40,10 +40,10 @@
     </style>
 
     <script>
-        // 📡 1. 主數據發佈通道（表單回應 3）
+        // 📡 1. 主數據真實發佈通道（表單回應 3）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 本地對照表（嚴格對齊教練手冊）
+        // 🔒 本地寫死固定密碼對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -69,7 +69,6 @@
             
             if (inputPwd === "") return;
             
-            // 教練權限
             if (inputPwd === "1000") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -89,7 +88,6 @@
                 return;
             }
             
-            // 學員權限
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
@@ -114,7 +112,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">超級防呆模糊比對版 v48.1</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全自動強制排版清洗版 v48.5-Final</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -124,7 +122,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v48.1</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v48.5</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -183,7 +181,7 @@
 <script>
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
-        var finalUrl = csvMainUrl + "?nocache=" + new Date().getTime();
+        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "nocache=" + new Date().getTime();
         
         fetch(finalUrl)
             .then(function(res) { return res.text(); })
@@ -218,39 +216,50 @@
             if(!lines || lines.length <= 1) return;
 
             var headers = lines[0];
+            
+            // 🚀 降維強迫對齊：直接清除第一行所有格子的換行(\n)、空格、括號、特殊符號，強行標準化！
+            var cleanHeaders = headers.map(function(h) {
+                return h.replace(/[\s\r\n\t\(\)（）kMSPspm米]+/g, "").toLowerCase();
+            });
+
             var idxName = -1, idxWeek = -1, idxDist = -1, idxClimb = -1, idxTime = -1, idxCadence = -1, idxHr = -1, idxStride = -1, idxRisk = -1, idxWeather = -1, idxSupply = -1, idxLoc = -1;
             
-            for(var k=0; k<headers.length; k++) {
-                var h = headers[k].replace(/\s+/g, "").toLowerCase(); 
-                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("學員")!==-1 || h.indexOf("name")!==-1) idxName = k;
-                if(h.indexOf("週")!==-1 || h.indexOf("week")!==-1) idxWeek = k;
-                if(h.indexOf("距離")!==-1 || h.indexOf("distance")!==-1) idxDist = k;
-                if(h.indexOf("爬升")!==-1 || h.indexOf("climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
-                if(h.indexOf("時間")!==-1 || h.indexOf("time")!==-1) idxTime = k;
-                if(h.indexOf("步頻")!==-1 || h.indexOf("cadence")!==-1) idxCadence = k;
-                if(h.indexOf("心率")!==-1 || h.indexOf("hr")!==-1) idxHr = k;
-                if(h.indexOf("步距")!==-1 || h.indexOf("stride")!==-1) idxStride = k;
-                if(h.indexOf("風險")!==-1 || h.indexOf("身體")!==-1) idxRisk = k;
-                if(h.indexOf("天氣")!==-1 || h.indexOf("環境")!==-1) idxWeather = k;
-                if(h.indexOf("補給")!==-1 || h.indexOf("supply")!==-1) idxSupply = k;
-                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("location")!==-1) idxLoc = k;
+            for(var k=0; k<cleanHeaders.length; k++) {
+                var ch = cleanHeaders[k];
+                if(ch.indexOf("姓名")!==-1 || ch.indexOf("跑手")!==-1 || ch.indexOf("學員")!==-1 || ch.indexOf("name")!==-1) idxName = k;
+                if(ch.indexOf("週")!==-1 || ch.indexOf("week")!==-1) idxWeek = k;
+                if(ch.indexOf("距離")!==-1 || ch.indexOf("distance")!==-1) idxDist = k;
+                if(ch.indexOf("爬升")!==-1 || ch.indexOf("climb")!==-1 || ch.indexOf("海拔")!==-1) idxClimb = k;
+                if(ch.indexOf("時間")!==-1 || ch.indexOf("time")!==-1) idxTime = k;
+                if(ch.indexOf("步頻")!==-1 || ch.indexOf("cadence")!==-1) idxCadence = k;
+                if(ch.indexOf("心率")!==-1 || ch.indexOf("hr")!==-1) idxHr = k;
+                if(ch.indexOf("步距")!==-1 || ch.indexOf("stride")!==-1) idxStride = k;
+                if(ch.indexOf("風險")!==-1 || ch.indexOf("身體")!==-1) idxRisk = k;
+                if(ch.indexOf("天氣")!==-1 || ch.indexOf("環境")!==-1) idxWeather = k;
+                if(ch.indexOf("補給")!==-1 || ch.indexOf("supply")!==-1) idxSupply = k;
+                if(ch.indexOf("地名")!==-1 || ch.indexOf("路線")!==-1 || ch.indexOf("location")!==-1) idxLoc = k;
             }
 
-            if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
+            // 安全保底：如果真的完全對不上下標，強制使用標準表單回應順序
+            if(idxName === -1) idxName = 1; 
+            if(idxWeek === -1) idxWeek = 2;
+            if(idxDist === -1) idxDist = 3;
+            if(idxTime === -1) idxTime = 4;
+            if(idxCadence === -1) idxCadence = 5;
+            if(idxStride === -1) idxStride = 6;
+            if(idxHr === -1) idxHr = 7;
 
             var targetName = document.getElementById('filter-name').value.trim();
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
             
-            // 🛡️ 核心防呆：移除目標名字的所有空格並轉成小寫
-            var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
+            var cleanTarget = targetName.replace(/[\s\r\n\t]+/g, "").toLowerCase();
             
             allRecords = []; var weeks = {};
             
             for(var i = 1; i < lines.length; i++) {
                 var row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName]) {
-                    // 🛡️ 試算表名字同樣移除所有空格並轉小寫
-                    var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
+                    var cleanCellName = row[idxName].replace(/[\s\r\n\t]+/g, "").toLowerCase();
                     
                     if(cleanCellName === cleanTarget || 
                        (cleanTarget === "nein" && cleanCellName === "nien") || 
@@ -260,8 +269,9 @@
                         allRecords.push({ 
                             timestamp: row[0]||"--", name: displayCurrentName, week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
                             climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
-                            hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
-                            weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
+                            hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: (idxRisk !== -1 ? row[idxRisk] : "良好"), 
+                            weather: (idxWeather !== -1 ? row[idxWeather] : "正常"), supply: (idxSupply !== -1 ? row[idxSupply] : "正常"), 
+                            location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
                         });
                         weeks[row[idxWeek].trim()] = true;
                     }
@@ -330,10 +340,4 @@
             if (hoursNum > 0) { 
                 var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
                 var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
-                var tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
-                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
-                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
-            }
-            
-            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
-            var hrBar = document.getElementByI
+       
