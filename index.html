@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -37,10 +36,44 @@
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .login-box button:active { background: #dd2255; }
         .error-msg { color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none; }
-        
-        /* 載入中提示字眼 */
-        .loading-text { font-size: 16px; color: #00ffcc; font-weight: bold; margin: 20px 0; text-align: center; }
+        .loading-text { font-size: 15px; color: #00ffcc; font-weight: bold; margin: 15px 0; text-align: center; }
     </style>
+
+    <script>
+        var passwordRegistry = {
+            "7777": "Test 7", "8888": "Test 8",
+            "1001": "Student A", "1002": "Student B", "1003": "Student C", "1004": "Student D", "1005": "Student E",
+            "1006": "Student F", "1007": "Student G", "1008": "Student H", "1009": "Student I", "1010": "Student J",
+            "1011": "Student K", "1012": "Student L", "1013": "Student M", "1014": "Student N", "1015": "Student O",
+            "1016": "Student P", "1017": "Student Q", "1018": "Student R", "1019": "Student S", "1020": "Student T",
+            "1021": "Student U", "1022": "Student V", "1023": "Student W", "1024": "Student X", "1025": "Student Y",
+            "1026": "Student Z", "1027": "Student AA", "1028": "Student BB", "1029": "Student CC", "1030": "Student DD"
+        };
+        var authorizedName = "";
+
+        function verifyIdentity() {
+            var inputPwd = document.getElementById('user-pwd').value.trim();
+            var errField = document.getElementById('login-err');
+            
+            if (passwordRegistry[inputPwd]) {
+                authorizedName = passwordRegistry[inputPwd];
+                errField.style.display = 'none';
+                
+                // 💥 100% 優先放行：不管三七二十一，立刻把密碼畫面撕走
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('filter-name').innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
+                
+                // 延遲 100 毫秒再去載入大圖表，防止畫面凍結
+                setTimeout(function() {
+                    startLoadingData();
+                }, 100);
+            } else {
+                errField.style.display = 'block';
+                document.getElementById('user-pwd').value = "";
+            }
+        }
+    </script>
 </head>
 <body>
 
@@ -49,7 +82,7 @@
         <h3>🔒 慢慢跑團・智慧特訓系統</h3>
         <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">請輸入教練發放的個人特訓密碼</p>
         <input type="password" id="user-pwd" placeholder="請輸入 4 位數密碼" maxlength="8">
-        <button onclick="window.verifyIdentity()">進入數據看板</button>
+        <button onclick="verifyIdentity()">進入數據看板</button>
         <div id="login-err" class="error-msg">❌ 密碼錯誤，請重新輸入</div>
     </div>
 </div>
@@ -57,7 +90,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.6-VisualFeedback</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.7-Bulletproof</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -65,7 +98,7 @@
     <div class="card">
         <h2>📊 個人雲端歷史紀錄</h2>
         
-        <div id="loading-status" class="loading-text">🔄 慢慢跑團雲端數據載入中，請稍候...</div>
+        <div id="loading-status" class="loading-text">🔄 雲端數據加載中，請稍候...</div>
 
         <div class="filter-zone">
             <select id="filter-name" class="filter-select" disabled style="background:#333; border-color:#555; color:#aaa;"></select>
@@ -115,63 +148,32 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    // 💡 🔒 30 組權限隔離密碼對照表
-    const passwordRegistry = {
-        "7777": "Test 7", "8888": "Test 8",
-        "1001": "Student A", "1002": "Student B", "1003": "Student C", "1004": "Student D", "1005": "Student E",
-        "1006": "Student F", "1007": "Student G", "1008": "Student H", "1009": "Student I", "1010": "Student J",
-        "1011": "Student K", "1012": "Student L", "1013": "Student M", "1014": "Student N", "1015": "Student O",
-        "1016": "Student P", "1017": "Student Q", "1018": "Student R", "1019": "Student S", "1020": "Student T",
-        "1021": "Student U", "1022": "Student V", "1023": "Student W", "1024": "Student X", "1025": "Student Y",
-        "1026": "Student Z", "1027": "Student AA", "1028": "Student BB", "1029": "Student CC", "1030": "Student DD"
-    };
+    var googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
+    var allRecords = [];
+    var bioChartInstance = null;
+    var paceChartInstance = null;
 
-    const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
-    let allRecords = [];
-    let bioChartInstance = null;
-    let paceChartInstance = null;
-    let authorizedName = ""; 
-
-    // 💡 修正核心：點擊那一瞬間先「立刻切換畫面」，絕對不允許卡死
-    window.verifyIdentity = function() {
-        const inputPwd = document.getElementById('user-pwd').value.trim();
-        const errField = document.getElementById('login-err');
-        
-        if (passwordRegistry[inputPwd]) {
-            authorizedName = passwordRegistry[inputPwd];
-            errField.style.display = 'none';
-            
-            // 💥 暴力放行：立刻隱藏登入視窗，顯示主畫面的載入中提示
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            
-            // 先填好名字占位
-            document.getElementById('filter-name').innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
-            
-            // 真正去背景撈資料
-            fetchAllData(); 
-        } else {
-            errField.style.display = 'block';
-            document.getElementById('user-pwd').value = "";
-        }
+    function startLoadingData() {
+        fetchAllData();
     }
 
     function cleanStringToHours(timeStr) {
         if (!timeStr) return 0;
-        const match = timeStr.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
+        var match = timeStr.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
         if (match) {
-            const hrs = parseInt(match[1]); const mins = parseInt(match[2]); const secs = parseInt(match[3]);
-            return hrs + (mins / 60) + (secs / 3600);
+            return parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600);
         }
         return 6.8;
     }
 
     function parseStandardCSV(csvText) {
-        let lines = []; let currentLine = []; let currentCell = ''; let inQuotes = false;
-        let normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        for (let i = 0; i < normalized.length; i++) {
-            let c = normalized[i];
+        var lines = []; var currentLine = []; var currentCell = ''; var inQuotes = false;
+        var normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        for (var i = 0; i < normalized.length; i++) {
+            var c = normalized[i];
             if (c === '"') { inQuotes = !inQuotes; }
             else if (c === ',' && !inQuotes) { currentLine.push(currentCell.trim()); currentCell = ''; }
             else if (c === '\n' && !inQuotes) { currentLine.push(currentCell.trim()); lines.push(currentLine); currentLine = []; currentCell = ''; }
@@ -183,66 +185,62 @@
 
     async function fetchAllData() {
         try {
-            const response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
-            const data = await response.text();
-            const lines = parseStandardCSV(data);
+            var response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
+            var data = await response.text();
+            var lines = parseStandardCSV(data);
             if(!lines || lines.length <= 1) return;
 
-            const headers = lines[0];
-            let idxName = headers.findIndex(h => h.includes("姓名") || h.includes("跑手") || h.includes("Name") || h.includes("學員"));
-            let idxWeek = headers.findIndex(h => h.includes("週") || h.includes("Week"));
-            let idxDist = headers.findIndex(h => h.includes("距離") || h.includes("Distance") || h.includes("km"));
-            let idxClimb = headers.findIndex(h => h.includes("爬升") || h.includes("Climb") || h.includes("海拔"));
-            let idxTime = headers.findIndex(h => h.includes("時間") || h.includes("Time"));
-            let idxCadence = headers.findIndex(h => h.includes("步頻") || h.includes("Cadence"));
-            let idxHr = headers.findIndex(h => h.includes("心率") || h.includes("HR"));
-            let idxStride = headers.findIndex(h => h.includes("步距") || h.includes("Stride"));
-            let idxRisk = headers.findIndex(h => h.includes("風險") || h.includes("身體"));
-            let idxWeather = headers.findIndex(h => h.includes("天氣") || h.includes("環境"));
-            let idxSupply = headers.findIndex(h => h.includes("補給") || h.includes("Supply"));
-            let idxLoc = headers.findIndex(h => h.includes("地名") || h.includes("路線") || h.includes("Location"));
+            var headers = lines[0];
+            var idxName = headers.findIndex(function(h) { return h.includes("姓名") || h.includes("跑手") || h.includes("Name"); });
+            var idxWeek = headers.findIndex(function(h) { return h.includes("週") || h.includes("Week"); });
+            var idxDist = headers.findIndex(function(h) { return h.includes("距離") || h.includes("Distance"); });
+            var idxClimb = headers.findIndex(function(h) { return h.includes("爬升") || h.includes("Climb"); });
+            var idxTime = headers.findIndex(function(h) { return h.includes("時間") || h.includes("Time"); });
+            var idxCadence = headers.findIndex(function(h) { return h.includes("步頻") || h.includes("Cadence"); });
+            var idxHr = headers.findIndex(function(h) { return h.includes("心率") || h.includes("HR"); });
+            var idxStride = headers.findIndex(function(h) { return h.includes("步距") || h.includes("Stride"); });
+            var idxRisk = headers.findIndex(function(h) { return h.includes("風險") || h.includes("身體"); });
+            var idxWeather = headers.findIndex(function(h) { return h.includes("天氣") || h.includes("環境"); });
+            var idxSupply = headers.findIndex(function(h) { return h.includes("補給") || h.includes("Supply"); });
+            var idxLoc = headers.findIndex(function(h) { return h.includes("地名") || h.includes("路線"); });
 
-            if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2; if(idxDist === -1) idxDist = 3; if(idxClimb === -1) idxClimb = 4;
-            if(idxTime === -1) idxTime = 5; if(idxCadence === -1) idxCadence = 6; if(idxHr === -1) idxHr = 7; if(idxStride === -1) idxStride = 8;
+            if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
 
-            allRecords = []; let weeks = new Set();
-            for(let i = 1; i < lines.length; i++) {
-                let row = lines[i];
+            allRecords = []; var weeks = {};
+            for(var i = 1; i < lines.length; i++) {
+                var row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() === authorizedName) { 
                     allRecords.push({ 
                         timestamp: row[0]||"--", name: row[idxName].trim(), week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
                         climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                         hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
-                        weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常",
-                        location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
+                        weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
                     });
-                    weeks.add(row[idxWeek].trim());
+                    weeks[row[idxWeek].trim()] = true;
                 }
             }
 
-            const weekSelect = document.getElementById('filter-week');
+            var weekSelect = document.getElementById('filter-week');
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
+            Object.keys(weeks).sort().forEach(function(w) { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
             
-            // 💡 資料下載完成，隱藏進度條提示
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
-                const last = allRecords[allRecords.length - 1]; 
+                var last = allRecords[allRecords.length - 1]; 
                 if(last) { weekSelect.value = last.week; updateDisplay(authorizedName, last.week); }
             } else {
                 document.getElementById('loading-status').innerText = "⚠️ 雲端後台目前沒有您的特訓紀錄。";
-                document.getElementById('loading-status').style.display = 'block';
             }
         } catch (error) { 
             console.error(error); 
-            document.getElementById('loading-status').innerText = "❌ 雲端連線失敗，請檢查網路連線。";
+            document.getElementById('loading-status').innerText = "❌ 數據讀取失敗，請重試。";
         }
     }
 
     function updateDisplay(selectedName, selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
-        const matched = allRecords.find(r => r.name === selectedName && r.week === selectedWeek);
+        var matched = allRecords.find(function(r) { return r.name === selectedName && r.week === selectedWeek; });
         if (matched) {
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
@@ -255,53 +253,74 @@
             document.getElementById('val-supply').innerText = matched.supply;
             document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
             
-            let cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
+            var cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
             document.getElementById('val-risk').innerText = cleanRiskText || "良好";
             
-            const distNum = parseFloat(matched.distance) || 0; 
-            const climbNum = parseFloat(matched.climb) || 0; 
-            const hoursNum = cleanStringToHours(matched.time);
+            var distNum = parseFloat(matched.distance) || 0; 
+            var climbNum = parseFloat(matched.climb) || 0; 
+            var hoursNum = cleanStringToHours(matched.time);
             
-            let wEphVal = 0; let mEphVal = 0; let tEphVal = 0;
+            var wEphVal = 0; var mEphVal = 0; var tEphVal = 0;
             if (hoursNum > 0) { 
                 wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
                 mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
                 tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
                 document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
-                document.getElementById('val-seg-eph').innerText = `熱身段:${wEphVal.toFixed(2)} | 主攻坡:${mEphVal.toFixed(2)} | 落山段:${tEphVal.toFixed(2)}`;
-            } else { 
-                document.getElementById('val-eph').innerText = "--"; document.getElementById('val-seg-eph').innerText = "--";
+                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
             }
             
-            const hrNum = parseInt(matched.hr) || 142;
-            const cadenceNum = parseInt(matched.cadence) || 175;
-            const hrBar = document.getElementById('hr-bar'); if(hrBar) { let pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; if(hrNum <= 145) hrBar.style.backgroundColor = "#00ffcc"; else hrBar.style.backgroundColor = "#ff9900"; }
+            var hrNum = parseInt(matched.hr) || 142;
+            var cadenceNum = parseInt(matched.cadence) || 175;
+            var hrBar = document.getElementById('hr-bar'); if(hrBar) { var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
             
+            if (typeof Chart === 'undefined') return;
             try {
-                const xLabels = ['0km', '5km\n(熱身)', '12km\n(鞍部)', '22km\n(攻坡頂)', '26km\n(落山中)', '30km\n(終點)'];
-                const ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
+                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
+                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
                     type: 'line',
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '心率 (bpm)', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '步頻 (spm)', data: [cadenceNum - 5, cadenceNum, cadenceNum + 3, cadenceNum - 1], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '功率 (W)', data: [120, 165, 140, 210, 115, 95], borderColor: '#bc00dd', fill: false, tension: 0.2, yAxisID: 'yPower' },
-                            { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
+                            { label: '心率', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2 },
+                            { label: '步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 3, cadenceNum - 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yBio: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.04)' } }, yPower: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }, yElevation: { type: 'linear', display: false, min: 0 } } }
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                const ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
+                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '即時配速 (min/km)', data: [5.6, 5.1, 5.8, 8.4, 4.9, 4.6], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
-                            { label: '分段 EPH 效率', data: [wEphVal * 0.4, wEphVal, wEphVal * 0.8, mEphVal, tEphVal, tEphVal * 0.6], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
-                            { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(2
+                            { label: '配速', data: [5.6, 5.1, 5.8, 8.4, 4.9, 4.6], borderColor: '#3a86ff', fill: false, tension: 0.3 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) { console.error(chartErr); }
+            checkPassword();
+        }
+    }
+
+    function checkPassword() {
+        var pwd = document.getElementById('pwd-input').value; var zone = document.getElementById('lock-zone');
+        var title = document.getElementById('lock-title'); var content = document.getElementById('lock-content');
+        var name = document.getElementById('filter-name').value; var week = document.getElementById('filter-week').value;
+        if (!name || !week) return;
+        if (pwd === "8888") {
+            zone.className = "comment-box unlocked";
+            title.innerText = "🟢 [" + name + "] 第 " + week + " 週・方針解鎖"; title.style.color = "#00ffcc";
+            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
+        } else {
+            zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
+            content.innerText = "【系統提示】：請輸入密碼解鎖本週方針！"; content.style.color = "rgba(255,255,255,0.6)";
+        }
+    }
+
+    document.getElementById('user-pwd').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyIdentity(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(authorizedName, e.t
