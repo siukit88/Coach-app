@@ -46,7 +46,7 @@
         <h3>🔒 慢慢跑團・智慧特訓系統</h3>
         <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">請輸入教練發放的個人特訓密碼</p>
         <input type="password" id="user-pwd" placeholder="請輸入 4 位數密碼" maxlength="8">
-        <button onclick="verifyIdentity()">進入數據看板</button>
+        <button onclick="window.verifyIdentity()">進入數據看板</button>
         <div id="login-err" class="error-msg">❌ 密碼錯誤，請重新輸入</div>
     </div>
 </div>
@@ -54,7 +54,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.4-FinalStable</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.5-ForceStable</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -110,7 +110,7 @@
 </div>
 
 <script>
-    // 💡 🔒 30 組權限隔離密碼對照表
+    // 💡 🔒 30 組加密數據庫
     const passwordRegistry = {
         "7777": "Test 7", "8888": "Test 8",
         "1001": "Student A", "1002": "Student B", "1003": "Student C", "1004": "Student D", "1005": "Student E",
@@ -127,7 +127,8 @@
     let paceChartInstance = null;
     let authorizedName = ""; 
 
-    function verifyIdentity() {
+    // 將驗證函數提升至最高全域 window 層級，確保 HTML 按鈕 100% 呼叫得到
+    window.verifyIdentity = function() {
         const inputPwd = document.getElementById('user-pwd').value.trim();
         const errField = document.getElementById('login-err');
         
@@ -136,6 +137,9 @@
             errField.style.display = 'none';
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
+            
+            // 預先填入學員姓名，防止非同步加載時白屏
+            document.getElementById('filter-name').innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
             fetchAllData(); 
         } else {
             errField.style.display = 'block';
@@ -206,9 +210,7 @@
                 }
             }
 
-            const nameSelect = document.getElementById('filter-name'); const weekSelect = document.getElementById('filter-week');
-            nameSelect.innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
-            
+            const weekSelect = document.getElementById('filter-week');
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
             
@@ -289,9 +291,4 @@
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' } }, yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }, yElevation: { type: 'linear', display: false, min: 0 } } }
                 });
             } catch(chartErr) { console.error(chartErr); }
-            checkPassword();
-        }
-    }
-
-    function checkPassword() {
-        const
+            checkPasswo
