@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
+    <!-- 引入開源圖表引擎 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
@@ -40,14 +42,26 @@
     </style>
 
     <script>
+        // 💡 🔑 依照對照表 1000446401.png 完美對齊人名與密碼
         var passwordRegistry = {
-            "7777": "Test 7", "8888": "Test 8",
-            "1001": "Student A", "1002": "Student B", "1003": "Student C", "1004": "Student D", "1005": "Student E",
-            "1006": "Student F", "1007": "Student G", "1008": "Student H", "1009": "Student I", "1010": "Student J",
+            "7777": "Test 7", // 兼容測試保留
+            "8888": "Test 8", // 兼容測試保留
+            "1001": "Nien",
+            "1002": "Simon",
+            "1003": "Alex",
+            "1004": "Sun",
+            "1005": "Jackson",
+            "1006": "Joy",
+            "1007": "George",
+            "1008": "Lip",
+            "1009": "Wing",
+            "1010": "Jason",
+            // 以下為 11-31 號預備位
             "1011": "Student K", "1012": "Student L", "1013": "Student M", "1014": "Student N", "1015": "Student O",
             "1016": "Student P", "1017": "Student Q", "1018": "Student R", "1019": "Student S", "1020": "Student T",
             "1021": "Student U", "1022": "Student V", "1023": "Student W", "1024": "Student X", "1025": "Student Y",
-            "1026": "Student Z", "1027": "Student AA", "1028": "Student BB", "1029": "Student CC", "1030": "Student DD"
+            "1026": "Student Z", "1027": "Student AA", "1028": "Student BB", "1029": "Student CC", "1030": "Student DD",
+            "1031": "Student EE"
         };
         var authorizedName = "";
 
@@ -59,12 +73,10 @@
                 authorizedName = passwordRegistry[inputPwd];
                 errField.style.display = 'none';
                 
-                // 💥 100% 優先放行：不管三七二十一，立刻把密碼畫面撕走
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 document.getElementById('filter-name').innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
                 
-                // 延遲 100 毫秒再去載入大圖表，防止畫面凍結
                 setTimeout(function() {
                     startLoadingData();
                 }, 100);
@@ -77,9 +89,10 @@
 </head>
 <body>
 
+<!-- 🔒 第一關：身分驗證登入彈窗 -->
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
-        <h3>🔒 慢慢跑團・智慧特訓系統</h3>
+        <h3>🔒 慢跑團・智慧數據特訓系統</h3>
         <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">請輸入教練發放的個人特訓密碼</p>
         <input type="password" id="user-pwd" placeholder="請輸入 4 位數密碼" maxlength="8">
         <button onclick="verifyIdentity()">進入數據看板</button>
@@ -87,10 +100,11 @@
     </div>
 </div>
 
+<!-- 📊 第二關：主看板界面 -->
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.7-Bulletproof</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v42.1-NamedRegistry</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -98,7 +112,7 @@
     <div class="card">
         <h2>📊 個人雲端歷史紀錄</h2>
         
-        <div id="loading-status" class="loading-text">🔄 雲端數據加載中，請稍候...</div>
+        <div id="loading-status" class="loading-text">🔄 慢慢跑團雲端數據載入中，請稍候...</div>
 
         <div class="filter-zone">
             <select id="filter-name" class="filter-select" disabled style="background:#333; border-color:#555; color:#aaa;"></select>
@@ -148,8 +162,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     var googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
     var allRecords = [];
@@ -157,7 +169,13 @@
     var paceChartInstance = null;
 
     function startLoadingData() {
-        fetchAllData();
+        fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime())
+            .then(function(response) { return response.text(); })
+            .then(function(text) { processExcelData(text); })
+            .catch(function(err) {
+                console.error(err);
+                document.getElementById('loading-status').innerText = "❌ 網路連線延遲，請重新整理網頁。";
+            });
     }
 
     function cleanStringToHours(timeStr) {
@@ -183,40 +201,46 @@
         return lines;
     }
 
-    async function fetchAllData() {
+    function processExcelData(csvText) {
         try {
-            var response = await fetch(googleSheetCsvUrl + "&cachebust=" + new Date().getTime());
-            var data = await response.text();
-            var lines = parseStandardCSV(data);
+            var lines = parseStandardCSV(csvText);
             if(!lines || lines.length <= 1) return;
 
             var headers = lines[0];
-            var idxName = headers.findIndex(function(h) { return h.includes("姓名") || h.includes("跑手") || h.includes("Name"); });
-            var idxWeek = headers.findIndex(function(h) { return h.includes("週") || h.includes("Week"); });
-            var idxDist = headers.findIndex(function(h) { return h.includes("距離") || h.includes("Distance"); });
-            var idxClimb = headers.findIndex(function(h) { return h.includes("爬升") || h.includes("Climb"); });
-            var idxTime = headers.findIndex(function(h) { return h.includes("時間") || h.includes("Time"); });
-            var idxCadence = headers.findIndex(function(h) { return h.includes("步頻") || h.includes("Cadence"); });
-            var idxHr = headers.findIndex(function(h) { return h.includes("心率") || h.includes("HR"); });
-            var idxStride = headers.findIndex(function(h) { return h.includes("步距") || h.includes("Stride"); });
-            var idxRisk = headers.findIndex(function(h) { return h.includes("風險") || h.includes("身體"); });
-            var idxWeather = headers.findIndex(function(h) { return h.includes("天氣") || h.includes("環境"); });
-            var idxSupply = headers.findIndex(function(h) { return h.includes("補給") || h.includes("Supply"); });
-            var idxLoc = headers.findIndex(function(h) { return h.includes("地名") || h.includes("路線"); });
+            var idxName = -1, idxWeek = -1, idxDist = -1, idxClimb = -1, idxTime = -1, idxCadence = -1, idxHr = -1, idxStride = -1, idxRisk = -1, idxWeather = -1, idxSupply = -1, idxLoc = -1;
+            
+            for(var k=0; k<headers.length; k++) {
+                var h = headers[k];
+                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("Name")!==-1 || h.indexOf("學員")!==-1) idxName = k;
+                if(h.indexOf("週")!==-1 || h.indexOf("Week")!==-1) idxWeek = k;
+                if(h.indexOf("距離")!==-1 || h.indexOf("Distance")!==-1) idxDist = k;
+                if(h.indexOf("爬升")!==-1 || h.indexOf("Climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
+                if(h.indexOf("時間")!==-1 || h.indexOf("Time")!==-1) idxTime = k;
+                if(h.indexOf("步頻")!==-1 || h.indexOf("Cadence")!==-1) idxCadence = k;
+                if(h.indexOf("心率")!==-1 || h.indexOf("HR")!==-1) idxHr = k;
+                if(h.indexOf("步距")!==-1 || h.indexOf("Stride")!==-1) idxStride = k;
+                if(h.indexOf("風險")!==-1 || h.indexOf("身體")!==-1) idxRisk = k;
+                if(h.indexOf("天氣")!==-1 || h.indexOf("環境")!==-1) idxWeather = k;
+                if(h.indexOf("補給")!==-1 || h.indexOf("Supply")!==-1) idxSupply = k;
+                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("Location")!==-1) idxLoc = k;
+            }
 
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
 
             allRecords = []; var weeks = {};
             for(var i = 1; i < lines.length; i++) {
                 var row = lines[i];
-                if(row && row.length > Math.max(idxName, idxWeek) && row[idxName] && row[idxName].trim() === authorizedName) { 
-                    allRecords.push({ 
-                        timestamp: row[0]||"--", name: row[idxName].trim(), week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
-                        climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
-                        hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
-                        weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
-                    });
-                    weeks[row[idxWeek].trim()] = true;
+                if(row && row.length > Math.max(idxName, idxWeek) && row[idxName]) {
+                    var currentCellName = row[idxName].trim();
+                    if(currentCellName === authorizedName) {
+                        allRecords.push({ 
+                            timestamp: row[0]||"--", name: currentCellName, week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
+                            climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
+                            hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
+                            weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
+                        });
+                        weeks[row[idxWeek].trim()] = true;
+                    }
                 }
             }
 
@@ -230,11 +254,12 @@
                 var last = allRecords[allRecords.length - 1]; 
                 if(last) { weekSelect.value = last.week; updateDisplay(authorizedName, last.week); }
             } else {
-                document.getElementById('loading-status').innerText = "⚠️ 雲端後台目前沒有您的特訓紀錄。";
+                document.getElementById('loading-status').innerText = "⚠️ 提示：Excel 總表中尚未有 [" + authorizedName + "] 的上報紀錄。";
+                document.getElementById('loading-status').style.display = 'block';
             }
         } catch (error) { 
-            console.error(error); 
-            document.getElementById('loading-status').innerText = "❌ 數據讀取失敗，請重試。";
+            console.error(error);
+            document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。";
         }
     }
 
@@ -310,17 +335,9 @@
     function checkPassword() {
         var pwd = document.getElementById('pwd-input').value; var zone = document.getElementById('lock-zone');
         var title = document.getElementById('lock-title'); var content = document.getElementById('lock-content');
-        var name = document.getElementById('filter-name').value; var week = document.getElementById('filter-week').value;
+        var name = authorizedName; var week = document.getElementById('filter-week').value;
         if (!name || !week) return;
         if (pwd === "8888") {
             zone.className = "comment-box unlocked";
             title.innerText = "🟢 [" + name + "] 第 " + week + " 週・方針解鎖"; title.style.color = "#00ffcc";
-            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
-        } else {
-            zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
-            content.innerText = "【系統提示】：請輸入密碼解鎖本週方針！"; content.style.color = "rgba(255,255,255,0.6)";
-        }
-    }
-
-    document.getElementById('user-pwd').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyIdentity(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(authorizedName, e.t
+     
