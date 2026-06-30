@@ -124,7 +124,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">終極完工通車安定版 v47.0</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">智能抗延遲版本 v47.1-Stable</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -134,7 +134,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v47.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v47.1</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -193,13 +193,14 @@
 <script>
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
-        document.getElementById('loading-status').innerText = "🔄 正在讀取雲端主表資料...";
+        document.getElementById('loading-status').innerText = "🔄 正在連線雲端主表...";
         
-        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "cachebust=" + new Date().getTime();
+        // 強制抗快取隨機碼控制
+        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "nocache=" + new Date().getTime();
         
         fetch(finalUrl)
             .then(function(res) { 
-                if (!res.ok) throw new Error("網路回應失敗");
+                if (!res.ok) throw new Error("Google 拒絕連線");
                 return res.text(); 
             })
             .then(function(text) { 
@@ -207,8 +208,14 @@
                 parseAndFilterData(); 
             })
             .catch(function(err) {
-                document.getElementById('loading-status').innerText = "❌ 雲端主表加載失敗！提示：請確認試算表已「發布到網路」並設定為 CSV 格式。";
-                console.error(err);
+                document.getElementById('loading-status').innerText = "❌ 雲端主表載入失敗，正嘗試二次備份加載...";
+                // 備份二次讀取方案
+                fetch(csvMainUrl)
+                    .then(function(r) { return r.text(); })
+                    .then(function(t) { cachedCsvText = t; parseAndFilterData(); })
+                    .catch(function() {
+                        document.getElementById('loading-status').innerText = "❌ 總表載入鎖死。請確認 Excel「發布到網路」的「表單回應 1」勾選正確。";
+                    });
             });
     }
 
@@ -230,7 +237,7 @@
         try {
             var lines = parseStandardCSV(cachedCsvText);
             if(!lines || lines.length <= 1) {
-                document.getElementById('loading-status').innerText = "⚠️ 讀取到的主表數據為空。";
+                document.getElementById('loading-status').innerText = "⚠️ 提示：讀取到的主表數據為空。";
                 return;
             }
 
@@ -258,17 +265,23 @@
 
             var targetName = document.getElementById('filter-name').value.trim();
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
-            targetName = targetName.trim();
+            targetName = targetName.trim().toLowerCase();
             
             allRecords = []; var weeks = {};
             
             for(var i = 1; i < lines.length; i++) {
                 var row = lines[i];
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName]) {
-                    var currentCellName = row[idxName].trim();
-                    if(currentCellName === targetName) {
+                    var currentCellName = row[idxName].trim().toLowerCase();
+                    
+                    // 💡 終極強效相容比對：自動相容 Nien 與 Nein 的手快打錯問題
+                    if(currentCellName === targetName || 
+                       (targetName === "nein" && currentCellName === "nien") || 
+                       (targetName === "nien" && currentCellName === "nein")) {
+                        
+                        var displayCurrentName = row[idxName].trim();
                         allRecords.push({ 
-                            timestamp: row[0]||"--", name: currentCellName, week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
+                            timestamp: row[0]||"--", name: displayCurrentName, week: row[idxWeek].trim(), distance: row[idxDist]||"0", 
                             climb: row[idxClimb]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                             hr: row[idxHr]||"0", stride: row[idxStride]||"0", risk: row[idxRisk]||"良好", 
                             weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", location: (idxLoc !== -1 && row[idxLoc]) ? row[idxLoc] : "" 
@@ -287,9 +300,9 @@
 
             if(allRecords && allRecords.length > 0) { 
                 var last = allRecords[allRecords.length - 1]; 
-                if(last) { weekSelect.value = last.week; updateDisplay(targetName, last.week); }
+                if(last) { weekSelect.value = last.week; updateDisplay(last.name, last.week); }
             } else {
-                document.getElementById('loading-status').innerText = "⚠️ 提示：總表中目前無 [" + targetName + "] 的上報紀錄。";
+                document.getElementById('loading-status').innerText = "⚠️ 提示：總表中目前無此學員的上報紀錄。";
                 document.getElementById('loading-status').style.display = 'block';
                 clearDisplayFields();
             }
@@ -313,7 +326,7 @@
 
     function updateDisplay(selectedName, selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
-        var matched = allRecords.find(function(r) { return r.name === selectedName && r.week === selectedWeek; });
+        var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
         if (matched) {
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
@@ -324,13 +337,4 @@
             document.getElementById('val-hr').innerText = matched.hr + " bpm";
             document.getElementById('val-weather').innerText = matched.weather; 
             document.getElementById('val-supply').innerText = matched.supply;
-            document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
-            
-            var cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
-            document.getElementById('val-risk').innerText = cleanRiskText || "良好";
-            
-            var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0; var hoursNum = cleanStringToHours(matched.time);
-            if (hoursNum > 0) { 
-                var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
-                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
-                var tEphVal = ((
+            document.getEle
