@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
+    <!-- 引入開源圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -48,8 +49,7 @@
             }
         });
 
-        // 📡 1. 主數據發佈通道（表單回應 1）
-        // ⚠️ 請在此處填入你剛剛在第一步重新「停止發佈後再重新單獨發佈」獲得的最新 CSV 連結 ⚠️
+        // 📡 1. 主數據發佈通道（已完美鎖定教練提供的最新 CSV 發佈連結）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
         
         // 🔐 2. 雲端密碼校對安全中心網址
@@ -124,7 +124,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">數據校對終極完全體 v46.8-Stable</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">終極完工通車安定版 v47.0</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -134,7 +134,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v46.8</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v47.0</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -239,7 +239,7 @@
             
             for(var k=0; k<headers.length; k++) {
                 var h = headers[k];
-                var cleanH = h.replace(/\s+/g, ""); // 容錯優化：去除表頭多餘空格
+                var cleanH = h.replace(/\s+/g, ""); 
                 if(cleanH.indexOf("姓名")!==-1 || cleanH.indexOf("跑手")!==-1 || cleanH.indexOf("學員")!==-1 || cleanH.indexOf("Name")!==-1) idxName = k;
                 if(cleanH.indexOf("週")!==-1 || cleanH.indexOf("Week")!==-1) idxWeek = k;
                 if(cleanH.indexOf("距離")!==-1 || cleanH.indexOf("Distance")!==-1) idxDist = k;
@@ -332,4 +332,5 @@
             var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0; var hoursNum = cleanStringToHours(matched.time);
             if (hoursNum > 0) { 
                 var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
-                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hours
+                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
+                var tEphVal = ((
