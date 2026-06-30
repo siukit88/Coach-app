@@ -40,7 +40,7 @@
     </style>
 
     <script>
-        // 全面防禦機制
+        // 全面防禦機制：禁用右鍵與開發者工具
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
@@ -48,10 +48,10 @@
             }
         });
 
-        // 📡 1. 主數據發佈通道（已精準與教練最新建立的表單回應 3 網址連結對齊）
+        // 📡 1. 主數據發佈通道（已對齊教練最新建立且發佈的表單回應 3 網址）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔐 2. 雲端密碼校對安全中心網址
+        // 🔐 2. 雲端密碼校對安全中樞網址（GAS）
         var gasAuthUrl = "https://script.google.com/macros/s/AKfycbzybmI6Zj8EPkoHI2O3kwZywcf-vudFGmiGemv5secpy75v5VFQULrUlasGkMdKmknQ/exec"; 
         
         var authorizedName = "";
@@ -123,7 +123,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全渠道無感對接完全體 v47.5-Stable</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全渠道無感對接完全體 v47.6-Final</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
@@ -133,7 +133,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v47.5</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v47.6</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -271,6 +271,7 @@
                 if(row && row.length > Math.max(idxName, idxWeek) && row[idxName]) {
                     var currentCellName = row[idxName].trim().toLowerCase();
                     
+                    // 💡 智能模糊比對：自動包容學員打錯字母或大小寫
                     if(currentCellName === targetName || 
                        (targetName === "nein" && currentCellName === "nien") || 
                        (targetName === "nien" && currentCellName === "nein")) {
@@ -324,15 +325,17 @@
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
         if (matched) {
-            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || "--"; 
+            // 🛡️ 終極防空保護盾：防止空白或格式不符的時間戳記卡死網頁
+            if (matched.timestamp && matched.timestamp.indexOf(' ') !== -1) {
+                document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0];
+            } else if (matched.timestamp) {
+                document.getElementById('val-date').innerText = matched.timestamp;
+            } else {
+                document.getElementById('val-date').innerText = "--";
+            }
+
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
             document.getElementById('val-climb').innerText = matched.climb + " 米"; 
             document.getElementById('val-time').innerText = matched.time; 
             document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
-            document.getElementById('val-stride').innerText = matched.stride + " m";
-            document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            document.getElementById('val-weather').innerText = matched.weather; 
-            document.getElementById('val-supply').innerText = matched.supply;
-            document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
-            
-          
+            document.getElementById('val-stride
