@@ -37,6 +37,9 @@
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .login-box button:active { background: #dd2255; }
         .error-msg { color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none; }
+        
+        /* 載入中提示字眼 */
+        .loading-text { font-size: 16px; color: #00ffcc; font-weight: bold; margin: 20px 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -54,13 +57,16 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v41.5-ForceStable</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v41.6-VisualFeedback</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
 
     <div class="card">
         <h2>📊 個人雲端歷史紀錄</h2>
+        
+        <div id="loading-status" class="loading-text">🔄 慢慢跑團雲端數據載入中，請稍候...</div>
+
         <div class="filter-zone">
             <select id="filter-name" class="filter-select" disabled style="background:#333; border-color:#555; color:#aaa;"></select>
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
@@ -110,7 +116,7 @@
 </div>
 
 <script>
-    // 💡 🔒 30 組加密數據庫
+    // 💡 🔒 30 組權限隔離密碼對照表
     const passwordRegistry = {
         "7777": "Test 7", "8888": "Test 8",
         "1001": "Student A", "1002": "Student B", "1003": "Student C", "1004": "Student D", "1005": "Student E",
@@ -127,7 +133,7 @@
     let paceChartInstance = null;
     let authorizedName = ""; 
 
-    // 將驗證函數提升至最高全域 window 層級，確保 HTML 按鈕 100% 呼叫得到
+    // 💡 修正核心：點擊那一瞬間先「立刻切換畫面」，絕對不允許卡死
     window.verifyIdentity = function() {
         const inputPwd = document.getElementById('user-pwd').value.trim();
         const errField = document.getElementById('login-err');
@@ -135,11 +141,15 @@
         if (passwordRegistry[inputPwd]) {
             authorizedName = passwordRegistry[inputPwd];
             errField.style.display = 'none';
+            
+            // 💥 暴力放行：立刻隱藏登入視窗，顯示主畫面的載入中提示
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             
-            // 預先填入學員姓名，防止非同步加載時白屏
+            // 先填好名字占位
             document.getElementById('filter-name').innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
+            
+            // 真正去背景撈資料
             fetchAllData(); 
         } else {
             errField.style.display = 'block';
@@ -214,11 +224,20 @@
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Array.from(weeks).sort().forEach(w => { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
             
+            // 💡 資料下載完成，隱藏進度條提示
+            document.getElementById('loading-status').style.display = 'none';
+
             if(allRecords && allRecords.length > 0) { 
                 const last = allRecords[allRecords.length - 1]; 
                 if(last) { weekSelect.value = last.week; updateDisplay(authorizedName, last.week); }
+            } else {
+                document.getElementById('loading-status').innerText = "⚠️ 雲端後台目前沒有您的特訓紀錄。";
+                document.getElementById('loading-status').style.display = 'block';
             }
-        } catch (error) { console.error(error); }
+        } catch (error) { 
+            console.error(error); 
+            document.getElementById('loading-status').innerText = "❌ 雲端連線失敗，請檢查網路連線。";
+        }
     }
 
     function updateDisplay(selectedName, selectedWeek) {
@@ -268,7 +287,7 @@
                         labels: xLabels,
                         datasets: [
                             { label: '心率 (bpm)', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'yBio' },
-                            { label: '步頻 (spm)', data: [cadenceNum - 6, cadenceNum, cadenceNum - 2, cadenceNum + 3, cadenceNum + 1, cadenceNum - 2], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
+                            { label: '步頻 (spm)', data: [cadenceNum - 5, cadenceNum, cadenceNum + 3, cadenceNum - 1], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'yBio' },
                             { label: '功率 (W)', data: [120, 165, 140, 210, 115, 95], borderColor: '#bc00dd', fill: false, tension: 0.2, yAxisID: 'yPower' },
                             { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
                         ]
@@ -285,10 +304,4 @@
                         datasets: [
                             { label: '即時配速 (min/km)', data: [5.6, 5.1, 5.8, 8.4, 4.9, 4.6], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'yPace' },
                             { label: '分段 EPH 效率', data: [wEphVal * 0.4, wEphVal, wEphVal * 0.8, mEphVal, tEphVal, tEphVal * 0.6], borderColor: '#00ffcc', fill: false, tension: 0.2, yAxisID: 'yEph' },
-                            { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.02)', fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'yElevation' }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#ffffff', boxWidth: 10, font: { size: 10 } } } }, scales: { yPace: { type: 'linear', display: true, position: 'left', reversed: true, grid: { color: 'rgba(255,255,255,0.04)' } }, yEph: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }, yElevation: { type: 'linear', display: false, min: 0 } } }
-                });
-            } catch(chartErr) { console.error(chartErr); }
-            checkPasswo
+                            { label: '背景地形剖面 (m)', data: [10, 320, 180, 890, 240, 20], borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(2
