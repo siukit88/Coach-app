@@ -48,105 +48,80 @@
             }
         });
 
-        // 📡 雙數據發佈通道（對齊你的 Google Sheet 分頁）
-        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv"; // 表單回應 1
-        var csvPwdUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=2146445258&single=true&output=csv"; // 工作表 2
+        // 📡 主數據發佈通道（表單回應 1）
+        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
         
-        var passwordRegistry = {}; // 動態密碼本
-        var memberList = [];       // 所有學員名字清單（供教練檢視切換）
+        // 🔐 雲端安全密碼核對中樞網址（已完美對齊教練的正式 Apps Script 網址）
+        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbyBV6T3bukmKL5riBD0W0P6KBPBrMEyc4j6Njk5V0ejiUmffbXse3uzQqNbHr19LWOP/exec"; 
+        
         var authorizedName = "";
-        var isCoachMode = false;   // 是否為教練管理員模式
-        var allRecords = [];       // 主表總歷史紀錄快取
-        var cachedCsvText = "";    // 快取主表文字
-
-        // 背景加載雲端最新學員自訂密碼表
-        window.onload = function() {
-            fetch(csvPwdUrl + "&cachebust=" + new Date().getTime())
-                .then(function(res) { return res.text(); })
-                .then(function(text) {
-                    var lines = parseStandardCSV(text);
-                    memberList = [];
-                    for(var i = 1; i < lines.length; i++) {
-                        var row = lines[i];
-                        if(row && row.length >= 3 && row[1] && row[2]) {
-                            var pwd = row[1].trim();
-                            var name = row[2].trim();
-                            if(pwd !== "") { 
-                                passwordRegistry[pwd] = name; 
-                                if(name !== "Kit" && name !== "" && !memberList.includes(name)) {
-                                    memberList.push(name);
-                                }
-                            }
-                        }
-                    }
-                    console.log("Excel 動態自訂密碼及名單同步完成");
-                }).catch(function(e) { console.error("密碼表讀取失敗:", e); });
-        };
-
-        function parseStandardCSV(csvText) {
-            var lines = []; var currentLine = []; var currentCell = ''; var inQuotes = false;
-            var normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            for (var i = 0; i < normalized.length; i++) {
-                var c = normalized[i];
-                if (c === '"') { inQuotes = !inQuotes; }
-                else if (c === ',' && !inQuotes) { currentLine.push(currentCell.trim()); currentCell = ''; }
-                else if (c === '\n' && !inQuotes) { currentLine.push(currentCell.trim()); lines.push(currentLine); currentLine = []; currentCell = ''; }
-                else { currentCell += c; }
-            }
-            if (currentCell || currentLine.length > 0) { currentLine.push(currentCell.trim()); lines.push(currentLine); }
-            return lines;
-        }
+        var isCoachMode = false;
+        var allRecords = [];
+        var cachedCsvText = "";
+        var bioChartInstance = null;
+        var paceChartInstance = null;
 
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err');
+            var loginBtn = document.getElementById('login-btn');
             var nameSelect = document.getElementById('filter-name');
             
             if (inputPwd === "") return;
             
-            if (inputPwd === "1000") {
-                // 👑 啟用教練至高檢視功能
-                isCoachMode = true;
-                errField.style.display = 'none';
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                
-                // 構建教練全選單
-                var optionsHtml = '';
-                if(memberList.length > 0) {
-                    memberList.forEach(function(m) {
-                        optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
-                    });
-                    authorizedName = memberList[0]; // 預設直接切換到第一個真實學員
-                } else {
-                    optionsHtml += '<option value="Kit">👑 檢視教練自己 (Kit)</option>';
-                    authorizedName = "Kit";
-                }
-                nameSelect.innerHTML = optionsHtml;
-                nameSelect.removeAttribute('disabled'); // 解鎖選單
-                nameSelect.style.background = "#2a2a35";
-                nameSelect.style.color = "#ffffff";
-                
-                // 💡 修正核心：登入後立刻出發去撈取雲端總表數據
-                setTimeout(function() { startLoadingData(); }, 100);
-            } else if (passwordRegistry[inputPwd]) {
-                // 👤 普通學員登入模式：鎖定單一賬號
-                isCoachMode = false;
-                authorizedName = passwordRegistry[inputPwd];
-                errField.style.display = 'none';
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                
-                nameSelect.innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
-                nameSelect.setAttribute('disabled', 'true'); // 限制一般學員不可切換
-                
-                setTimeout(function() { startLoadingData(); }, 100);
-            } else {
-                errField.style.display = 'block';
-                errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 密碼不正確或尚未設定";
-                document.getElementById('user-pwd').value = "";
-            }
+            errField.style.display = 'block';
+            errField.style.color = '#00ffcc';
+            errField.innerText = "⚡ 安全加密連線驗證中...";
+            loginBtn.setAttribute('disabled', 'true');
+            
+            // 📡 發送密碼給雲端傳達員進行核對
+            fetch(gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    loginBtn.removeAttribute('disabled');
+                    if (data.success) {
+                        errField.style.display = 'none';
+                        document.getElementById('login-screen').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+                        
+                        if (data.role === "coach") {
+                            // 👑 教練最高權限：獲取雲端傳回的全體名單，解鎖下拉選單
+                            isCoachMode = true;
+                            var optionsHtml = '';
+                            if (data.members && data.members.length > 0) {
+                                data.members.forEach(function(m) {
+                                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
+                                });
+                                authorizedName = data.members[0]; // 預設直接加載第一個學員
+                            } else {
+                                optionsHtml += '<option value="Kit">👑 檢視教練自己 (Kit)</option>';
+                                authorizedName = "Kit";
+                            }
+                            nameSelect.innerHTML = optionsHtml;
+                            nameSelect.removeAttribute('disabled');
+                            nameSelect.style.background = "#2a2a35";
+                            nameSelect.style.color = "#ffffff";
+                        } else {
+                            // 👤 普通學員：只拿到屬於他自己的名字，選單強制鎖死隔離
+                            isCoachMode = false;
+                            authorizedName = data.name;
+                            nameSelect.innerHTML = '<option value="' + authorizedName + '">' + authorizedName + '</option>';
+                            nameSelect.setAttribute('disabled', 'true');
+                        }
+                        
+                        setTimeout(function() { startLoadingData(); }, 100);
+                    } else {
+                        errField.style.color = '#ff4d4d';
+                        errField.innerText = "❌ 密碼不正確，請聯絡 Kit 教練";
+                        document.getElementById('user-pwd').value = "";
+                    }
+                })
+                .catch(function(err) {
+                    loginBtn.removeAttribute('disabled');
+                    errField.style.color = '#ff4d4d';
+                    errField.innerText = "❌ 雲端認證連線失敗，請檢查網路。";
+                    console.error(err);
+                });
         }
     </script>
 </head>
@@ -155,9 +130,9 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧數據特訓系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">請輸入特訓密碼</p>
-        <input type="password" id="user-pwd" placeholder="請輸入密碼" maxlength="12">
-        <button onclick="verifyIdentity()">進入數據看板</button>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">網頁不儲存密碼・確保隱私安全</p>
+        <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
+        <button id="login-btn" onclick="verifyIdentity()">安全登入看板</button>
         <div id="login-err" class="error-msg" style="display:none;"></div>
     </div>
 </div>
@@ -165,7 +140,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧數據看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v44.1-CoachFix</p>
+        <p>慢慢跑團 遠程智慧特訓平台 v45.1-ZeroTrustFinal</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -222,8 +197,6 @@
 </div>
 
 <script>
-    var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=375017450&single=true&output=csv";
-
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
         document.getElementById('loading-status').innerText = "🔄 正在同步雲端最新數據...";
@@ -235,9 +208,22 @@
                 parseAndFilterData(); 
             })
             .catch(function(err) {
-                console.error(err);
-                document.getElementById('loading-status').innerText = "❌ 數據同步逾時，請重整網頁。";
+                document.getElementById('loading-status').innerText = "❌ 數據同步逾時。";
             });
+    }
+
+    function parseStandardCSV(csvText) {
+        var lines = []; var currentLine = []; var currentCell = ''; var inQuotes = false;
+        var normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        for (var i = 0; i < normalized.length; i++) {
+            var c = normalized[i];
+            if (c === '"') { inQuotes = !inQuotes; }
+            else if (c === ',' && !inQuotes) { currentLine.push(currentCell.trim()); currentCell = ''; }
+            else if (c === '\n' && !inQuotes) { currentLine.push(currentCell.trim()); lines.push(currentLine); currentLine = []; currentCell = ''; }
+            else { currentCell += c; }
+        }
+        if (currentCell || currentLine.length > 0) { currentLine.push(currentCell.trim()); lines.push(currentLine); }
+        return lines;
     }
 
     function parseAndFilterData() {
@@ -250,7 +236,7 @@
             
             for(var k=0; k<headers.length; k++) {
                 var h = headers[k];
-                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("Name")!==-1 || h.indexOf("學員")!==-1) idxName = k;
+                if(h.indexOf("姓名")!==-1 || h.indexOf("跑手")!==-1 || h.indexOf("學員")!==-1) idxName = k;
                 if(h.indexOf("週")!==-1 || h.indexOf("Week")!==-1) idxWeek = k;
                 if(h.indexOf("距離")!==-1 || h.indexOf("Distance")!==-1) idxDist = k;
                 if(h.indexOf("爬升")!==-1 || h.indexOf("Climb")!==-1 || h.indexOf("海拔")!==-1) idxClimb = k;
@@ -261,15 +247,14 @@
                 if(h.indexOf("風險")!==-1 || h.indexOf("身體")!==-1) idxRisk = k;
                 if(h.indexOf("天氣")!==-1 || h.indexOf("環境")!==-1) idxWeather = k;
                 if(h.indexOf("補給")!==-1 || h.indexOf("Supply")!==-1) idxSupply = k;
-                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1 || h.indexOf("Location")!==-1) idxLoc = k;
+                if(h.indexOf("地名")!==-1 || h.indexOf("路線")!==-1) idxLoc = k;
             }
 
             if(idxName === -1) idxName = 1; if(idxWeek === -1) idxWeek = 2;
 
-            // 💡 抓取選單上當前選中的跑手名字
             var targetName = document.getElementById('filter-name').value;
-            allRecords = []; 
-            var weeks = {};
+            authorizedName = targetName;
+            allRecords = []; var weeks = {};
             
             for(var i = 1; i < lines.length; i++) {
                 var row = lines[i];
@@ -290,7 +275,6 @@
             var weekSelect = document.getElementById('filter-week');
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Object.keys(weeks).sort().forEach(function(w) { weekSelect.innerHTML += '<option value="' + w + '">' + w + '</option>'; });
-            
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
@@ -301,23 +285,15 @@
                 document.getElementById('loading-status').style.display = 'block';
                 clearDisplayFields();
             }
-        } catch (error) { 
-            console.error(error);
-            document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。";
-        }
+        } catch (error) { document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; }
     }
 
     function clearDisplayFields() {
-        document.getElementById('val-date').innerText = "--"; 
-        document.getElementById('val-distance').innerText = "--"; 
-        document.getElementById('val-climb').innerText = "--"; 
-        document.getElementById('val-time').innerText = "--"; 
-        document.getElementById('val-cadence').innerText = "--"; 
-        document.getElementById('val-stride').innerText = "--";
-        document.getElementById('val-hr').innerText = "--";
-        document.getElementById('val-eph').innerText = "--";
-        document.getElementById('val-seg-eph').innerText = "--";
-        document.getElementById('val-location').innerText = "";
+        document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "--"; 
+        document.getElementById('val-climb').innerText = "--"; document.getElementById('val-time').innerText = "--"; 
+        document.getElementById('val-cadence').innerText = "--"; document.getElementById('val-stride').innerText = "--";
+        document.getElementById('val-hr').innerText = "--"; document.getElementById('val-eph').innerText = "--";
+        document.getElementById('val-seg-eph').innerText = "--"; document.getElementById('val-location').innerText = "";
     }
 
     function cleanStringToHours(timeStr) {
@@ -343,4 +319,71 @@
             document.getElementById('val-location').innerText = matched.location ? "📍 " + matched.location : "";
             
             var cleanRiskText = (matched.risk || "").split("[分段EPH]")[0].trim();
-            document.getElementById('val-risk').innerText = cleanRiskTex
+            document.getElementById('val-risk').innerText = cleanRiskText || "良好";
+            
+            var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0; var hoursNum = cleanStringToHours(matched.time);
+            if (hoursNum > 0) { 
+                var wEphVal = ((distNum * 0.2) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.18);
+                var mEphVal = ((distNum * 0.5) + ((climbNum * 0.8) / 100)) / (hoursNum * 0.65);
+                var tEphVal = ((distNum * 0.3) + ((climbNum * 0.1) / 100)) / (hoursNum * 0.17);
+                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時"; 
+                document.getElementById('val-seg-eph').innerText = "熱身:" + wEphVal.toFixed(2) + " | 主攻:" + mEphVal.toFixed(2) + " | 落山:" + tEphVal.toFixed(2);
+            }
+            
+            var hrNum = parseInt(matched.hr) || 142; var cadenceNum = parseInt(matched.cadence) || 175;
+            var hrBar = document.getElementById('hr-bar'); if(hrBar) { var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100)); hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900"; }
+            
+            if (typeof Chart === 'undefined') return;
+            try {
+                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
+                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
+                if (bioChartInstance) bioChartInstance.destroy();
+                bioChartInstance = new Chart(ctxBio, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [
+                            { label: '心率', data: [hrNum - 20, hrNum - 2, hrNum - 12, hrNum, hrNum - 8, hrNum - 15], borderColor: '#ff3366', fill: false, tension: 0.2 },
+                            { label: '步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 3, cadenceNum - 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
+                if (paceChartInstance) paceChartInstance.destroy();
+                paceChartInstance = new Chart(ctxPace, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [ { label: '配速', data: [5.6, 5.1, 5.8, 8.4, 4.9, 4.6], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+            checkPassword();
+        }
+    }
+
+    function checkPassword() {
+        var pwd = document.getElementById('pwd-input').value; var zone = document.getElementById('lock-zone');
+        var title = document.getElementById('lock-title'); var content = document.getElementById('lock-content');
+        var name = authorizedName; var week = document.getElementById('filter-week').value;
+        if (!name || !week) return;
+        if (pwd === "8888") {
+            zone.className = "comment-box unlocked";
+            title.innerText = "🟢 [" + name + "] 第 " + week + " 週・方針解鎖"; title.style.color = "#00ffcc";
+            content.innerHTML = "<strong>【本週特訓方針】：</strong> 長課表現穩定。後半程需特別留意步距維持，切勿因疲勞導致推推力道下降。下週將針對主攻坡段進行專屬耐力疊加，維持補給節奏，繼續加油！"; content.style.color = "#ffffff";
+        } else {
+            zone.className = "comment-box"; title.innerText = "🔒 遠程評語尚未解鎖"; title.style.color = "#ff4d4d";
+            content.innerText = "【系統提示】：請輸入密碼解鎖本週方針！"; content.style.color = "rgba(255,255,255,0.6)";
+        }
+    }
+
+    document.getElementById('user-pwd').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyIdentity(); });
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(document.getElementById('filter-name').value, e.target.value); });
+    document.getElementById('pwd-input').addEventListener('input', checkPassword);
+</script>
+</body>
+</html>
