@@ -63,7 +63,7 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練 1000 後台最高權限
+            // 👑 教練最高權限放行
             if (inputPwd === "1000") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -84,7 +84,7 @@
                 return;
             }
             
-            // 👤 學員代號門禁
+            // 👤 學員登入放行
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
@@ -110,7 +110,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">嚴格非此即彼隔離版 v56.0-Security</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全隊零卡頓通車安全版 v57.0</p>
         <input type="text" id="user-pwd" placeholder="請打入 4 位學員代號 (1001...)" maxlength="12">
         <button onclick="verifyIdentity()">安全登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -136,7 +136,7 @@
 
         <div id="coach-lock-zone" class="lock-mask">
             <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請輸入解鎖密碼</div>
-            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【密碼提示】如果您填表時有設定私密密碼，必須使用該密碼解鎖；若當初留空未設定，請輸入您的 4 位學員代號保底解鎖。</p>
+            <p id="lock-tip-text" style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【密碼提示】如果您填表時有設定私密密碼，必須使用該密碼解鎖；若當初留空未設定，請輸入您的 4 位學員代號保底解鎖。</p>
             <input type="password" id="custom-secret-pwd" class="input-box" placeholder="請輸入自訂密碼或學員代號" style="margin-bottom: 15px;">
             <button onclick="unlockDataWithSecret()" style="background: #00ffcc; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; width: 100%;">驗證解鎖</button>
             <div id="secret-err" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;"></div>
@@ -204,32 +204,30 @@
         return lines;
     }
 
-    // 🔒 嚴格排他性安全驗證核心
+    // 🔒 終極智慧多層密碼校驗核心
     function unlockDataWithSecret() {
         var typedSecret = document.getElementById('custom-secret-pwd').value.trim();
         var secretErr = document.getElementById('secret-err');
         
         if (typedSecret === "") return;
-        if (!allRecords || allRecords.length === 0) {
-            secretErr.style.display = "block";
-            secretErr.innerText = "❌ 資料庫中目前查無此週的訓練數據。";
-            return;
-        }
-
-        var currentActiveRecord = allRecords[allRecords.length - 1];
-        var dbSecret = currentActiveRecord.rawSecret;
         
         var accessGranted = false;
 
-        if (dbSecret !== "") {
-            // 🛡️ 情況 A：同學有自設密碼 ➔ 必須絕對完全吻合，此時用代號解鎖一律無效！
-            if (typedSecret === dbSecret) {
+        // 💡 核心優化：如果這個人「完全未填過表」，allRecords 會是空的
+        if (!allRecords || allRecords.length === 0) {
+            // 特特赦通道：只要他打對自己的登入代號，就允許放行看歷史看板（雖然裡面會是空的）
+            if (typedSecret === currentLoginCode) {
                 accessGranted = true;
             }
         } else {
-            // 防呆保底：只有當當初漏填、完全沒設密碼時，才允許用自己的學員代號代位解鎖
-            if (typedSecret === currentLoginCode) {
-                accessGranted = true;
+            // 他有填過表，走常規嚴格排他性路線
+            var currentActiveRecord = allRecords[allRecords.length - 1];
+            var dbSecret = currentActiveRecord.rawSecret;
+
+            if (dbSecret !== "") {
+                if (typedSecret === dbSecret) accessGranted = true;
+            } else {
+                if (typedSecret === currentLoginCode) accessGranted = true;
             }
         }
 
@@ -240,10 +238,10 @@
             updateDisplay(document.getElementById('filter-week').value);
         } else {
             secretErr.style.display = "block";
-            if (dbSecret !== "") {
-                secretErr.innerText = "❌ 驗證失敗：此帳號已啟用私密自訂密碼保護，輸入學員代號無效。請輸入正確的自訂密碼！";
+            if (allRecords && allRecords.length > 0 && allRecords[allRecords.length - 1].rawSecret !== "") {
+                secretErr.innerText = "❌ 驗證失敗：此帳號已啟用私密自訂密碼保護，請輸入正確的自訂密碼。";
             } else {
-                secretErr.innerText = "❌ 驗證失敗：您當初填表未設密碼，請打入您的 4 位學員代號解鎖。";
+                secretErr.innerText = "❌ 驗證失敗：請輸入您的 4 位學員代號解鎖進路。";
             }
         }
     }
@@ -251,61 +249,45 @@
     function parseAndFilterData() {
         try {
             var lines = originalFetchedLines;
-            if(!lines || lines.length <= 1) return;
-
-            var idxName = 1;    // B欄
-            var idxWeek = 2;    // C欄
-            var idxDist = 3;    // D欄
-            var idxTime = 4;    // E欄
-            var idxCadence = 5; // F欄
-            var idxStride = 6;  // G欄
-            var idxHr = 7;      // H欄
-            var idxRisk = 8;    // I欄
-            var idxWeather = 9; // J欄
-            var idxSupply = 10; // K欄
-            var idxClimb = 11;  // L欄
-
+            var weekSelect = document.getElementById('filter-week');
+            
             var targetName = document.getElementById('filter-name').value.trim();
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
             var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
             
             allRecords = []; var weeks = {};
             
-            for(var i = 1; i < lines.length; i++) {
-                var row = lines[i];
-                if(row && row.length > 2 && row[idxName]) {
-                    var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
-                    
-                    if(cleanCellName === cleanTarget || 
-                       (cleanTarget === "nein" && cleanCellName === "nien") || 
-                       (cleanTarget === "nien" && cleanCellName === "nein")) {
-                        
-                        var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
-                        
-                        var matchedSecret = row[row.length - 1] ? row[row.length - 1].toString().trim() : "";
-                        if(row.length <= 12) { matchedSecret = ""; }
+            if(lines && lines.length > 1) {
+                var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
+                var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
+                var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
 
-                        allRecords.push({ 
-                            timestamp: row[0]||"--", 
-                            name: row[idxName].trim(), 
-                            week: wValue, 
-                            distance: row[idxDist]||"0", 
-                            time: row[idxTime]||"--", 
-                            cadence: row[idxCadence]||"0", 
-                            stride: row[idxStride]||"0", 
-                            hr: row[idxHr]||"0", 
-                            risk: row[idxRisk]||"良好", 
-                            weather: row[idxWeather]||"正常", 
-                            supply: row[idxSupply]||"正常", 
-                            climb: row[idxClimb]||"0",
-                            rawSecret: matchedSecret
-                        });
-                        weeks[wValue] = true;
+                for(var i = 1; i < lines.length; i++) {
+                    var row = lines[i];
+                    if(row && row.length > 2 && row[idxName]) {
+                        var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
+                        
+                        if(cleanCellName === cleanTarget || 
+                           (cleanTarget === "nein" && cleanCellName === "nien") || 
+                           (cleanTarget === "nien" && cleanCellName === "nein")) {
+                            
+                            var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
+                            var matchedSecret = row[row.length - 1] ? row[row.length - 1].toString().trim() : "";
+                            if(row.length <= 12) { matchedSecret = ""; }
+
+                            allRecords.push({ 
+                                timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
+                                distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
+                                stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
+                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
+                                rawSecret: matchedSecret
+                            });
+                            weeks[wValue] = true;
+                        }
                     }
                 }
             }
 
-            var weekSelect = document.getElementById('filter-week');
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
                 weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
@@ -314,14 +296,15 @@
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
+                document.getElementById('lock-tip-text').innerText = "【密碼提示】如果您填表時有設定私密密碼，必須使用該密碼解鎖；若當初留空未設定，請輸入您的 4 位學員代號保底解鎖。";
                 var last = allRecords[allRecords.length - 1]; 
                 if(last) { 
                     weekSelect.value = last.week; 
                     if (isCoachMode) { updateDisplay(last.week); }
                 }
             } else {
-                document.getElementById('loading-status').innerText = "⚠️ 提示：總表中無此學員上報紀錄。";
-                document.getElementById('loading-status').style.display = 'block';
+                // 💡 這裡就是對未交功課同學的友善提示
+                document.getElementById('lock-tip-text').innerText = "【提示】資料庫中目前還沒有您本週的特訓數據。請輸入您的 4 位學員代號解鎖進入系統。";
                 clearDisplayFields();
             }
         } catch (error) { 
@@ -371,4 +354,7 @@
 
             var hrNum = parseInt(matched.hr) || 0;
             var hrBar = document.getElementById('hr-bar');
-            if(hrBar && hrNum > 0)
+            if(hrBar && hrNum > 0) {
+                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+                hrBar.style.width = pct + "%";
+                hrBar.style.bac
