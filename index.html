@@ -29,14 +29,11 @@
         .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
         .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .loading-text { font-size: 15px; color: #00ffcc; font-weight: bold; margin: 15px 0; text-align: center; line-height: 1.4; }
-        
-        /* 🔒 鎖定遮罩樣式 */
         .lock-mask { background: rgba(34, 34, 43, 0.95); padding: 30px 20px; border-radius: 8px; text-align: center; border: 1px dashed #ff3366; margin-top: 15px; }
     </style>
 
     <script>
-        // 📡 1. 主數據直連通道（表單回應 3）
+        // 📡 1. 主數據直連通道
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
         // 🔒 2. 代號放行對照表
@@ -52,6 +49,7 @@
 
         var allMembers = Object.values(passMap);
         var authorizedName = "";
+        var currentLoginCode = ""; // 紀錄學員登入代號以作保底防線
         var isCoachMode = false;
         var allRecords = [];
         var cachedCsvText = "";
@@ -65,10 +63,11 @@
             
             if (inputPwd === "") return;
             
-            // 👑 狀況 1：最高教練密碼 1000 直接全面解鎖
+            // 👑 教練 1000
             if (inputPwd === "1000") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
+                currentLoginCode = "1000";
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 document.getElementById('coach-lock-zone').style.display = 'none'; 
@@ -85,10 +84,11 @@
                 return;
             }
             
-            // 👤 狀況 2：學員用固定代號放行
+            // 👤 學員代號
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
+                currentLoginCode = inputPwd; // 牢牢記住 1001 或 1002 
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
@@ -110,7 +110,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">雙層逆向防錯版本 v54.5-Final</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全自動密碼補位安全版 v55.0-Final</p>
         <input type="text" id="user-pwd" placeholder="請打入 4 位學員代號 (1001...)" maxlength="12">
         <button onclick="verifyIdentity()">安全登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -136,8 +136,8 @@
 
         <div id="coach-lock-zone" class="lock-mask">
             <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請打入你在表單自訂的密碼解鎖</div>
-            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">系統將自動對齊最後一欄自訂密碼，匹配成功即刻點亮數據</p>
-            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="打入你的自訂密碼" style="margin-bottom: 15px;">
+            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【防呆提示】如果你填表時無自設密碼，請直接輸入你嘅 4 位學員代號解鎖！</p>
+            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="打入自訂密碼 或 學員代號" style="margin-bottom: 15px;">
             <button onclick="unlockDataWithSecret()" style="background: #00ffcc; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; width: 100%;">驗證解鎖</button>
             <div id="secret-err" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;"></div>
         </div>
@@ -204,7 +204,6 @@
         return lines;
     }
 
-    // 🔑 核心解鎖改良：採用逆向追蹤（row[row.length - 1]）確保 100% 抓準最後一欄密碼
     function unlockDataWithSecret() {
         var typedSecret = document.getElementById('custom-secret-pwd').value.trim();
         var secretErr = document.getElementById('secret-err');
@@ -218,14 +217,20 @@
 
         var currentActiveRecord = allRecords[allRecords.length - 1];
         
-        if (currentActiveRecord && currentActiveRecord.rawSecret === typedSecret) {
+        // 👑 智慧型密碼雙重比對核心：
+        // 條款一：對中學生自訂密碼
+        // 條款二：如果資料庫密碼係空白（同學無填），只要同學打入佢嘅登入代號（currentLoginCode），同樣安全放行！
+        var dbSecret = currentActiveRecord.rawSecret;
+        var isBackupMatch = (dbSecret === "" && typedSecret === currentLoginCode);
+
+        if (currentActiveRecord && (dbSecret === typedSecret || isBackupMatch)) {
             secretErr.style.display = "none";
             document.getElementById('coach-lock-zone').style.display = 'none';
             document.getElementById('data-display-zone').style.display = 'block';
             updateDisplay(document.getElementById('filter-week').value);
         } else {
             secretErr.style.display = "block";
-            secretErr.innerText = "❌ 驗證失敗：解鎖密碼與資料庫不符，請確認大小寫。";
+            secretErr.innerText = "❌ 驗證失敗：解鎖密碼錯誤！如果忘記且未曾自設，請打入你嘅 4 位學員代號試試。";
         }
     }
 
@@ -263,9 +268,11 @@
                         
                         var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                         
-                        // 🎯 關鍵防錯：自訂密碼固定位於該行的最後一個有效元素
+                        // 逆向獲取最後一欄
                         var matchedSecret = row[row.length - 1] ? row[row.length - 1].toString().trim() : "";
-                        
+                        // 防呆：如果最後一欄其實是爬升（即完全無填密碼，整行長度縮短），則密碼設為空白
+                        if(row.length <= 12) { matchedSecret = ""; }
+
                         allRecords.push({ 
                             timestamp: row[0]||"--", 
                             name: row[idxName].trim(), 
@@ -301,7 +308,7 @@
                     if (isCoachMode) { updateDisplay(last.week); }
                 }
             } else {
-                document.getElementById('loading-status').innerText = "⚠️ 提示：總表中查無此學員上報紀錄。";
+                document.getElementById('loading-status').innerText = "⚠️ 提示：總表中無此學員上報紀錄。";
                 document.getElementById('loading-status').style.display = 'block';
                 clearDisplayFields();
             }
@@ -355,46 +362,4 @@
             if(hrBar && hrNum > 0) {
                 var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
                 hrBar.style.width = pct + "%";
-                hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
-            }
-
-            try {
-                var cadenceNum = parseInt(matched.cadence) || 0;
-                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
-                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(ctxBio, {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
-                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartInstance.destroy();
-                paceChartInstance = new Chart(ctxPace, {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            } catch(chartErr) {}
-        }
-    }
-
-    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { 
-        if (isCoachMode || document.getElementById('data-display-zone').style.display === 'block') {
-            updateDisplay(e.target.value); 
-        }
-    });
-</script>
-</body>
-</html>
+                hrBar.style.backgroundColo
