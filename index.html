@@ -23,12 +23,6 @@
         .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
         
         .chart-container { position: relative; width: 100%; height: 180px; margin-top: 12px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #3a3a4a; }
-        .input-box { background: #16161a; border: 1px solid #ff3366; padding: 10px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; outline: none; }
-        .comment-box { margin: 15px; padding: 20px; border-radius: 8px; border: 1px solid #ff3366; background: #2d1a1e; transition: all 0.3s ease; }
-        .comment-box.unlocked { border-color: #00ffcc; background: #1b2a22; }
-        .comment-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
-        .comment-text { font-size: 13px; line-height: 1.6; }
-        
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: #22222b; border: 1px solid #ff3366; padding: 30px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
         .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
@@ -38,21 +32,12 @@
     </style>
 
     <script>
-        // 📡 1. 精準對齊表單回應 3 數據連結
+        // 📡 1. 主數據直連通道（表單回應 3）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 2. 固定密碼對照表
-        var passMap = {
-            "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
-            "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
-            "1011": "Alwyn", "1012": "Camille", "1013": "Fion", "1014": "Daniel", "1015": "KingYan",
-            "1016": "Szero", "1017": "Frances", "1018": "Bianca", "1019": "Mabel", "1020": "Avis",
-            "1021": "Jason", "1022": "Jerry", "1023": "Rita", "1024": "Ruby", "1025": "Calvin Siu",
-            "1026": "Thomas", "1027": "Yin Wai", "1028": "Gary", "1029": "Lois", "1030": "Gaby",
-            "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
-        };
-
-        var allMembers = Object.values(passMap);
+        // 🔐 2. 全自動密碼安全通道網址（已精準更換為你剛剛生成的全新網址）
+        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbxqN14eZ6uvaHdklVF2pRr6HHMFS2U7gUXSd79TcBS9D3-U5rxkRX0baLuFpfS5YNRi/exec"; 
+        
         var authorizedName = "";
         var isCoachMode = false;
         var allRecords = [];
@@ -67,39 +52,51 @@
             
             if (inputPwd === "") return;
             
-            if (inputPwd === "1000") {
-                isCoachMode = true;
-                authorizedName = allMembers[0]; 
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                
-                var optionsHtml = '';
-                allMembers.forEach(function(m) {
-                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
-                });
-                nameSelect.innerHTML = optionsHtml;
-                nameSelect.removeAttribute('disabled');
-                
-                startLoadingData();
-                return;
-            }
+            errField.style.display = 'block';
+            errField.style.color = '#00ffcc';
+            errField.innerText = "⚡ 安全雲端通道同步中...";
             
-            if (passMap[inputPwd]) {
-                isCoachMode = false;
-                authorizedName = passMap[inputPwd];
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                
-                nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
-                nameSelect.setAttribute('disabled', 'true');
-                
-                startLoadingData();
-            } else {
-                errField.style.display = 'block';
-                errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 密碼不正確";
-                document.getElementById('user-pwd').value = "";
-            }
+            // 直接連線到你最新的 GAS 後台核對密碼
+            fetch(gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        errField.style.display = 'none';
+                        document.getElementById('login-screen').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+                        
+                        if (data.role === "coach") {
+                            isCoachMode = true;
+                            var optionsHtml = '';
+                            if (data.members && data.members.length > 0) {
+                                data.members.forEach(function(m) {
+                                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
+                                });
+                                authorizedName = data.members[0]; 
+                            } else {
+                                optionsHtml += '<option value="Kit">👑 檢視教練自己 (Kit)</option>';
+                                authorizedName = "Kit";
+                            }
+                            nameSelect.innerHTML = optionsHtml;
+                            nameSelect.removeAttribute('disabled');
+                        } else {
+                            isCoachMode = false;
+                            authorizedName = data.name;
+                            nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
+                            nameSelect.setAttribute('disabled', 'true');
+                        }
+                        
+                        setTimeout(function() { startLoadingData(); }, 100);
+                    } else {
+                        errField.style.color = '#ff4d4d';
+                        errField.innerText = "❌ 密碼錯誤，請重新輸入。";
+                        document.getElementById('user-pwd').value = "";
+                    }
+                })
+                .catch(function(err) {
+                    errField.style.color = '#ff4d4d';
+                    errField.innerText = "❌ 雲端連線失敗，請稍後再試。";
+                });
         }
     </script>
 </head>
@@ -108,17 +105,17 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧看板</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">智慧圖表完全體智慧版 v51.0</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">動態密碼+智慧圖表完全體 v52.5</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
-        <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
+        <div id="login-err" class="error-msg" style="display:none;"></div>
     </div>
 </div>
 
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧看板</h1>
-        <p>慢慢跑團 遠程智慧特訓看板</p>
+        <p>慢慢跑團 遠程智慧數據平台</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -174,7 +171,7 @@
                 parseAndFilterData(); 
             })
             .catch(function(err) {
-                document.getElementById('loading-status').innerText = "❌ 數據載入斷流。";
+                document.getElementById('loading-status').innerText = "❌ 數據讀取失敗。";
             });
     }
 
@@ -287,7 +284,6 @@
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
         if (matched) {
-            // 填寫基礎數據
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
             document.getElementById('val-time').innerText = matched.time; 
@@ -299,7 +295,6 @@
             document.getElementById('val-supply').innerText = matched.supply;
             document.getElementById('val-climb').innerText = matched.climb + " 米";
 
-            // 👑 計算 EPH 智慧耗力指數
             var distNum = parseFloat(matched.distance) || 0;
             var climbNum = parseFloat(matched.climb) || 0;
             var hoursNum = cleanStringToHours(matched.time);
@@ -309,7 +304,6 @@
                 document.getElementById('val-eph').innerText = "--";
             }
 
-            // 心率血氧動態條
             var hrNum = parseInt(matched.hr) || 0;
             var hrBar = document.getElementById('hr-bar');
             if(hrBar && hrNum > 0) {
@@ -318,7 +312,7 @@
                 hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
             }
 
-            // 📈 執行渲染生理特訓大圖表（採用安全隔離機制，絕不阻斷主線程）
+            // 📈 安全隔離渲染圖表
             try {
                 var cadenceNum = parseInt(matched.cadence) || 0;
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
@@ -347,7 +341,7 @@
                     options: { responsive: true, maintainAspectRatio: false }
                 });
             } catch(chartErr) {
-                console.error("圖表引擎初始化容錯攔截");
+                console.error("圖表引擎防中斷");
             }
         }
     }
