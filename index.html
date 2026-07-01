@@ -23,14 +23,12 @@
         .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
         
         .chart-container { position: relative; width: 100%; height: 180px; margin-top: 12px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #3a3a4a; }
-        .input-box { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; outline: none; }
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: #22222b; border: 1px solid #ff3366; padding: 30px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
         .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
         .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .loading-text { font-size: 15px; color: #00ffcc; font-weight: bold; margin: 15px 0; text-align: center; line-height: 1.4; }
-        .lock-mask { background: rgba(34, 34, 43, 0.95); padding: 30px 20px; border-radius: 8px; text-align: center; border: 1px dashed #ff3366; margin-top: 15px; }
+        .loading-text { font-size: 14px; color: #00ffcc; margin: 10px 0; }
     </style>
 
     <script>
@@ -53,7 +51,6 @@
         var currentLoginCode = ""; 
         var isCoachMode = false;
         var allRecords = [];
-        var cachedCsvText = "";
         var bioChartInstance = null;
         var paceChartInstance = null;
 
@@ -64,15 +61,13 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練最高權限：1208 直接通行
+            // 👑 教練通行證：輸入 1208 擁有最高看全班權限
             if (inputPwd === "1208") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
                 currentLoginCode = "1208";
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
-                document.getElementById('coach-lock-zone').style.display = 'none'; 
-                document.getElementById('data-display-zone').style.display = 'block';
                 
                 var optionsHtml = '';
                 allMembers.forEach(function(m) {
@@ -100,7 +95,7 @@
             } else {
                 errField.style.display = 'block';
                 errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 代號不正確，請輸入正確的教練密碼或學員代號";
+                errField.innerText = "❌ 密碼或代號不正確";
                 document.getElementById('user-pwd').value = "";
             }
         }
@@ -111,9 +106,9 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">位置修復完全體版本 v58.0-Stable</p>
-        <input type="text" id="user-pwd" placeholder="請打入登入密碼" maxlength="12">
-        <button onclick="verifyIdentity()">安全登入</button>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">穩定代碼通行版 v60.0-Rollback</p>
+        <input type="text" id="user-pwd" placeholder="請輸入登入代號 (如 1208 或 1002)" maxlength="12">
+        <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
@@ -135,15 +130,7 @@
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
 
-        <div id="coach-lock-zone" class="lock-mask">
-            <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請輸入解鎖密碼</div>
-            <p id="lock-tip-text" style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【密碼提示】如果您填表時有設定私密密碼，必須使用該密碼解鎖；若當初留空未設定，請輸入您的 4 位學員代號保底解鎖。</p>
-            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="請輸入自訂密碼或學員代號" style="margin-bottom: 15px;">
-            <button onclick="unlockDataWithSecret()" style="background: #00ffcc; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; width: 100%;">驗證解鎖</button>
-            <div id="secret-err" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;"></div>
-        </div>
-
-        <div id="data-display-zone" style="display: none; margin-top: 20px;">
+        <div id="data-display-zone" style="margin-top: 20px;">
             <div class="chart-container">
                 <canvas id="bioMetricsChart"></canvas>
             </div>
@@ -204,44 +191,6 @@
         return lines;
     }
 
-    function unlockDataWithSecret() {
-        var typedSecret = document.getElementById('custom-secret-pwd').value.trim();
-        var secretErr = document.getElementById('secret-err');
-        
-        if (typedSecret === "") return;
-        
-        var accessGranted = false;
-
-        if (!allRecords || allRecords.length === 0) {
-            if (typedSecret === currentLoginCode) {
-                accessGranted = true;
-            }
-        } else {
-            var currentActiveRecord = allRecords[allRecords.length - 1];
-            var dbSecret = currentActiveRecord.rawSecret;
-
-            if (dbSecret !== "") {
-                if (typedSecret === dbSecret) accessGranted = true;
-            } else {
-                if (typedSecret === currentLoginCode) accessGranted = true;
-            }
-        }
-
-        if (accessGranted) {
-            secretErr.style.display = "none";
-            document.getElementById('coach-lock-zone').style.display = 'none';
-            document.getElementById('data-display-zone').style.display = 'block';
-            updateDisplay(document.getElementById('filter-week').value);
-        } else {
-            secretErr.style.display = "block";
-            if (allRecords && allRecords.length > 0 && allRecords[allRecords.length - 1].rawSecret !== "") {
-                secretErr.innerText = "❌ 驗證失敗：此帳號已啟用私密自訂密碼保護，請輸入正確的自訂密碼。";
-            } else {
-                secretErr.innerText = "❌ 驗證失敗：請輸入您的 4 位學員代號解鎖進路。";
-            }
-        }
-    }
-
     function parseAndFilterData() {
         try {
             var lines = originalFetchedLines;
@@ -254,18 +203,10 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 🚀 完全對齊試算表的標準下標位置
-                var idxName = 1;    // B欄：學員姓名
-                var idxWeek = 2;    // C欄：特訓週數
-                var idxDist = 3;    // D欄：長跑距離
-                var idxTime = 4;    // E欄：長跑時間
-                var idxCadence = 5; // F欄：平均步頻
-                var idxStride = 6;  // G欄：平均步距
-                var idxHr = 7;      // H欄：平均心率
-                var idxRisk = 8;    // I欄：身體風險
-                var idxWeather = 9; // J欄：環境天氣
-                var idxSupply = 10; // K欄：補給問題
-                var idxClimb = 11;  // L欄：爬升海拔
+                // 基礎安全欄位解鎖
+                var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
+                var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
+                var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
 
                 for(var i = 1; i < lines.length; i++) {
                     var row = lines[i];
@@ -277,16 +218,12 @@
                            (cleanTarget === "nien" && cleanCellName === "nein")) {
                             
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
-                            
-                            // M欄自訂密碼固定排在第 13 欄（下標12）
-                            var matchedSecret = row[12] ? row[12].toString().trim() : "";
 
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                 stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
-                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
-                                rawSecret: matchedSecret
+                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0"
                             });
                             weeks[wValue] = true;
                         }
@@ -302,14 +239,12 @@
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
-                document.getElementById('lock-tip-text').innerText = "【密碼提示】如果您填表時有設定私密密碼，必須使用該密碼解鎖；若當初留空未設定，請輸入您的 4 位學員代號保底解鎖。";
                 var last = allRecords[allRecords.length - 1]; 
                 if(last) { 
                     weekSelect.value = last.week; 
-                    if (isCoachMode) { updateDisplay(last.week); }
+                    updateDisplay(last.week);
                 }
             } else {
-                document.getElementById('lock-tip-text').innerText = "【提示】資料庫中目前還沒有您本週的特訓數據。請輸入您的 4 位學員代號解鎖進入系統。";
                 clearDisplayFields();
             }
         } catch (error) { 
@@ -358,4 +293,46 @@
             }
 
             var hrNum = parseInt(matched.hr) || 0;
-            var hrBar = document.getElementById('hr-bar')
+            var hrBar = document.getElementById('hr-bar');
+            if(hrBar && hrNum > 0) {
+                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+                hrBar.style.width = pct + "%";
+                hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
+            }
+
+            try {
+                var cadenceNum = parseInt(matched.cadence) || 0;
+                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
+                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
+                if (bioChartInstance) bioChartInstance.destroy();
+                bioChartInstance = new Chart(ctxBio, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [
+                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
+                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
+                if (paceChartInstance) paceChartInstance.destroy();
+                paceChartInstance = new Chart(ctxPace, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
