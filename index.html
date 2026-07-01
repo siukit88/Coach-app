@@ -61,7 +61,7 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練通行證：輸入 1208 擁有最高看全班權限
+            // 👑 教練最高通行證：輸入 1208 直接睇全班
             if (inputPwd === "1208") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -106,8 +106,8 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">穩定代碼通行版 v60.0-Rollback</p>
-        <input type="text" id="user-pwd" placeholder="請輸入登入代號 (如 1208 或 1002)" maxlength="12">
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">教練解鎖版 v65.0-CoachOnly</p>
+        <input type="text" id="user-pwd" placeholder="請輸入登入代號 (教練打1208)" maxlength="12">
         <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
@@ -203,7 +203,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 基礎安全欄位解鎖
+                // 精確對齊實體欄位，不讀取任何私密密碼欄位
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
