@@ -48,10 +48,16 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 🛡️ 加密混淆：網頁原始碼內搜尋不到 "1208"
-        var _0xef4a = ["\x31\x32\x30\x38"]; 
+        // 🔐 3. 本地安全私密解鎖庫
+        var secretMap = {
+            "1001": "neinx4567",
+            "1002": "2220",
+            "1003": "Alex"
+        };
 
-        var allMembers = Object.values(passMap);
+        // 🛡️ 教練密碼加密混淆（網頁原始碼內不出現 "1208" 明文數字）
+        var _0x9c2d = ["\x31\x32\x30\x38"]; 
+
         var authorizedName = "";
         var currentLoginCode = ""; 
         var isCoachMode = false;
@@ -67,22 +73,24 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練最高權限
-            if (inputPwd === _0xef4a[0]) {
+            // 👑 教練最高通行證
+            if (inputPwd === _0x9c2d[0]) {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
                 currentLoginCode = inputPwd;
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                document.getElementById('coach-lock-zone').style.display = 'none'; 
-                document.getElementById('data-display-zone').style.display = 'block';
                 
+                // ⚡ 關鍵修復：第一時間完全初始化選單，防止後續讀取報錯卡死
                 var optionsHtml = '';
                 allMembers.forEach(function(m) {
                     optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
                 });
                 nameSelect.innerHTML = optionsHtml;
                 nameSelect.removeAttribute('disabled');
+                
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('coach-lock-zone').style.display = 'none'; 
+                document.getElementById('data-display-zone').style.display = 'block';
                 
                 startLoadingData();
                 return;
@@ -93,6 +101,11 @@
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
                 currentLoginCode = inputPwd; 
+                
+                // ⚡ 關鍵修復：第一時間強制將學員的名字寫入選單，全面保障引擎地基穩固
+                nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
+                nameSelect.setAttribute('disabled', 'true');
+                
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
@@ -111,7 +124,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">智能全自動自主密碼版 v88.0-Verified</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">執行流修正安全完全體 v80.0-Stable</p>
         <input type="text" id="user-pwd" placeholder="請輸入登入代號" maxlength="12">
         <button onclick="verifyIdentity()">安全登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -137,8 +150,8 @@
 
         <div id="coach-lock-zone" class="lock-mask" style="display: block;">
             <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請輸入解鎖密碼</div>
-            <p id="lock-tip-text" style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【解鎖提示】如果你在填表時有自訂密碼，請輸入自訂密碼解鎖；若無設定或第一次使用，請輸入你的 4 位學員代號直接解鎖。</p>
-            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="輸入自訂密碼 或 學員代號" style="margin-bottom: 15px;">
+            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【解鎖提示】如果你有設定過私密密碼，請輸入該密碼；若無設定或第一次使用，請打入你的 4 位學員代號直接解鎖。</p>
+            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="輸入解鎖密碼" style="margin-bottom: 15px;">
             <button onclick="unlockDataWithSecret()" style="background: #00ffcc; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; width: 100%;">驗證解鎖</button>
             <div id="secret-err" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;"></div>
         </div>
@@ -173,6 +186,8 @@
 </div>
 
 <script>
+    var allMembers = Object.values(passMap);
+
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
         var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
@@ -202,7 +217,6 @@
         return lines;
     }
 
-    // 🔒 100% 安全容錯、零行政負擔的排他驗證核心
     function unlockDataWithSecret() {
         var typedSecret = document.getElementById('custom-secret-pwd').value.trim();
         var secretErr = document.getElementById('secret-err');
@@ -210,19 +224,12 @@
         if (typedSecret === "") return;
         
         var accessGranted = false;
+        var requiredSecret = secretMap[currentLoginCode]; 
 
-        if (!allRecords || allRecords.length === 0) {
-            // 保底特赦：未填表新同學，只要輸入登入代號即可放行看歷史
-            if (typedSecret === currentLoginCode) accessGranted = true;
+        if (requiredSecret && requiredSecret !== "") {
+            if (typedSecret === requiredSecret) accessGranted = true;
         } else {
-            var currentActiveRecord = allRecords[allRecords.length - 1];
-            var dbSecret = currentActiveRecord.rawSecret ? currentActiveRecord.rawSecret.trim() : "";
-
-            if (dbSecret !== "") {
-                if (typedSecret === dbSecret) accessGranted = true;
-            } else {
-                if (typedSecret === currentLoginCode) accessGranted = true;
-            }
+            if (typedSecret === currentLoginCode) accessGranted = true;
         }
 
         if (accessGranted) {
@@ -231,11 +238,13 @@
             document.getElementById('data-display-zone').style.display = 'block';
             
             var weekSelect = document.getElementById('filter-week');
-            if (weekSelect && weekSelect.value) updateDisplay(weekSelect.value);
+            if (weekSelect && weekSelect.value) {
+                updateDisplay(weekSelect.value);
+            }
         } else {
             secretErr.style.display = "block";
-            if (allRecords && allRecords.length > 0 && allRecords[allRecords.length - 1].rawSecret.trim() !== "") {
-                secretErr.innerText = "❌ 驗證失敗：此帳號已啟用私密密碼保護，輸入學員代號無效！";
+            if (requiredSecret && requiredSecret !== "") {
+                secretErr.innerText = "❌ 密碼錯誤：此帳號已啟用私密密碼保護，輸入學員代號無效！";
             } else {
                 secretErr.innerText = "❌ 驗證失敗：請輸入您的 4 位學員代號進行解鎖。";
             }
@@ -248,12 +257,7 @@
             var weekSelect = document.getElementById('filter-week');
             var nameSelect = document.getElementById('filter-name');
 
-            if (!isCoachMode) {
-                nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
-                nameSelect.setAttribute('disabled', 'true');
-            }
-
-            var targetName = nameSelect.value.trim();
+            var targetName = nameSelect.value ? nameSelect.value.trim() : "";
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
             var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
             
@@ -274,19 +278,12 @@
                            (cleanTarget === "nien" && cleanCellName === "nein")) {
                             
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
-                            
-                            // 🚀 逆向動態容錯：只要超過第12欄，一律將最尾欄識別為自主更新密碼
-                            var matchedSecret = "";
-                            if (row.length > 12) {
-                                matchedSecret = row[row.length - 1] ? row[row.length - 1].toString().trim() : "";
-                            }
 
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                 stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
-                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
-                                rawSecret: matchedSecret
+                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0"
                             });
                             weeks[wValue] = true;
                         }
@@ -302,18 +299,16 @@
             document.getElementById('loading-status').style.display = 'none';
 
             if(allRecords && allRecords.length > 0) { 
-                document.getElementById('lock-tip-text').innerText = "【解鎖提示】如果你在填表時有自訂密碼，請輸入自訂密碼解鎖；若無設定或第一次使用，請輸入你的 4 位學員代號直接解鎖。";
                 var last = allRecords[allRecords.length - 1]; 
                 if(last) { 
                     weekSelect.value = last.week; 
-                    if (isCoachMode) { updateDisplay(last.week); }
+                    if (isCoachMode || document.getElementById('data-display-zone').style.display === 'block') { 
+                        updateDisplay(last.week); 
+                    }
                 }
-            } else {
-                document.getElementById('lock-tip-text').innerText = "【提示】資料庫中目前還沒有您本週的特訓數據。請輸入您的 4 位學員代號解鎖進入系統。";
-                clearDisplayFields();
             }
         } catch (error) { 
-            document.getElementById('loading-status').innerText = "❌ 數據讀取與解析錯誤。"; 
+            document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; 
         }
     }
 
@@ -355,4 +350,18 @@
                 document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
             } else {
                 document.getElementById('val-eph').innerText = "--";
-        
+            }
+
+            var hrNum = parseInt(matched.hr) || 0;
+            var hrBar = document.getElementById('hr-bar');
+            if(hrBar && hrNum > 0) {
+                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+                hrBar.style.width = pct + "%";
+                hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
+            }
+
+            try {
+                var cadenceNum = parseInt(matched.cadence) || 0;
+                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
+                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
+                if (bioChartInstance) bioChartInstance.destroy(
