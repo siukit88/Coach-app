@@ -49,7 +49,7 @@
 
         var allMembers = Object.values(passMap);
         var authorizedName = "";
-        var currentLoginCode = ""; // 紀錄學員登入代號以作保底防線
+        var currentLoginCode = ""; 
         var isCoachMode = false;
         var allRecords = [];
         var cachedCsvText = "";
@@ -63,7 +63,7 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練 1000
+            // 👑 教練 1000 後台最高權限
             if (inputPwd === "1000") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -84,11 +84,11 @@
                 return;
             }
             
-            // 👤 學員代號
+            // 👤 學員代號門禁
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
-                currentLoginCode = inputPwd; // 牢牢記住 1001 或 1002 
+                currentLoginCode = inputPwd; 
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
@@ -110,7 +110,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全自動密碼補位安全版 v55.0-Final</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">嚴格非此即彼隔離版 v56.0-Security</p>
         <input type="text" id="user-pwd" placeholder="請打入 4 位學員代號 (1001...)" maxlength="12">
         <button onclick="verifyIdentity()">安全登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -135,9 +135,9 @@
         </div>
 
         <div id="coach-lock-zone" class="lock-mask">
-            <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請打入你在表單自訂的密碼解鎖</div>
-            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【防呆提示】如果你填表時無自設密碼，請直接輸入你嘅 4 位學員代號解鎖！</p>
-            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="打入自訂密碼 或 學員代號" style="margin-bottom: 15px;">
+            <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請輸入解鎖密碼</div>
+            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【密碼提示】如果您填表時有設定私密密碼，必須使用該密碼解鎖；若當初留空未設定，請輸入您的 4 位學員代號保底解鎖。</p>
+            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="請輸入自訂密碼或學員代號" style="margin-bottom: 15px;">
             <button onclick="unlockDataWithSecret()" style="background: #00ffcc; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; width: 100%;">驗證解鎖</button>
             <div id="secret-err" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;"></div>
         </div>
@@ -204,6 +204,7 @@
         return lines;
     }
 
+    // 🔒 嚴格排他性安全驗證核心
     function unlockDataWithSecret() {
         var typedSecret = document.getElementById('custom-secret-pwd').value.trim();
         var secretErr = document.getElementById('secret-err');
@@ -211,26 +212,39 @@
         if (typedSecret === "") return;
         if (!allRecords || allRecords.length === 0) {
             secretErr.style.display = "block";
-            secretErr.innerText = "❌ 資料庫中目前查無你本週的訓練數據。";
+            secretErr.innerText = "❌ 資料庫中目前查無此週的訓練數據。";
             return;
         }
 
         var currentActiveRecord = allRecords[allRecords.length - 1];
-        
-        // 👑 智慧型密碼雙重比對核心：
-        // 條款一：對中學生自訂密碼
-        // 條款二：如果資料庫密碼係空白（同學無填），只要同學打入佢嘅登入代號（currentLoginCode），同樣安全放行！
         var dbSecret = currentActiveRecord.rawSecret;
-        var isBackupMatch = (dbSecret === "" && typedSecret === currentLoginCode);
+        
+        var accessGranted = false;
 
-        if (currentActiveRecord && (dbSecret === typedSecret || isBackupMatch)) {
+        if (dbSecret !== "") {
+            // 🛡️ 情況 A：同學有自設密碼 ➔ 必須絕對完全吻合，此時用代號解鎖一律無效！
+            if (typedSecret === dbSecret) {
+                accessGranted = true;
+            }
+        } else {
+            // 防呆保底：只有當當初漏填、完全沒設密碼時，才允許用自己的學員代號代位解鎖
+            if (typedSecret === currentLoginCode) {
+                accessGranted = true;
+            }
+        }
+
+        if (accessGranted) {
             secretErr.style.display = "none";
             document.getElementById('coach-lock-zone').style.display = 'none';
             document.getElementById('data-display-zone').style.display = 'block';
             updateDisplay(document.getElementById('filter-week').value);
         } else {
             secretErr.style.display = "block";
-            secretErr.innerText = "❌ 驗證失敗：解鎖密碼錯誤！如果忘記且未曾自設，請打入你嘅 4 位學員代號試試。";
+            if (dbSecret !== "") {
+                secretErr.innerText = "❌ 驗證失敗：此帳號已啟用私密自訂密碼保護，輸入學員代號無效。請輸入正確的自訂密碼！";
+            } else {
+                secretErr.innerText = "❌ 驗證失敗：您當初填表未設密碼，請打入您的 4 位學員代號解鎖。";
+            }
         }
     }
 
@@ -239,17 +253,17 @@
             var lines = originalFetchedLines;
             if(!lines || lines.length <= 1) return;
 
-            var idxName = 1;    // B欄：姓名
-            var idxWeek = 2;    // C欄：週數
-            var idxDist = 3;    // D欄：距離
-            var idxTime = 4;    // E欄：時間
-            var idxCadence = 5; // F欄：步頻
-            var idxStride = 6;  // G欄：步距
-            var idxHr = 7;      // H欄：心率
-            var idxRisk = 8;    // I欄：風險
-            var idxWeather = 9; // J欄：天氣
-            var idxSupply = 10; // K欄：補給
-            var idxClimb = 11;  // L欄：爬升
+            var idxName = 1;    // B欄
+            var idxWeek = 2;    // C欄
+            var idxDist = 3;    // D欄
+            var idxTime = 4;    // E欄
+            var idxCadence = 5; // F欄
+            var idxStride = 6;  // G欄
+            var idxHr = 7;      // H欄
+            var idxRisk = 8;    // I欄
+            var idxWeather = 9; // J欄
+            var idxSupply = 10; // K欄
+            var idxClimb = 11;  // L欄
 
             var targetName = document.getElementById('filter-name').value.trim();
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
@@ -268,9 +282,7 @@
                         
                         var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                         
-                        // 逆向獲取最後一欄
                         var matchedSecret = row[row.length - 1] ? row[row.length - 1].toString().trim() : "";
-                        // 防呆：如果最後一欄其實是爬升（即完全無填密碼，整行長度縮短），則密碼設為空白
                         if(row.length <= 12) { matchedSecret = ""; }
 
                         allRecords.push({ 
@@ -359,7 +371,4 @@
 
             var hrNum = parseInt(matched.hr) || 0;
             var hrBar = document.getElementById('hr-bar');
-            if(hrBar && hrNum > 0) {
-                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
-                hrBar.style.width = pct + "%";
-                hrBar.style.backgroundColo
+            if(hrBar && hrNum > 0)
