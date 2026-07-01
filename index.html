@@ -35,8 +35,8 @@
         // 📡 1. 主數據直連通道（表單回應 3）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔐 2. 全自動密碼安全通道網址（已精準更換為你剛剛生成的全新網址）
-        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbxqN14eZ6uvaHdklVF2pRr6HHMFS2U7gUXSd79TcBS9D3-U5rxkRX0baLuFpfS5YNRi/exec"; 
+        // 🔐 2. 全自動密碼安全通道網址（已精準更換為你最新生成的最終網址）
+        var gasAuthUrl = "https://script.google.com/macros/s/AKfycbzH8spKfHwUgfTcW36gXRc5_mKZ9DtVEzknBMCKWk4BBurskSBoveS4JNczYEKGPyRx/exec"; 
         
         var authorizedName = "";
         var isCoachMode = false;
@@ -54,11 +54,15 @@
             
             errField.style.display = 'block';
             errField.style.color = '#00ffcc';
-            errField.innerText = "⚡ 安全雲端通道同步中...";
+            errField.innerText = "⚡ 正在連線雲端資料庫比對密碼...";
             
-            // 直接連線到你最新的 GAS 後台核對密碼
-            fetch(gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd))
-                .then(function(res) { return res.json(); })
+            var targetAuthUrl = gasAuthUrl + "?pwd=" + encodeURIComponent(inputPwd) + "&_t=" + new Date().getTime();
+            
+            fetch(targetAuthUrl)
+                .then(function(res) { 
+                    if(!res.ok) throw new Error("GAS回應錯誤");
+                    return res.json(); 
+                })
                 .then(function(data) {
                     if (data.success) {
                         errField.style.display = 'none';
@@ -89,13 +93,13 @@
                         setTimeout(function() { startLoadingData(); }, 100);
                     } else {
                         errField.style.color = '#ff4d4d';
-                        errField.innerText = "❌ 密碼錯誤，請重新輸入。";
+                        errField.innerText = "❌ 密碼錯誤！(" + (data.msg || "試算表內未找到此自訂密碼") + ")";
                         document.getElementById('user-pwd').value = "";
                     }
                 })
                 .catch(function(err) {
                     errField.style.color = '#ff4d4d';
-                    errField.innerText = "❌ 雲端連線失敗，請稍後再試。";
+                    errField.innerText = "❌ 連線後台失敗。請確認 GAS 部署是否已設為「任何人」存取，且使用的是最新 /exec 網址。";
                 });
         }
     </script>
@@ -105,10 +109,10 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧看板</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">動態密碼+智慧圖表完全體 v52.5</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">全渠道無感自訂密碼版 v53.5-Stable</p>
         <input type="password" id="user-pwd" placeholder="請輸入特訓密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入看板</button>
-        <div id="login-err" class="error-msg" style="display:none;"></div>
+        <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
 
@@ -194,7 +198,6 @@
             var lines = parseStandardCSV(cachedCsvText);
             if(!lines || lines.length <= 1) return;
 
-            // 🚀 繼承 v50.0 絕對成功的物理位置鎖定
             var idxName = 1;    // B欄：姓名
             var idxWeek = 2;    // C欄：週數
             var idxDist = 3;    // D欄：距離
@@ -312,7 +315,6 @@
                 hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
             }
 
-            // 📈 安全隔離渲染圖表
             try {
                 var cadenceNum = parseInt(matched.cadence) || 0;
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
