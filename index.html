@@ -29,6 +29,7 @@
         .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
         .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .loading-text { font-size: 15px; color: #00ffcc; font-weight: bold; margin: 15px 0; text-align: center; line-height: 1.4; }
         .lock-mask { background: rgba(34, 34, 43, 0.95); padding: 30px 20px; border-radius: 8px; text-align: center; border: 1px dashed #ff3366; margin-top: 15px; }
     </style>
 
@@ -63,7 +64,7 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練最高權限放行：已精準升級為 1208
+            // 👑 教練最高權限：1208 直接通行
             if (inputPwd === "1208") {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -110,7 +111,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">教練權限升級版 v57.5-Coach1208</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">位置修復完全體版本 v58.0-Stable</p>
         <input type="text" id="user-pwd" placeholder="請打入登入密碼" maxlength="12">
         <button onclick="verifyIdentity()">安全登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -181,7 +182,6 @@
         fetch(finalUrl)
             .then(function(res) { return res.text(); })
             .then(function(text) { 
-                cachedCsvText = text; 
                 originalFetchedLines = parseStandardCSV(text);
                 parseAndFilterData(); 
             })
@@ -254,9 +254,18 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
-                var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
-                var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
+                // 🚀 完全對齊試算表的標準下標位置
+                var idxName = 1;    // B欄：學員姓名
+                var idxWeek = 2;    // C欄：特訓週數
+                var idxDist = 3;    // D欄：長跑距離
+                var idxTime = 4;    // E欄：長跑時間
+                var idxCadence = 5; // F欄：平均步頻
+                var idxStride = 6;  // G欄：平均步距
+                var idxHr = 7;      // H欄：平均心率
+                var idxRisk = 8;    // I欄：身體風險
+                var idxWeather = 9; // J欄：環境天氣
+                var idxSupply = 10; // K欄：補給問題
+                var idxClimb = 11;  // L欄：爬升海拔
 
                 for(var i = 1; i < lines.length; i++) {
                     var row = lines[i];
@@ -268,8 +277,9 @@
                            (cleanTarget === "nien" && cleanCellName === "nein")) {
                             
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
-                            var matchedSecret = row[row.length - 1] ? row[row.length - 1].toString().trim() : "";
-                            if(row.length <= 12) { matchedSecret = ""; }
+                            
+                            // M欄自訂密碼固定排在第 13 欄（下標12）
+                            var matchedSecret = row[12] ? row[12].toString().trim() : "";
 
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
@@ -299,4 +309,53 @@
                     if (isCoachMode) { updateDisplay(last.week); }
                 }
             } else {
-                document.
+                document.getElementById('lock-tip-text').innerText = "【提示】資料庫中目前還沒有您本週的特訓數據。請輸入您的 4 位學員代號解鎖進入系統。";
+                clearDisplayFields();
+            }
+        } catch (error) { 
+            document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; 
+        }
+    }
+
+    function clearDisplayFields() {
+        document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "--"; 
+        document.getElementById('val-time').innerText = "--"; document.getElementById('val-cadence').innerText = "--"; 
+        document.getElementById('val-stride').innerText = "--"; document.getElementById('val-hr').innerText = "--";
+        document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
+        document.getElementById('val-supply').innerText = "--"; document.getElementById('val-climb').innerText = "--";
+        document.getElementById('val-eph').innerText = "--";
+    }
+
+    function cleanStringToHours(timeStr) {
+        if (!timeStr) return 0;
+        var match = timeStr.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
+        if (match) { return parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
+        return 0;
+    }
+
+    function updateDisplay(selectedWeek) {
+        if(!allRecords || allRecords.length === 0) return;
+        var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
+            document.getElementById('val-distance').innerText = matched.distance + " km"; 
+            document.getElementById('val-time').innerText = matched.time; 
+            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-risk').innerText = matched.risk;
+            document.getElementById('val-weather').innerText = matched.weather; 
+            document.getElementById('val-supply').innerText = matched.supply;
+            document.getElementById('val-climb').innerText = matched.climb + " 米";
+
+            var distNum = parseFloat(matched.distance) || 0;
+            var climbNum = parseFloat(matched.climb) || 0;
+            var hoursNum = cleanStringToHours(matched.time);
+            if (hoursNum > 0) {
+                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
+            } else {
+                document.getElementById('val-eph').innerText = "--";
+            }
+
+            var hrNum = parseInt(matched.hr) || 0;
+            var hrBar = document.getElementById('hr-bar')
