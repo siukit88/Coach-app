@@ -31,10 +31,10 @@
     </style>
 
     <script>
-        // 📡 大數據安全網絡通道 
-        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
+        // 📡 完美重新對接到教練最新生成嘅【表單回應 4】原始安全通道 (gid=606569597)
+        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=606569597&single=true&output=csv";
         
-        // 🔒 [安全防護] 隊員名冊與門禁代碼高強度防抄襲加密混淆核心
+        // 🔒 [安全防護] 隊員名冊與門禁代碼高強度加密混淆
         var _0x5a1b = ["1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing", "1010", "Jason", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jerry", "1022", "Rita", "1023", "Ruby", "1024", "Calvin Siu", "1025", "Thomas", "1026", "Yin Wai", "1027", "Gary", "1028", "Lois", "1029", "Gaby", "1030", "Carol", "1031", "Timothy", "1032", "Charlotte Lokman", "1208", "Coach"];
         var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
 
@@ -52,30 +52,24 @@
             
             if (inputPwd === "") return;
             
-            // 👑 情況一：教練最高通行防線
             if (inputPwd === _0x5a1b[_0x5a1b.length-2]) {
                 isCoachMode = true;
                 authorizedName = "Coach";
-                
                 var optionsHtml = '';
                 for(var k in _0x3b2c){ if(k!=="1208") optionsHtml += '<option value="' + _0x3b2c[k] + '">👤 學員：' + _0x3b2c[k] + '</option>'; }
                 nameSelect.innerHTML = optionsHtml;
                 nameSelect.removeAttribute('disabled');
-                
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 startLoadingData();
                 return;
             }
             
-            // 👤 情況二：學員代號安全防護驗證
             if (_0x3b2c[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = _0x3b2c[inputPwd];
-                
                 nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
-                nameSelect.setAttribute('disabled', 'true'); // 死鎖選單，防偷看
-                
+                nameSelect.setAttribute('disabled', 'true');
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 startLoadingData();
@@ -93,7 +87,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">混淆加密防抄襲版 v140.0-Encrypted</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應4版 v141.0-Sync</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -184,6 +178,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
+                // 📊 完美對其【表單回應 4】的物理欄位下標：
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
