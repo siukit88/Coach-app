@@ -23,21 +23,19 @@
         .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
         
         .chart-container { position: relative; width: 100%; height: 180px; margin-top: 12px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #3a3a4a; }
-        .input-box { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 16px; border-radius: 4px; margin-top: 10px; text-align: center; outline: none; }
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: #22222b; border: 1px solid #ff3366; padding: 30px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
         .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
         .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .loading-text { font-size: 14px; color: #00ffcc; margin: 10px 0; text-align: center; }
-        .lock-mask { background: rgba(34, 34, 43, 0.95); padding: 30px 20px; border-radius: 8px; text-align: center; border: 1px dashed #ff3366; margin-top: 15px; }
     </style>
 
     <script>
-        // 📡 1. 主數據直連通道
+        // 📡 主數據直連通道
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 2. 代號放行對照表
+        // 🔒 代號放行對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -48,19 +46,10 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 🔐 3. 本地安全私密解鎖庫（對應第二層密碼）
-        var secretMap = {
-            "1001": "neinx4567",
-            "1002": "2220",
-            "1003": "Alex"
-        };
-
-        // 🛡️ 教練密碼加密混淆（網頁原始碼內不出現 "1208" 明文數字）
+        // 🛡️ 安全混淆處理：網頁原始碼內絕對不會出現 "1208" 明文數字
         var _0x9c2d = ["\x31\x32\x30\x38"]; 
 
-        // ⚡ 關鍵修復：將 allMembers 的宣告與初始化直接提到最頂端，徹底杜絕 ReferenceError
         var allMembers = Object.values(passMap);
-
         var authorizedName = "";
         var currentLoginCode = ""; 
         var isCoachMode = false;
@@ -91,14 +80,12 @@
                 
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
-                document.getElementById('coach-lock-zone').style.display = 'none'; 
-                document.getElementById('data-display-zone').style.display = 'block';
                 
                 startLoadingData();
                 return;
             }
             
-            // 👤 學員代號門禁
+            // 👤 學員代號直通
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
@@ -114,7 +101,7 @@
             } else {
                 errField.style.display = 'block';
                 errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 密碼或代號不正確";
+                errField.innerText = "❌ 代號不正確";
                 document.getElementById('user-pwd').value = "";
             }
         }
@@ -125,9 +112,9 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">執行流修正安全完全體 v89.0-Final</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">後台純淨直通版 v90.0-CleanStable</p>
         <input type="text" id="user-pwd" placeholder="請輸入登入代號" maxlength="12">
-        <button onclick="verifyIdentity()">安全登入</button>
+        <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
@@ -149,15 +136,7 @@
             <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
         </div>
 
-        <div id="coach-lock-zone" class="lock-mask" style="display: block;">
-            <div style="font-size: 15px; font-weight: bold; color: #ff3366; margin-bottom: 10px;">🔒 請輸入解鎖密碼</div>
-            <p style="font-size: 12px; color: #aaa; margin: 0 0 15px 0;">【解鎖提示】如果你有設定過私密密碼，請輸入該密碼；若無設定或第一次使用，請打入你的 4 位學員代號直接解鎖。</p>
-            <input type="password" id="custom-secret-pwd" class="input-box" placeholder="輸入解鎖密碼" style="margin-bottom: 15px;">
-            <button onclick="unlockDataWithSecret()" style="background: #00ffcc; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 4px; width: 100%;">驗證解鎖</button>
-            <div id="secret-err" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;"></div>
-        </div>
-
-        <div id="data-display-zone" style="display: none; margin-top: 20px;">
+        <div id="data-display-zone" style="margin-top: 20px;">
             <div class="chart-container">
                 <canvas id="bioMetricsChart"></canvas>
             </div>
@@ -216,40 +195,6 @@
         return lines;
     }
 
-    function unlockDataWithSecret() {
-        var typedSecret = document.getElementById('custom-secret-pwd').value.trim();
-        var secretErr = document.getElementById('secret-err');
-        
-        if (typedSecret === "") return;
-        
-        var accessGranted = false;
-        var requiredSecret = secretMap[currentLoginCode]; 
-
-        if (requiredSecret && requiredSecret !== "") {
-            if (typedSecret === requiredSecret) accessGranted = true;
-        } else {
-            if (typedSecret === currentLoginCode) accessGranted = true;
-        }
-
-        if (accessGranted) {
-            secretErr.style.display = "none";
-            document.getElementById('coach-lock-zone').style.display = 'none';
-            document.getElementById('data-display-zone').style.display = 'block';
-            
-            var weekSelect = document.getElementById('filter-week');
-            if (weekSelect && weekSelect.value) {
-                updateDisplay(weekSelect.value);
-            }
-        } else {
-            secretErr.style.display = "block";
-            if (requiredSecret && requiredSecret !== "") {
-                secretErr.innerText = "❌ 密碼錯誤：此帳號已啟用私密密碼保護，輸入學員代號無效！";
-            } else {
-                secretErr.innerText = "❌ 驗證失敗：請輸入您的 4 位學員代號進行解鎖。";
-            }
-        }
-    }
-
     function parseAndFilterData() {
         try {
             var lines = parseStandardCSV(cachedCsvText);
@@ -301,10 +246,10 @@
                 var last = allRecords[allRecords.length - 1]; 
                 if(last) { 
                     weekSelect.value = last.week; 
-                    if (isCoachMode || document.getElementById('data-display-zone').style.display === 'block') { 
-                        updateDisplay(last.week); 
-                    }
+                    updateDisplay(last.week); 
                 }
+            } else {
+                clearDisplayFields();
             }
         } catch (error) { 
             document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; 
@@ -364,4 +309,34 @@
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
-                bioCha
+                bioChartInstance = new Chart(ctxBio, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [
+                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
+                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
+                if (paceChartInstance) paceChartInstance.destroy();
+                paceChartInstance = new Chart(ctxPace, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
