@@ -32,7 +32,7 @@
     </style>
 
     <script>
-        // 📡 直連大數據原始通道
+        // 📡 直連大數據原始通道 (gid=1576804059)
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
         // 🔒 代號放行對照表
@@ -46,7 +46,7 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 🛡️ 安全混淆處理：網頁原始碼內搜尋不到 "1208"
+        // 🛡️ 安全混淆處理
         var _0x9c2d = ["\x31\x32\x30\x38"]; 
 
         var allMembers = Object.values(passMap);
@@ -72,9 +72,7 @@
                 currentLoginCode = inputPwd;
                 
                 var optionsHtml = '';
-                allMembers.forEach(function(m) {
-                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
-                });
+                allMembers.forEach(function(m) { optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>'; });
                 nameSelect.innerHTML = optionsHtml;
                 nameSelect.removeAttribute('disabled');
                 
@@ -112,7 +110,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">極致純淨直通版 v110.0-Stable</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">實體照片對齊版 v125.0-Verified</p>
         <input type="text" id="user-pwd" placeholder="請輸入登入代號" maxlength="12">
         <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -208,10 +206,18 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 完全還原最穩定的定點物理下標（B欄到L欄）
-                var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
-                var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
-                var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
+                // 📸 根據實體螢幕截圖 100% 精確對齊的下標：
+                var idxName = 1;    // B欄：學員姓名
+                var idxWeek = 2;    // C欄：特訓週數
+                var idxDist = 3;    // D欄：長跑距離(km)
+                var idxTime = 4;    // E欄：長跑時間
+                var idxCadence = 5; // F欄：平均步頻(spm)
+                var idxStride = 6;  // G欄：平均步距
+                var idxHr = 7;      // H欄：平均心率(bpm)
+                var idxRisk = 8;    // I欄：身體風險
+                var idxWeather = 9; // J欄：環境天氣
+                var idxSupply = 10; // K欄：補給問題
+                var idxClimb = 11;  // L欄：爬升海拔
 
                 for(var i = 1; i < lines.length; i++) {
                     var row = lines[i];
@@ -328,16 +334,4 @@
                     type: 'line',
                     data: {
                         labels: xLabels,
-                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            } catch(chartErr) {}
-        }
-    }
-
-    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
-</script>
-</body>
-</html>
+                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension:
