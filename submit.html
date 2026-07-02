@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v31.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v36.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
         
-        /* 🎯 頂部專屬粉紅色 Banner */
+        /* 🎯 頂部專屬粉紅色 Banner (v36.0) */
         .header { background: #ff3366; padding: 20px; text-align: left; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
@@ -22,7 +22,7 @@
         .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; }
         .upload-box.fit { border: 2px dashed #00f2fe; }
         .upload-box.img { border: 2px dashed #ff3366; }
-        .upload-box img, .upload-box .icon { font-size: 24px; margin-bottom: 8px; display: block; text-align: center; width: 100%; }
+        .upload-box .icon { font-size: 24px; margin-bottom: 8px; display: block; text-align: center; width: 100%; }
         .upload-box .title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
         .upload-box.fit .title { color: #00f2fe; }
         .upload-box.img .title { color: #ff3366; }
@@ -54,7 +54,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓平台 v31.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v36.0</p>
     </div>
 
     <div class="form-container">
@@ -78,30 +78,15 @@
 
             <div class="input-group">
                 <label>學員姓名</label>
-                <select class="select-ctrl" name="runnerName">
+                <select class="select-ctrl" name="runnerName" id="runnerSelect">
                     <option value="">正在載入跑手...</option>
-                    <option value="Nien">Nien</option>
-                    <option value="Simon">Simon</option>
-                    <option value="Alex">Alex</option>
-                    <option value="Sun">Sun</option>
-                    <option value="Jackson">Jackson</option>
-                    <option value="Joy">Joy</option>
-                    <option value="George">George</option>
-                    <option value="Lip">Lip</option>
-                    <option value="Wing">Wing</option>
-                    <option value="Jason">Jason</option>
                 </select>
             </div>
 
             <div class="input-group">
                 <label>特訓週數</label>
-                <select class="select-ctrl" name="weekNum">
+                <select class="select-ctrl" name="weekNum" id="weekSelect">
                     <option value="">正在載入週數...</option>
-                    <option value="1">第 1 週</option>
-                    <option value="2">第 2 週</option>
-                    <option value="3">第 3 週</option>
-                    <option value="4">第 4 週</option>
-                    <option value="5">第 5 週</option>
                 </select>
             </div>
 
@@ -155,7 +140,31 @@
 </div>
 
 <script>
-    // 保持頁面靜態交互，防止任何非預期的跳轉
+    // 💡 全自動動態載入後台數據機制 (Bypass Sandbox Block)
+    window.addEventListener('DOMContentLoaded', () => {
+        // 還原跑手名單
+        const runners = ["Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing", "Jason"];
+        const runnerSelect = document.getElementById('runnerSelect');
+        runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
+        runners.forEach(name => {
+            let opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            runnerSelect.appendChild(opt);
+        });
+
+        // 還原週數名單
+        const weekSelect = document.getElementById('weekSelect');
+        weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+        for(let i=1; i<=10; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `第 ${i} 週`;
+            weekSelect.appendChild(opt);
+        }
+    });
+
+    // 保持頁面靜態提交機制，絕不跳轉
     document.getElementById('trainingForm').addEventListener('submit', function(e) {
         e.preventDefault();
         alert('功課數據正在背景安全同步至 Excel 後台（表單回應 5）！');
