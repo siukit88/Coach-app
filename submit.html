@@ -5,17 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>上報今日特訓功課 - 慢跑團</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; overflow-x: hidden; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
-        .header { background: #ff3366; padding: 15px 20px; flex-shrink: 0; }
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 0 0 30px 0; display: flex; flex-direction: column; box-sizing: border-box; }
+        
+        /* 📝 完美保留：教練專屬粉紅色標題欄 UI */
+        .header { background: #ff3366; padding: 15px 20px; text-align: left; flex-shrink: 0; }
         .header h1 { margin: 0; font-size: 18px; font-weight: bold; }
         .header p { margin: 3px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.8); }
         
-        /* 📱 完美獨立頁面內嵌：跟之前一模一樣的滑動填表與上傳質感 */
-        .form-frame-container { flex: 1; width: 100%; background: #ffffff; border: none; position: relative; min-height: 680px; }
-        iframe { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; }
+        /* 中間主體內容區 */
+        .content-zone { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .info-text { font-size: 15px; color: #aaaaaa; line-height: 1.6; margin-bottom: 30px; text-align: center; }
         
-        .nav-zone { background: #16161a; padding: 15px; text-align: center; flex-shrink: 0; border-top: 1px solid #22222b; }
+        /* 🚀 與網頁 UI 完美融合的原生大按鈕 */
+        .upload-link-btn { 
+            display: block; 
+            background: #ff3366; 
+            color: #ffffff; 
+            border: none; 
+            padding: 18px; 
+            width: 100%; 
+            max-width: 320px;
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            text-decoration: none;
+            box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);
+            transition: background 0.2s ease;
+        }
+        .upload-link-btn:active { background: #e02855; }
+        
+        /* ⬅️ 完美保留：底部黑底返回主頁 UI */
+        .nav-zone { padding: 15px; text-align: center; flex-shrink: 0; border-top: 1px solid #22222b; }
         .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 5px 10px; }
     </style>
 </head>
@@ -27,8 +49,13 @@
         <p>慢慢跑團 遠程智慧特訓平台</p>
     </div>
 
-    <div class="form-frame-container">
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform?embedded=true" width="100%" height="100%" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+    <div class="content-zone">
+        <p class="info-text">
+            💡 <b>慢跑團特訓通道提示：</b><br>
+            因應 Google 雲端安全加密限制，請點擊下方通道按鈕上傳圖片、fit檔及填寫功課。
+        </p>
+        
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform" target="_blank" class="upload-link-btn">➔ 開啟特訓上報表單</a>
     </div>
 
     <div class="nav-zone">
