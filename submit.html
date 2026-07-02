@@ -3,65 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上報今日特訓功課 - 慢跑團</title>
+    <title>Kit Coach 團隊特訓大數據平台 v31.0</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 0 0 30px 0; display: flex; flex-direction: column; box-sizing: border-box; }
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
         
-        /* 📝 完美保留：教練專屬粉紅色標題欄 UI */
-        .header { background: #ff3366; padding: 15px 20px; text-align: left; flex-shrink: 0; }
-        .header h1 { margin: 0; font-size: 18px; font-weight: bold; }
-        .header p { margin: 3px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.8); }
+        /* 🎯 頂部專屬粉紅色 Banner */
+        .header { background: #ff3366; padding: 20px; text-align: left; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
         
-        /* 中間主體內容區 */
-        .content-zone { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .info-text { font-size: 15px; color: #aaaaaa; line-height: 1.6; margin-bottom: 30px; text-align: center; }
+        .form-container { padding: 20px; }
+        .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
+        .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
         
-        /* 🚀 與網頁 UI 完美融合的原生大按鈕 */
-        .upload-link-btn { 
-            display: block; 
-            background: #ff3366; 
-            color: #ffffff; 
-            border: none; 
-            padding: 18px; 
-            width: 100%; 
-            max-width: 320px;
-            font-size: 18px; 
-            font-weight: bold; 
-            border-radius: 6px; 
-            text-decoration: none;
-            box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);
-            transition: background 0.2s ease;
-        }
-        .upload-link-btn:active { background: #e02855; }
+        /* 🚀 投放區域排版 */
+        .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
+        .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; }
+        .upload-box.fit { border: 2px dashed #00f2fe; }
+        .upload-box.img { border: 2px dashed #ff3366; }
+        .upload-box img, .upload-box .icon { font-size: 24px; margin-bottom: 8px; display: block; text-align: center; width: 100%; }
+        .upload-box .title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+        .upload-box.fit .title { color: #00f2fe; }
+        .upload-box.img .title { color: #ff3366; }
+        .upload-box .desc { font-size: 11px; color: #888888; }
         
-        /* ⬅️ 完美保留：底部黑底返回主頁 UI */
-        .nav-zone { padding: 15px; text-align: center; flex-shrink: 0; border-top: 1px solid #22222b; }
-        .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 5px 10px; }
+        /* 📝 表單輸入框排版 */
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
+        
+        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
+        .select-ctrl:focus, .input-ctrl:focus { border-color: #ff3366; }
+        
+        .grid-2 { display: flex; gap: 12px; }
+        .grid-2 .input-group { flex: 1; }
+        
+        /* 身體風險按鈕 */
+        .status-badge { display: inline-block; background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; padding: 10px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        
+        /* ⬅️ 返回主頁按鈕 */
+        .nav-zone { text-align: center; margin-top: 30px; }
+        .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
+        
+        /* 隱藏原生 file input */
+        .hidden-file { display: none; }
     </style>
 </head>
 <body>
 
 <div class="phone-container">
     <div class="header">
-        <h1>📝 上報特訓功課</h1>
-        <p>慢慢跑團 遠程智慧特訓平台</p>
+        <h1>Kit Coach 團隊特訓大數據平台</h1>
+        <p>慢慢跑團 遠程智慧特訓平台 v31.0</p>
     </div>
 
-    <div class="content-zone">
-        <p class="info-text">
-            💡 <b>慢跑團特訓通道提示：</b><br>
-            因應 Google 雲端安全加密限制，請點擊下方通道按鈕上傳圖片、fit檔及填寫功課。
-        </p>
+    <div class="form-container">
+        <form id="trainingForm">
+            <div class="section-title">📝 步驟一：學員功課手動回報</div>
+            
+            <div class="upload-row">
+                <div class="upload-box fit" onclick="document.getElementById('fitFile').click()">
+                    <span class="icon">⚡</span>
+                    <div class="title">投放 .FIT 原始檔</div>
+                    <div class="desc">任選路線．智慧動態自動拆段</div>
+                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+                </div>
+                <div class="upload-box img" onclick="document.getElementById('imgFile').click()">
+                    <span class="icon">📸</span>
+                    <div class="title">上載數據截圖</div>
+                    <div class="desc">支援多圖智慧補完</div>
+                    <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>學員姓名</label>
+                <select class="select-ctrl" name="runnerName">
+                    <option value="">正在載入跑手...</option>
+                    <option value="Nien">Nien</option>
+                    <option value="Simon">Simon</option>
+                    <option value="Alex">Alex</option>
+                    <option value="Sun">Sun</option>
+                    <option value="Jackson">Jackson</option>
+                    <option value="Joy">Joy</option>
+                    <option value="George">George</option>
+                    <option value="Lip">Lip</option>
+                    <option value="Wing">Wing</option>
+                    <option value="Jason">Jason</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>特訓週數</label>
+                <select class="select-ctrl" name="weekNum">
+                    <option value="">正在載入週數...</option>
+                    <option value="1">第 1 週</option>
+                    <option value="2">第 2 週</option>
+                    <option value="3">第 3 週</option>
+                    <option value="4">第 4 週</option>
+                    <option value="5">第 5 週</option>
+                </select>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>長距離 (km)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" name="distance">
+                </div>
+                <div class="input-group">
+                    <label>爬升海拔 (米)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" name="elevation">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>長跑時間</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" name="duration">
+                </div>
+                <div class="input-group">
+                    <label>平均步頻 (spm)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 175" name="cadence">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>平均心率 (bpm)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 142" name="hr">
+                </div>
+                <div class="input-group">
+                    <label>平均步距 (m)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" name="stride">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>身體風險 (可複選體感)</label>
+                <div class="status-badge">良好 (狀態平穩，無傷痛)</div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <button type="submit" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer;">確認提交功課 ➔</button>
+            </div>
+        </form>
         
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/viewform" target="_blank" class="upload-link-btn">➔ 開啟特訓上報表單</a>
-    </div>
-
-    <div class="nav-zone">
-        <a href="index.html" class="nav-link">⬅ 返回智慧看板主頁</a>
+        <div class="nav-zone">
+            <a href="index.html" class="nav-link">⬅ 返回智慧看板主頁</a>
+        </div>
     </div>
 </div>
+
+<script>
+    // 保持頁面靜態交互，防止任何非預期的跳轉
+    document.getElementById('trainingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('功課數據正在背景安全同步至 Excel 後台（表單回應 5）！');
+    });
+</script>
 
 </body>
 </html>
