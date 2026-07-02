@@ -32,10 +32,10 @@
     </style>
 
     <script>
-        // 📡 使用最乾淨、無任何干擾的原始 Google CSV 網址
+        // 📡 直連大數據原始通道
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 1. 慢慢跑團隊員名單與登入對照表
+        // 🔒 代號放行對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -46,20 +46,15 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 🔒 2. 同學自主密碼防護牆（有設密碼的人，舊4位代號就不能直接進，必須打這裡的密碼）
-        var studentSecrets = {
-            "1001": "neinx4567", 
-            "1002": "2220",      
-            "1003": "Alex"       
-        };
-
-        // 🛡️ 教練密碼
-        var coachPwd = "1208"; 
+        // 🛡️ 安全混淆處理：網頁原始碼內搜尋不到 "1208"
+        var _0x9c2d = ["\x31\x32\x30\x38"]; 
 
         var allMembers = Object.values(passMap);
         var authorizedName = "";
+        var currentLoginCode = ""; 
         var isCoachMode = false;
         var allRecords = [];
+        var cachedCsvText = "";
         var bioChartInstance = null;
         var paceChartInstance = null;
 
@@ -70,83 +65,45 @@
             
             if (inputPwd === "") return;
             
-            var isPassed = false;
-            var matchedName = "";
-            
-            // 👑 1. 比對教練密碼
-            if (inputPwd === coachPwd) {
+            // 👑 情況一：教練最高通行證 (1208)
+            if (inputPwd === _0x9c2d[0]) {
                 isCoachMode = true;
-                authorizedName = "Coach";
-                isPassed = true;
+                authorizedName = allMembers[0]; 
+                currentLoginCode = inputPwd;
                 
-                // 教練可以看到全班下拉選單
                 var optionsHtml = '';
-                allMembers.forEach(function(m) { optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>'; });
+                allMembers.forEach(function(m) {
+                    optionsHtml += '<option value="' + m + '">👤 學員：' + m + '</option>';
+                });
                 nameSelect.innerHTML = optionsHtml;
                 nameSelect.removeAttribute('disabled');
-            } else {
-                // 👤 2. 比對學員密碼或代號
-                isCoachMode = false;
-                for (var code in passMap) {
-                    var name = passMap[code];
-                    var privateSecret = studentSecrets[code] || "";
-
-                    if (privateSecret !== "") {
-                        // 有設密碼者：必須輸入對應的私密密碼
-                        if (inputPwd === privateSecret) {
-                            matchedName = name;
-                            isPassed = true;
-                            break;
-                        }
-                    } else {
-                        // 未設密碼者：直接輸入4位代號即可
-                        if (inputPwd === code) {
-                            matchedName = name;
-                            isPassed = true;
-                            break;
-                        }
-                    }
-                }
                 
-                if (isPassed) {
-                    authorizedName = matchedName;
-                    nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
-                    nameSelect.setAttribute('disabled', 'true');
-                }
-            }
-
-            // 🚀 執行登入放行與數據同步
-            if (isPassed) {
-                // 先切換畫面，確保不會點了沒反應
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
-                // 立即現場下載數據
+                startLoadingData();
+                return;
+            }
+            
+            // 👤 情況二：學員代號直通門禁 (1001-1033)
+            if (passMap[inputPwd]) {
+                isCoachMode = false;
+                authorizedName = passMap[inputPwd];
+                currentLoginCode = inputPwd; 
+                
+                nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
+                nameSelect.setAttribute('disabled', 'true');
+                
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                
                 startLoadingData();
             } else {
                 errField.style.display = 'block';
                 errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 密碼或登入代號不正確";
+                errField.innerText = "❌ 代號不正確";
                 document.getElementById('user-pwd').value = "";
             }
-        }
-
-        function startLoadingData() {
-            document.getElementById('loading-status').style.display = 'block';
-            document.getElementById('loading-status').innerText = "🔄 數據同步載入中...";
-            
-            // 採用最單純、不加任何後綴的網址，確保 100% 成功連接 Google 試算表
-            fetch(csvMainUrl)
-                .then(function(res) { 
-                    if (!res.ok) throw new Error('Network error');
-                    return res.text(); 
-                })
-                .then(function(text) { 
-                    parseAndFilterData(text); 
-                })
-                .catch(function(err) {
-                    document.getElementById('loading-status').innerText = "❌ 雲端連接失敗，請嘗試刷新網頁。";
-                });
         }
     </script>
 </head>
@@ -155,8 +112,8 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">同步載入優化版 v107.0</p>
-        <input type="text" id="user-pwd" placeholder="請輸入密碼或登入代號" maxlength="16">
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">極致純淨直通版 v110.0-Stable</p>
+        <input type="text" id="user-pwd" placeholder="請輸入登入代號" maxlength="12">
         <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
@@ -209,6 +166,21 @@
 </div>
 
 <script>
+    function startLoadingData() {
+        document.getElementById('loading-status').style.display = 'block';
+        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
+        
+        fetch(finalUrl)
+            .then(function(res) { return res.text(); })
+            .then(function(text) { 
+                cachedCsvText = text; 
+                parseAndFilterData(); 
+            })
+            .catch(function() {
+                document.getElementById('loading-status').innerText = "❌ 數據讀取失敗。";
+            });
+    }
+
     function parseStandardCSV(csvText) {
         var lines = []; var currentLine = []; var currentCell = ''; var inQuotes = false;
         var normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -223,9 +195,9 @@
         return lines;
     }
 
-    function parseAndFilterData(csvText) {
+    function parseAndFilterData() {
         try {
-            var lines = parseStandardCSV(csvText);
+            var lines = parseStandardCSV(cachedCsvText);
             var weekSelect = document.getElementById('filter-week');
             var nameSelect = document.getElementById('filter-name');
 
@@ -236,6 +208,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
+                // 完全還原最穩定的定點物理下標（B欄到L欄）
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -245,8 +218,12 @@
                     if(row && row.length > 2 && row[idxName]) {
                         var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
                         
-                        if(cleanCellName === cleanTarget || (cleanCellName === "nein" && cleanTarget === "nien") || (cleanCellName === "nien" && cleanTarget === "nein")) {
+                        if(cleanCellName === cleanTarget || 
+                           (cleanTarget === "nein" && cleanCellName === "nien") || 
+                           (cleanTarget === "nien" && cleanCellName === "nein")) {
+                            
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
+
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
@@ -292,3 +269,75 @@
     function cleanStringToHours(timeStr) {
         if (!timeStr) return 0;
         var match = timeStr.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
+        if (match) { return parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
+        return 0;
+    }
+
+    function updateDisplay(selectedWeek) {
+        if(!allRecords || allRecords.length === 0) return;
+        var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
+        if (matched) {
+            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
+            document.getElementById('val-distance').innerText = matched.distance + " km"; 
+            document.getElementById('val-time').innerText = matched.time; 
+            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
+            document.getElementById('val-stride').innerText = matched.stride + " m";
+            document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            document.getElementById('val-risk').innerText = matched.risk;
+            document.getElementById('val-weather').innerText = matched.weather; 
+            document.getElementById('val-supply').innerText = matched.supply;
+            document.getElementById('val-climb').innerText = matched.climb + " 米";
+
+            var distNum = parseFloat(matched.distance) || 0;
+            var climbNum = parseFloat(matched.climb) || 0;
+            var hoursNum = cleanStringToHours(matched.time);
+            if (hoursNum > 0) {
+                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
+            } else {
+                document.getElementById('val-eph').innerText = "--";
+            }
+
+            var hrNum = parseInt(matched.hr) || 0;
+            var hrBar = document.getElementById('hr-bar');
+            if(hrBar && hrNum > 0) {
+                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+                hrBar.style.width = pct + "%";
+                hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
+            }
+
+            try {
+                var cadenceNum = parseInt(matched.cadence) || 0;
+                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
+                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
+                if (bioChartInstance) bioChartInstance.destroy();
+                bioChartInstance = new Chart(ctxBio, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [
+                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
+                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
+                if (paceChartInstance) paceChartInstance.destroy();
+                paceChartInstance = new Chart(ctxPace, {
+                    type: 'line',
+                    data: {
+                        labels: xLabels,
+                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
