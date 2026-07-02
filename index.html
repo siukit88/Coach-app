@@ -35,7 +35,7 @@
         // 📡 直連大數據原始通道 (gid=1576804059)
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 代號放行對照表
+        // 🔒 隊員代號對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -46,7 +46,7 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 🛡️ 安全混淆處理
+        // 🛡️ 教練密碼加密混淆
         var _0x9c2d = ["\x31\x32\x30\x38"]; 
 
         var allMembers = Object.values(passMap);
@@ -68,7 +68,7 @@
             // 👑 情況一：教練最高通行證 (1208)
             if (inputPwd === _0x9c2d[0]) {
                 isCoachMode = true;
-                authorizedName = allMembers[0]; 
+                authorizedName = "Coach"; 
                 currentLoginCode = inputPwd;
                 
                 var optionsHtml = '';
@@ -89,6 +89,7 @@
                 authorizedName = passMap[inputPwd];
                 currentLoginCode = inputPwd; 
                 
+                // 學員進入後只能看到他自己，選單死鎖，防偷看
                 nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
                 nameSelect.setAttribute('disabled', 'true');
                 
@@ -110,9 +111,9 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">實體照片對齊版 v125.0-Verified</p>
-        <input type="text" id="user-pwd" placeholder="請輸入登入代號" maxlength="12">
-        <button onclick="verifyIdentity()">確認登入</button>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">實體表格直通版 v130.0-Stable</p>
+        <input type="text" id="user-pwd" placeholder="請輸入 4 位登入代號" maxlength="12">
+        <button onclick="verifyIdentity()">安全登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
@@ -206,7 +207,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 📸 根據實體螢幕截圖 100% 精確對齊的下標：
+                // 📸 100% 精確對齊你上一張實體照片的下標：
                 var idxName = 1;    // B欄：學員姓名
                 var idxWeek = 2;    // C欄：特訓週數
                 var idxDist = 3;    // D欄：長跑距離(km)
@@ -334,4 +335,16 @@
                     type: 'line',
                     data: {
                         labels: xLabels,
-                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension:
+                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
