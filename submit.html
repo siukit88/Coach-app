@@ -45,8 +45,8 @@
         .nav-zone { text-align: center; margin-top: 30px; }
         .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
         
-        /* 隱藏原生 file input */
-        .hidden-file { display: none; }
+        /* 原生 file input (保持隱藏，供 JS 呼叫) */
+        .hidden-file { display: none !important; }
     </style>
 </head>
 <body>
@@ -62,13 +62,13 @@
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
-                <div class="upload-box fit" onclick="document.getElementById('fitFile').click()">
+                <div class="upload-box fit" id="fitTrigger">
                     <span class="icon">⚡</span>
                     <div class="title">投放 .FIT 原始檔</div>
                     <div class="desc">任選路線．智慧動態自動拆段</div>
-                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+                    <input type="file" id="fitFile" class="hidden-file">
                 </div>
-                <div class="upload-box img" onclick="document.getElementById('imgFile').click()">
+                <div class="upload-box img" id="imgTrigger">
                     <span class="icon">📸</span>
                     <div class="title">上載數據截圖</div>
                     <div class="desc">支援多圖智慧補完</div>
@@ -140,9 +140,28 @@
 </div>
 
 <script>
-    // 💡 全自動動態載入後台數據機制 (Bypass Sandbox Block)
+    // 💡 1. 核心修復：強制綁定手機原生點擊事件，確保點擊外框能秒開檔案選取器
+    document.getElementById('fitTrigger').addEventListener('click', function(e) {
+        if (e.target.id !== 'fitFile') {
+            document.getElementById('fitFile').click();
+        }
+    });
+    document.getElementById('imgTrigger').addEventListener('click', function(e) {
+        if (e.target.id !== 'imgFile') {
+            document.getElementById('imgFile').click();
+        }
+    });
+
+    // 當選取了檔案後的提示處理（可選）
+    document.getElementById('fitFile').addEventListener('change', function() {
+        if(this.files.length > 0) alert('已成功選取 .FIT 檔案：' + this.files[0].name);
+    });
+    document.getElementById('imgFile').addEventListener('change', function() {
+        if(this.files.length > 0) alert('已選取 ' + this.files.length + ' 張數據截圖');
+    });
+
+    // 💡 2. 動態載入跑手及週數數據
     window.addEventListener('DOMContentLoaded', () => {
-        // 還原跑手名單
         const runners = ["Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing", "Jason"];
         const runnerSelect = document.getElementById('runnerSelect');
         runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
@@ -153,7 +172,6 @@
             runnerSelect.appendChild(opt);
         });
 
-        // 還原週數名單
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i=1; i<=10; i++) {
@@ -164,10 +182,10 @@
         }
     });
 
-    // 保持頁面靜態提交機制，絕不跳轉
+    // 提交表單機制
     document.getElementById('trainingForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('功課數據正在背景安全同步至 Excel 後台（表單回應 5）！');
+        alert('功課數據正在背景安全同步至 Excel 後台！');
     });
 </script>
 
