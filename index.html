@@ -31,10 +31,11 @@
     </style>
 
     <script>
-        // 📡 完美重新對接到教練最新生成嘅【表單回應 4】原始安全通道 (gid=606569597)
+        // 📡 雙重保險雲端數據大通道（優先讀取表單回應4，若空全自動降級兼容）
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=606569597&single=true&output=csv";
+        var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
         
-        // 🔒 [安全防護] 隊員名冊與門禁代碼高強度加密混淆
+        // 🔒 [安全防護] 隊員名冊與密碼高強度防抄襲混淆核心
         var _0x5a1b = ["1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing", "1010", "Jason", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jerry", "1022", "Rita", "1023", "Ruby", "1024", "Calvin Siu", "1025", "Thomas", "1026", "Yin Wai", "1027", "Gary", "1028", "Lois", "1029", "Gaby", "1030", "Carol", "1031", "Timothy", "1032", "Charlotte Lokman", "1208", "Coach"];
         var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
 
@@ -87,7 +88,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應4版 v141.0-Sync</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">智慧防空包修復版 v142.0-AutoFix</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -147,6 +148,15 @@
         
         fetch(finalUrl)
             .then(function(res) { return res.text(); })
+            .then(function(text) {
+                // 🧠 核心智慧判斷：如果 Google 回傳空白，立刻無縫降級抓取備用大通道
+                if(!text || text.trim() === "" || text.length < 10) {
+                    console.log("偵測到分頁廣播未放行，啟動降級通道...");
+                    var backupUrl = csvBackupUrl + "&t=" + new Date().getTime();
+                    return fetch(backupUrl).then(function(r){return r.text();});
+                }
+                return text;
+            })
             .then(function(text) { cachedCsvText = text; parseAndFilterData(); })
             .catch(function() { document.getElementById('loading-status').innerText = "❌ 雲端安全同步失敗。"; });
     }
@@ -178,14 +188,18 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 📊 完美對其【表單回應 4】的物理欄位下標：
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
 
+                // 如果降級到整本活頁簿，欄位可能會偏移，做動態容錯修正
+                if (lines[0][0] && lines[0][0].indexOf("時間戳記") === -1 && lines[0][1] && lines[0][1].indexOf("時間戳記") !== -1) {
+                    idxName = 2; idxWeek = 3; idxDist = 4; idxTime = 5;
+                }
+
                 for(var i = 1; i < lines.length; i++) {
                     var row = lines[i];
-                    if(row && row.length > 2 && row[idxName]) {
+                    if(row && row.length > idxName && row[idxName]) {
                         var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
