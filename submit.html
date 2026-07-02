@@ -5,35 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>上報今日特訓功課 - 慢跑團</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 30px 20px; box-sizing: border-box; }
-        .header { background: #ff3366; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: left; }
-        .header h1 { margin: 0; font-size: 20px; font-weight: bold; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; overflow-x: hidden; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
+        .header { background: #ff3366; padding: 15px 20px; flex-shrink: 0; }
+        .header h1 { margin: 0; font-size: 18px; font-weight: bold; }
+        .header p { margin: 3px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.8); }
         
-        .box { background: #22222b; border: 1px solid #ff3366; padding: 25px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
-        .box p { font-size: 15px; color: #aaaaaa; line-height: 1.6; margin: 0 0 20px 0; }
+        /* 📱 完美內嵌表單區域，保持之前嘅原生填表質感 */
+        .form-frame-container { flex: 1; width: 100%; background: #ffffff; border: none; position: relative; min-height: 650px; }
+        iframe { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; }
         
-        /* 🚀 閃耀的特訓通車大按鈕 */
-        .submit-btn { 
-            display: block; 
-            background: #ff3366; 
-            color: #ffffff; 
-            border: none; 
-            padding: 16px; 
-            width: 100%; 
-            font-size: 18px; 
-            font-weight: bold; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            text-decoration: none;
-            box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
-            transition: background 0.2s ease, transform 0.1s ease;
-        }
-        .submit-btn:active { background: #e02855; transform: scale(0.98); }
-        
-        .nav-link { display: block; text-align: center; color: #ff3366; font-size: 15px; margin-top: 30px; text-decoration: none; }
+        .nav-zone { background: #16161a; padding: 15px; text-align: center; flex-shrink: 0; border-top: 1px solid #22222b; }
+        .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 5px 10px; }
     </style>
 </head>
 <body>
@@ -44,13 +27,13 @@
         <p>慢慢跑團 遠程智慧特訓平台</p>
     </div>
 
-    <div class="box">
-        <p>💡 <b>教練溫馨提示：</b><br>請點擊下方大按鈕，直接開啟慢跑團官方特訓表單填寫功課。填寫完畢並提交後，數據將秒速同步回你的雲端大數據看板！</p>
-        
-        <a href="https://forms.gle/MUtTWKRnHUJ9jh2f6" target="_blank" class="submit-btn">➔ 點擊此處開啟特訓表單</a>
+    <div class="form-frame-container">
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf12Xv7VwOf56VlP97xY0m5G1xU13p03F6XvT2b6T_17yv7Z6g/viewform?embedded=true" width="100%" height="100%" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
     </div>
 
-    <a href="index.html" class="nav-link">⬅ 返回智慧看板主頁</a>
+    <div class="nav-zone">
+        <a href="index.html" class="nav-link">⬅ 返回智慧看板主頁</a>
+    </div>
 </div>
 
 </body>
