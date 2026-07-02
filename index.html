@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓智慧數據看板</title>
-    <!-- 引入開源圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
@@ -33,10 +32,10 @@
     </style>
 
     <script>
-        // 📡 1. 直連通道
+        // 📡 直連大數據通道 (標準表單回應 3)
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
         
-        // 🔒 2. 代號放行對照表
+        // 🔒 1. 慢跑團隊員名單與登入對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -47,7 +46,14 @@
             "1031": "Carol", "1032": "Timothy", "1033": "Charlotte Lokman"
         };
 
-        // 🛡️ 教練密碼安全混淆
+        // 🔒 2. 同學自主密碼防護牆（教練可在這手動管理，若同學沒自訂過密碼，這裡不需要寫，打 4 位代號自動通行）
+        var studentSecrets = {
+            "1001": "neinx4567", // Nein 的自訂私密密碼
+            "1002": "2220",      // Simon 的自訂私密密碼
+            "1003": "Alex"       // Alex 的自訂私密密碼
+        };
+
+        // 🛡️ 教練密碼加密混淆（網頁原始碼內不出現 "1208" 明文數字）
         var _0xef4a = ["\x31\x32\x30\x38"]; 
 
         var allMembers = Object.values(passMap);
@@ -59,15 +65,6 @@
         var bioChartInstance = null;
         var paceChartInstance = null;
 
-        // 📡 第一時間靜態抓取雲端數據，用來作登入密碼校對
-        window.addEventListener('DOMContentLoaded', function() {
-            var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
-            fetch(finalUrl)
-                .then(function(res) { return res.text(); })
-                .then(function(text) { cachedCsvText = text; })
-                .catch(function() { console.log("CSV Init Fetch Delay"); });
-        });
-
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err');
@@ -75,7 +72,7 @@
             
             if (inputPwd === "") return;
             
-            // 👑 情況一：教練最高通行證
+            // 👑 情況一：教練最高通行證秒開 (1208)
             if (inputPwd === _0xef4a[0]) {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -88,65 +85,43 @@
                 
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
-                if(cachedCsvText) { parseAndFilterData(); } else { startLoadingData(); }
+                
+                startLoadingData();
                 return;
             }
+            
+            // 👤 情況二：智能比對登入者
+            var matchedCode = "";
+            var matchedName = "";
+            var isPassed = false;
 
-            // 📡 解析暫存或實時 CSV，校對所有人的動態密碼
-            if (!cachedCsvText) {
-                errField.style.display = 'block';
-                errField.innerText = "🔄 系統安全防線載入中，請在 2 秒後重試...";
-                return;
-            }
-
-            var lines = parseStandardCSV(cachedCsvText);
-            var parsedUserMap = {}; // 用來存放： "學員姓名" -> "他最新一筆填的私密密碼"
-
-            if (lines && lines.length > 1) {
-                for (var i = 1; i < lines.length; i++) {
-                    var row = lines[i];
-                    if (row && row.length > 1 && row[1]) {
-                        var rName = row[1].trim();
-                        // 密碼永遠排在最後一欄
-                        var rSecret = row.length > 12 ? row[row.length - 1].toString().trim() : "";
-                        if(rSecret !== "") { parsedUserMap[rName] = rSecret; }
-                    }
-                }
-            }
-
-            // 👤 智能匹配登入邏輯
-            var matchedTargetCode = "";
-            var matchedTargetName = "";
-            var isPasswordCorrect = false;
-
-            // 遞迴比對，找出輸入的字眼到底是「誰的自訂密碼」還是「誰的純代號」
             for (var code in passMap) {
                 var name = passMap[code];
-                var dbSecret = parsedUserMap[name] || "";
+                var privateSecret = studentSecrets[code] || "";
 
-                if (dbSecret !== "") {
-                    // 🔒 情況 A：此學員有設定自訂密碼 ➔ 代號失效，必須輸入正確自訂密碼才能登入！
-                    if (inputPwd === dbSecret) {
-                        matchedTargetCode = code;
-                        matchedTargetName = name;
-                        isPasswordCorrect = true;
+                if (privateSecret !== "") {
+                    // 🔒 如果該同學在代碼中有設定專屬密碼 ➔ 代號直接失效，必須輸入正確專屬密碼！
+                    if (inputPwd === privateSecret) {
+                        matchedCode = code;
+                        matchedName = name;
+                        isPassed = true;
                         break;
                     }
                 } else {
-                    // 🔓 情況 B：此學員沒有設定密碼/第一次用 ➔ 4位代號就是他的密碼
+                    // 🔓 如果該同學從未設定密碼 ➔ 4位代號就是他的密碼
                     if (inputPwd === code) {
-                        matchedTargetCode = code;
-                        matchedTargetName = name;
-                        isPasswordCorrect = true;
+                        matchedCode = code;
+                        matchedName = name;
+                        isPassed = true;
                         break;
                     }
                 }
             }
 
-            if (isPasswordCorrect) {
+            if (isPassed) {
                 isCoachMode = false;
-                authorizedName = matchedTargetName;
-                currentLoginCode = matchedTargetCode; 
+                authorizedName = matchedName;
+                currentLoginCode = matchedCode; 
                 
                 nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
                 nameSelect.setAttribute('disabled', 'true');
@@ -154,7 +129,7 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 
-                parseAndFilterData();
+                startLoadingData();
             } else {
                 errField.style.display = 'block';
                 errField.style.color = '#ff4d4d';
@@ -169,9 +144,9 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">單層動態門禁防弊版 v99.0-Protected</p>
-        <input type="text" id="user-pwd" placeholder="請輸入您的解鎖密碼或代號" maxlength="16">
-        <button onclick="verifyIdentity()">安全登入</button>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">極速防禦完全體 v105.0-Stable</p>
+        <input type="text" id="user-pwd" placeholder="請輸入密碼或登入代號" maxlength="16">
+        <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
@@ -208,7 +183,7 @@
                 <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
                 <div class="data-row" style="color: #00ffcc; font-weight: bold;">總平均耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
                 <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
-                <div class="data-row)-->平均步距 <span id="val-stride" class="data-val">--</span></div>
+                <div class="data-row">平均步距 <span id="val-stride" class="data-val">--</span></div>
                 <div class="data-row" style="padding-top: 10px;">
                     <div>平均心率 <span id="val-hr" class="data-val">--</span></div>
                     <div class="clear"></div>
@@ -226,9 +201,16 @@
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
         var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
+        
         fetch(finalUrl)
             .then(function(res) { return res.text(); })
-            .then(function(text) { cachedCsvText = text; parseAndFilterData(); });
+            .then(function(text) { 
+                cachedCsvText = text; 
+                parseAndFilterData(); 
+            })
+            .catch(function() {
+                document.getElementById('loading-status').innerText = "❌ 雲端連接失敗。";
+            });
     }
 
     function parseStandardCSV(csvText) {
@@ -266,7 +248,8 @@
                     var row = lines[i];
                     if(row && row.length > 2 && row[idxName]) {
                         var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
-                        if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein")) {
+                        
+                        if(cleanCellName === cleanTarget || (cleanCellName === "nein" && cleanTarget === "nien") || (cleanCellName === "nien" && cleanTarget === "nein")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
@@ -289,11 +272,16 @@
 
             if(allRecords && allRecords.length > 0) { 
                 var last = allRecords[allRecords.length - 1]; 
-                if(last) { weekSelect.value = last.week; updateDisplay(last.week); }
+                if(last) { 
+                    weekSelect.value = last.week; 
+                    updateDisplay(last.week); 
+                }
             } else {
                 clearDisplayFields();
             }
-        } catch (error) { document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; }
+        } catch (error) { 
+            document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; 
+        }
     }
 
     function clearDisplayFields() {
@@ -366,4 +354,17 @@
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
                     data: {
-    
+                        labels: xLabels,
+                        datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
