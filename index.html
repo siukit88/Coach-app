@@ -32,10 +32,10 @@
     </style>
 
     <script>
-        // 📡 主數據直連通道
-        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=1576804059&single=true&output=csv";
+        // 📡 1. 已成功更換教練提供之最新隔離防弊通道 (gid=676014509)
+        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=676014509&single=true&output=csv";
         
-        // 🔒 代號放行對照表
+        // 🔒 2. 代號放行對照表
         var passMap = {
             "1001": "Nein", "1002": "Simon", "1003": "Alex", "1004": "Sun", "1005": "Jackson",
             "1006": "Joy", "1007": "George", "1008": "Lip", "1009": "Wing", "1010": "Jason",
@@ -65,7 +65,7 @@
             
             if (inputPwd === "") return;
             
-            // 👑 教練最高通行證
+            // 👑 教練最高通行證 (1208)
             if (inputPwd === _0x9c2d[0]) {
                 isCoachMode = true;
                 authorizedName = allMembers[0]; 
@@ -85,7 +85,7 @@
                 return;
             }
             
-            // 👤 學員代號直通
+            // 👤 學員代號門禁 (1001-1033)
             if (passMap[inputPwd]) {
                 isCoachMode = false;
                 authorizedName = passMap[inputPwd];
@@ -112,7 +112,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・特訓數據系統</h3>
-        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">後台純淨直通版 v90.0-CleanStable</p>
+        <p style="font-size:12px; color:#aaa; margin-top:-5px; margin-bottom:15px;">後台防弊分流完全體 v95.0-Final</p>
         <input type="text" id="user-pwd" placeholder="請輸入登入代號" maxlength="12">
         <button onclick="verifyIdentity()">確認登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
