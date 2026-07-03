@@ -131,9 +131,7 @@
                     <div class="clear"></div>
                     <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
                 </div>
-                <div class="data-row" style="padding-top: 10px;">
-                    <div>身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
-                </div>
+                <div class="data-row" style="margin-top: 10px;">身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
                 <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
                 <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
             </div>
@@ -186,7 +184,6 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 📊 完美的物理欄位下標映射
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -202,8 +199,8 @@
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             
-                            // 💡 核心安全修復：將試算表原始數據中的「第 1 週」等空格清除，與 wClean 完美映射，擊碎篩選盲點！
-                            var wClean = wValue.replace(/\s+/g, ""); 
+                            // 💡 僅在此處做唯一的安全性空格清除，確保「第 1 週」與選單完美配對成功
+                            var wClean = wValue.replace(/\s+/g, "");
                             
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wClean, 
@@ -217,15 +214,15 @@
                 }
             }
 
-            // 💡 核心修復：動態生成前端帶空格的精美選單（如「第 1 週」），但底層 value 指向無空格，完美銜接
+            // 💡 動態還原為精美的帶空格前端選單文字（例如「第 1 週」），確保排版絲滑
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Object.keys(weeks).sort(function(a,b){
                 var numA = parseInt(a.replace(/[^0-9]/g, '')) || 0;
                 var numB = parseInt(b.replace(/[^0-9]/g, '')) || 0;
                 return numA - numB;
             }).forEach(function(w) { 
-                var displayWeekStr = w.replace("第", "第 ").replace("週", " 週");
-                weekSelect.innerHTML += '<option value="' + w + '">' + displayWeekStr + '</option>'; 
+                var displayStr = w.replace("第", "第 ").replace("週", " 週");
+                weekSelect.innerHTML += '<option value="' + w + '">' + displayStr + '</option>'; 
             });
             
             document.getElementById('loading-status').style.display = 'none';
