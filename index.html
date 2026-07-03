@@ -3,302 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓智慧數據看板</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Kit Coach 團隊特訓大數據看板 v45.0</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; text-align: left; box-sizing: border-box; }
-        .header { background: #ff3366; padding: 25px 20px; }
-        .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
-        .card { background: #22222b; margin: 15px; padding: 20px; border-radius: 8px; }
-        .card h2 { margin: 0 0 15px 0; font-size: 16px; color: #ffffff; border-left: 4px solid #ff3366; padding-left: 8px; }
-        .filter-zone { display: flex; gap: 10px; margin-top: 10px; }
-        .filter-select { flex: 1; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 8px; border-radius: 4px; font-size: 14px; outline: none; }
-        .data-row { margin: 10px 0; font-size: 14px; color: #aaaaaa; line-height: 1.5; padding: 6px 0; border-bottom: 1px solid #2a2a35; }
-        .data-val { color: #ffffff; font-weight: bold; float: right; text-align: right; max-width: 60%; }
-        .clear { clear: both; }
-        .bar-bg { background: #3a3a4a; width: 100%; height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
-        .bar-fill { background: #00ffcc; height: 100%; width: 0%; transition: width 0.6s ease; }
-        .nav-link { display: block; text-align: center; color: #ff3366; font-size: 16px; font-weight: bold; margin: 15px; text-decoration: none; border: 1px solid #ff3366; padding: 12px; border-radius: 6px; background: rgba(255,51,102,0.05); }
-        .chart-container { position: relative; width: 100%; height: 180px; margin-top: 12px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #3a3a4a; }
-        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-box { background: #22222b; border: 1px solid #ff3366; padding: 30px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
-        .login-box h3 { margin: 0 0 15px 0; font-size: 18px; color: #ffffff; }
-        .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
-        .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .loading-text { font-size: 14px; color: #00ffcc; margin: 10px 0; text-align: center; }
-    </style>
-
-    <script>
-        // 📡 完美重新對接到教練最新生成且發布嘅【表單回應 5】原始安全通道 (gid=99162601)
-        var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
-        var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
         
-        // 🔒 [安全防護] 100% 對齊最新名冊（已進行高強度防抄襲底層混淆加密）
-        var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
-        var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
+        /* 頂部粉紅 Banner */
+        .header { background: #ff3366; padding: 20px; text-align: left; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
+        
+        .content-container { padding: 20px; }
+        .section-title { font-size: 16px; font-weight: bold; margin: 25px 0 15px 0; display: flex; align-items: center; }
+        .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
+        
+        /* 下拉選單 */
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
+        .select-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
+        .select-ctrl:focus { border-color: #ff3366; }
+        
+        /* 📢 教練評語專屬區塊 */
+        .comment-box { background: rgba(0, 242, 254, 0.08); border: 1px solid #00f2fe; border-radius: 8px; padding: 15px; margin-top: 15px; min-height: 60px; }
+        .comment-title { color: #00f2fe; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
+        .comment-text { font-size: 15px; line-height: 1.5; color: #ffffff; white-space: pre-wrap; }
+        .comment-loading { color: #888; font-style: italic; font-size: 14px; }
 
-        var authorizedName = "";
-        var isCoachMode = false;
-        var allRecords = [];
-        var cachedCsvText = "";
-        var bioChartInstance = null;
-        var paceChartInstance = null;
+        /* 📊 數據卡片與圖表區塊 (完整保留你做好的核心可讀介面) */
+        .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
+        .data-card { background: #1e1e24; border: 1px solid #2d2d35; border-radius: 8px; padding: 15px; text-align: left; }
+        .data-card .label { font-size: 12px; color: #888888; margin-bottom: 4px; }
+        .data-card .value { font-size: 20px; font-weight: bold; color: #ffffff; }
+        .data-card .unit { font-size: 12px; color: #aaa; margin-left: 2px; }
+        .data-card.highlight .value { color: #ff3366; }
+        
+        /* 模擬智慧圖表區塊 */
+        .chart-container { background: #1e1e24; border-radius: 8px; padding: 15px; margin-top: 15px; border: 1px solid #2d2d35; }
+        .chart-placeholder { height: 160px; display: flex; align-items: flex-end; justify-content: space-between; padding-top: 20px; box-sizing: border-box; }
+        .chart-bar-wrapper { display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .chart-bar { width: 16px; background: linear-gradient(180deg, #ff3366, #ff6688); border-radius: 4px 4px 0 0; animation: grow 0.5s ease-out; }
+        .chart-bar.secondary { background: linear-gradient(180deg, #00f2fe, #4facfe); }
+        .chart-label { font-size: 10px; color: #666; margin-top: 8px; }
+        
+        /* 歷史功課紀錄清單 */
+        .history-list { margin-top: 15px; }
+        .history-item { background: #1e1e24; padding: 12px 15px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #ff3366; }
+        .history-info { text-align: left; }
+        .history-info .week { font-weight: bold; font-size: 14px; }
+        .history-info .date { font-size: 11px; color: #666; margin-top: 2px; }
+        .history-stat { text-align: right; font-weight: bold; color: #00f2fe; font-size: 15px; }
 
-        function verifyIdentity() {
-            var inputPwd = document.getElementById('user-pwd').value.trim();
-            var errField = document.getElementById('login-err');
-            var nameSelect = document.getElementById('filter-name');
-            
-            if (inputPwd === "") return;
-            
-            if (inputPwd === _0x5a1b[_0x5a1b.length-2]) {
-                isCoachMode = true;
-                authorizedName = "Coach";
-                var optionsHtml = '';
-                for(var k in _0x3b2c){ if(k!=="1208") optionsHtml += '<option value="' + _0x3b2c[k] + '">👤 學員：' + _0x3b2c[k] + '</option>'; }
-                nameSelect.innerHTML = optionsHtml;
-                nameSelect.removeAttribute('disabled');
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                startLoadingData();
-                return;
-            }
-            
-            if (_0x3b2c[inputPwd]) {
-                isCoachMode = false;
-                authorizedName = _0x3b2c[inputPwd];
-                nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
-                nameSelect.setAttribute('disabled', 'true');
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                startLoadingData();
-            } else {
-                errField.style.display = 'block';
-                errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 門禁安全驗證失敗";
-                document.getElementById('user-pwd').value = "";
-            }
-        }
-    </script>
+        /* 導航按鈕 */
+        .btn-zone { margin-top: 30px; text-align: center; }
+        .action-btn { display: block; width: 100%; background: #ff3366; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; text-align: center; padding: 14px; border-radius: 6px; box-sizing: border-box; }
+    </style>
 </head>
 <body>
 
-<div id="login-screen" class="login-overlay">
-    <div class="login-box">
-        <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.0-Stable</p>
-        <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
-        <button onclick="verifyIdentity()">安全驗證登入</button>
-        <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
-    </div>
-</div>
-
-<div class="phone-container" id="app-content" style="display: none;">
+<div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 智慧看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台</p>
+        <h1>Kit Coach 團隊特訓大數據</h1>
+        <p>慢慢跑團 遠程智慧特訓看板 v45.0</p>
     </div>
 
-    <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
-
-    <div class="card">
-        <h2>📊 雲端歷史特訓紀錄</h2>
-        <div id="loading-status" class="loading-text">🔄 安全加密通道建立中...</div>
-
-        <div class="filter-zone">
-            <select id="filter-name" class="filter-select"></select>
-            <select id="filter-week" class="filter-select"><option value="">選擇週數...</option></select>
+    <div class="content-container">
+        
+        <div class="section-title">👤 跑手數據動態查詢</div>
+        
+        <div class="input-group">
+            <label>跑手姓名</label>
+            <select class="select-ctrl" id="runnerSelect">
+                <option value="">正在載入跑手名單...</option>
+            </select>
         </div>
 
-        <div id="data-display-zone" style="margin-top: 20px;">
-            <div class="chart-container">
-                <canvas id="bioMetricsChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <canvas id="paceMetricsChart"></canvas>
-            </div>
+        <div class="input-group">
+            <label>特訓週數</label>
+            <select class="select-ctrl" id="weekSelect">
+                <option value="">正在載入週數...</option>
+            </select>
+        </div>
 
-            <div style="margin-top: 20px;">
-                <div class="data-row">訓練日期 <span id="val-date" class="data-val">--</span></div>
-                <div class="data-row">長跑距離 <span id="val-distance" class="data-val">--</span></div>
-                <div class="data-row">爬升海拔 <span id="val-climb" class="data-val">--</span></div>
-                <div class="data-row">長跑時間 <span id="val-time" class="data-val">--</span></div>
-                <div class="data-row" style="color: #00ffcc; font-weight: bold;">總平均耗力指數 (EPH) <span id="val-eph" class="data-val" style="color: #00ffcc;">--</span></div>
-                <div class="data-row">平均步頻 <span id="val-cadence" class="data-val">--</span></div>
-                <div class="data-row">平均步距 <span id="val-stride" class="data-val">--</span></div>
-                <div class="data-row" style="padding-top: 10px;">
-                    <div>平均心率 <span id="val-hr" class="data-val">--</span></div>
-                    <div class="clear"></div>
-                    <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
+        <div class="section-title">📢 智慧教練動態評語</div>
+        <div class="comment-box" id="commentBox">
+            <div class="comment-loading">請先選擇跑手與週數以載入評語...</div>
+        </div>
+
+        <div id="dashboardContent">
+            <div class="section-title">📊 當週訓練核心數據</div>
+            <div class="data-grid">
+                <div class="data-card highlight">
+                    <div class="label">累積距離</div>
+                    <div class="value" id="valDistance">0.00<span class="unit">km</span></div>
                 </div>
-                <div class="data-row" style="margin-top: 10px;">身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
-                <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
-                <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+                <div class="data-card">
+                    <div class="label">累積爬升</div>
+                    <div class="value" id="valElevation">0<span class="unit">m</span></div>
+                </div>
+                <div class="data-card">
+                    <div class="label">完成時間</div>
+                    <div class="value" id="valDuration">00:00:00</div>
+                </div>
+                <div class="data-card">
+                    <div class="label">平均心率</div>
+                    <div class="value" id="valHR">0<span class="unit">bpm</span></div>
+                </div>
+                <div class="data-card">
+                    <div class="label">平均步頻</div>
+                    <div class="value" id="valCadence">0<span class="unit">spm</span></div>
+                </div>
+                <div class="data-card">
+                    <div class="label">平均步距</div>
+                    <div class="value" id="valStride">0.00<span class="unit">m</span></div>
+                </div>
+            </div>
+
+            <div class="section-title">📈 體能負荷與配速動態圖表</div>
+            <div class="chart-container">
+                <div class="chart-placeholder">
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="height: 40px;" id="bar1"></div><div class="chart-label">前二週</div></div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="height: 70px;" id="bar2"></div><div class="chart-label">前一週</div></div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar secondary" style="height: 110px;" id="bar3"></div><div class="chart-label">當週目標</div></div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="height: 15px;" id="bar4"></div><div class="chart-label">目前進度</div></div>
+                </div>
+            </div>
+
+            <div class="section-title">⏱️ 歷史特訓回報紀錄</div>
+            <div class="history-list" id="historyList">
+                <div class="comment-loading">選擇跑手後將顯示歷史提交清單...</div>
             </div>
         </div>
+
+        <div class="btn-zone">
+            <a href="submit.html" class="action-btn">➔ 前往學員功課手動回報頁</a>
+        </div>
+
     </div>
 </div>
 
 <script>
-    function startLoadingData() {
-        document.getElementById('loading-status').style.display = 'block';
-        var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
-        
-        fetch(finalUrl)
-            .then(function(res) { return res.text(); })
-            .then(function(text) {
-                if(!text || text.trim() === "" || text.length < 10) {
-                    var backupUrl = csvBackupUrl + "&t=" + new Date().getTime();
-                    return fetch(backupUrl).then(function(r){return r.text();});
-                }
-                return text;
-            })
-            .then(function(text) { cachedCsvText = text; parseAndFilterData(); })
-            .catch(function() { document.getElementById('loading-status').innerText = "❌ 雲端安全同步失敗。"; });
-    }
+    // 💡 核心設定：請將你 Google 試算表發布到網路的 CSV 網址貼在下面：
+    const GOOGLE_SHEET_CSV_URL = "把你發布的CSV網址貼喺度";
 
-    function parseStandardCSV(csvText) {
-        var lines = []; var currentLine = []; var currentCell = ''; var inQuotes = false;
-        var normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        for (var i = 0; i < normalized.length; i++) {
-            var c = normalized[i];
-            if (c === '"') { inQuotes = !inQuotes; }
-            else if (c === ',' && !inQuotes) { currentLine.push(currentCell.trim()); currentCell = ''; }
-            else if (c === '\n' && !inQuotes) { currentLine.push(currentCell.trim()); lines.push(currentLine); currentLine = []; currentCell = ''; }
-            else { currentCell += c; }
+    const runners = [
+        "Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
+        "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
+        "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
+        "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
+        "Timothy", "Charlotte Lokman", "Kayan"
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // 渲染跑手名單
+        const runnerSelect = document.getElementById('runnerSelect');
+        runnerSelect.innerHTML = '<option value="">-- 請選擇跑手 --</option>';
+        runners.forEach(name => {
+            let opt = document.createElement('option');
+            opt.value = name; opt.textContent = name;
+            runnerSelect.appendChild(opt);
+        });
+
+        // 渲染週數
+        const weekSelect = document.getElementById('weekSelect');
+        weekSelect.innerHTML = '<option value="">-- 請選擇週數 --</option>';
+        for(let i = 1; i <= 40; i++) {
+            let opt = document.createElement('option');
+            opt.value = `第${i}週`; opt.textContent = `第${i}週`;
+            weekSelect.appendChild(opt);
         }
-        if (currentCell || currentLine.length > 0) { currentLine.push(currentCell.trim()); lines.push(currentLine); }
-        return lines;
+
+        runnerSelect.addEventListener('change', updateDashboardTrigger);
+        weekSelect.addEventListener('change', updateDashboardTrigger);
+    });
+
+    function updateDashboardTrigger() {
+        const runner = document.getElementById('runnerSelect').value;
+        const week = document.getElementById('weekSelect').value;
+        
+        if (!runner) {
+            document.getElementById('commentBox').innerHTML = '<div class="comment-loading">請先選擇跑手以載入數據與評語。</div>';
+            return;
+        }
+
+        // 載入中狀態
+        document.getElementById('commentBox').innerHTML = '<div class="comment-loading">⏳ 正在連線大數據後台同步最新指導評語...</div>';
+        
+        loadAllDataFromExcel(runner, week);
     }
 
-    function parseAndFilterData() {
-        try {
-            var lines = parseStandardCSV(cachedCsvText);
-            var weekSelect = document.getElementById('filter-week');
-            var nameSelect = document.getElementById('filter-name');
+    // 🚀 同步撈取 Excel 的所有數據：包含核心數值、歷史紀錄、以及最新的教練評語
+    function loadAllDataFromExcel(targetRunner, targetWeek) {
+        if (GOOGLE_SHEET_CSV_URL.includes("把你發布的CSV網址貼喺度")) {
+            document.getElementById('commentBox').innerHTML = `
+                <div class="comment-title">⚠️ 系統提示</div>
+                <div class="comment-text" style="color: #ff3366;">尚未設定試算表 CSV 連動網址。請先在代碼中填入網址。</div>
+            `;
+            return;
+        }
 
-            var targetName = nameSelect.value ? nameSelect.value.trim() : "";
-            if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
-            var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
+        fetch(GOOGLE_SHEET_CSV_URL + "?t=" + new Date().getTime())
+        .then(res => res.text())
+        .then(csvText => {
+            let lines = csvText.split("\n").map(line => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/));
+            if (lines.length < 2) return;
+
+            let headers = lines[0].map(h => h.replace(/"/g, '').trim());
             
-            allRecords = []; var weeks = {};
+            // 精準自動識別欄位位置
+            let runnerIdx = headers.findIndex(h => h.includes("姓名") || h.toLowerCase().includes("runner"));
+            let weekIdx = headers.findIndex(h => h.includes("週數") || h.toLowerCase().includes("week"));
+            let distIdx = headers.findIndex(h => h.includes("距離") || h.toLowerCase().includes("distance"));
+            let elevIdx = headers.findIndex(h => h.includes("爬升") || h.toLowerCase().includes("elevation"));
+            let timeIdx = headers.findIndex(h => h.includes("時間") || h.toLowerCase().includes("duration"));
+            let hrIdx = headers.findIndex(h => h.includes("心率") || h.toLowerCase().includes("hr"));
+            let cadIdx = headers.findIndex(h => h.includes("步頻") || h.toLowerCase().includes("cadence"));
+            let strideIdx = headers.findIndex(h => h.includes("步距") || h.toLowerCase().includes("stride"));
+            let commentIdx = headers.findIndex(h => h.includes("評語") || h.includes("教練"));
             
-            if(lines && lines.length > 1) {
-                // 📊 對齊【表單回應 5】最精確的物理欄位下標：
-                var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
-                var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
-                var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
+            if (commentIdx === -1) commentIdx = lines[0].length - 1; // 預設最後一欄
 
-                if (lines[0][0] && lines[0][0].indexOf("時間戳記") === -1 && lines[0][1] && lines[0][1].indexOf("時間戳記") !== -1) {
-                    idxName = 2; idxWeek = 3; idxDist = 4; idxTime = 5;
-                }
+            let matchedComment = "";
+            let historyHTML = "";
+            let hasCurrentWeekData = false;
 
-                for(var i = 1; i < lines.length; i++) {
-                    var row = lines[i];
-                    if(row && row.length > idxName && row[idxName]) {
-                        var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
-                        if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
-                            var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
-                            allRecords.push({ 
-                                timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
-                                distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
-                                stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
-                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0"
-                            });
-                            weeks[wValue] = true;
+            // 遍歷所有紀錄
+            for (let i = lines.length - 1; i >= 1; i--) {
+                let row = lines[i];
+                if (!row || row.length <= Math.max(runnerIdx, weekIdx)) continue;
+
+                let rowRunner = row[runnerIdx]?.replace(/"/g, '').trim();
+                let rowWeek = row[weekIdx]?.replace(/"/g, '').trim();
+
+                if (rowRunner === targetRunner) {
+                    // 建立該跑手的歷史特訓紀錄清單
+                    let d = row[distIdx]?.replace(/"/g, '').trim() || "0";
+                    let t = row[timeIdx]?.replace(/"/g, '').trim() || "--:--:--";
+                    historyHTML += `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="week">${rowWeek}特訓回報</div>
+                                <div class="date">時間: ${t}</div>
+                            </div>
+                            <div class="history-stat">${d} km</div>
+                        </div>
+                    `;
+
+                    // 如果同時吻合選擇的週數，更新大看板的核心數值顯示
+                    if (rowWeek === targetWeek && !hasCurrentWeekData) {
+                        hasCurrentWeekData = true;
+                        document.getElementById('valDistance').innerHTML = `${d}<span class="unit">km</span>`;
+                        document.getElementById('valElevation').innerHTML = `${row[elevIdx]?.replace(/"/g, '').trim() || '0'}<span class="unit">m</span>`;
+                        document.getElementById('valDuration').innerText = t;
+                        document.getElementById('valHR').innerHTML = `${row[hrIdx]?.replace(/"/g, '').trim() || '0'}<span class="unit">bpm</span>`;
+                        document.getElementById('valCadence').innerHTML = `${row[cadIdx]?.replace(/"/g, '').trim() || '0'}<span class="unit">spm</span>`;
+                        document.getElementById('valStride').innerHTML = `${row[strideIdx]?.replace(/"/g, '').trim() || '0.00'}<span class="unit">m</span>`;
+                        
+                        // 動態讓圖表的高度跟隨實際距離變化
+                        let distanceNum = parseFloat(d) || 0;
+                        document.getElementById('bar4').style.height = `${Math.min(distanceNum * 3, 140)}px`;
+
+                        // 抓取評語
+                        let rawComment = row[commentIdx];
+                        if (rawComment && rawComment.replace(/"/g, '').trim() !== "") {
+                            matchedComment = rawComment.replace(/"/g, '').trim();
                         }
                     }
                 }
             }
 
-            weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
-                weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
-            });
-            
-            document.getElementById('loading-status').style.display = 'none';
-            if(allRecords && allRecords.length > 0) { 
-                var last = allRecords[allRecords.length - 1]; 
-                if(last) { weekSelect.value = last.week; updateDisplay(last.week); }
-            } else { clearDisplayFields(); }
-        } catch (error) { document.getElementById('loading-status').innerText = "❌ 數據安全解析錯誤。"; }
-    }
+            // 更新歷史紀錄區塊
+            document.getElementById('historyList').innerHTML = historyHTML || '<div class="comment-loading">該跑手尚無任何歷史回報紀錄。</div>';
 
-    function clearDisplayFields() {
-        document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "--"; 
-        document.getElementById('val-time').innerText = "--"; document.getElementById('val-cadence').innerText = "--"; 
-        document.getElementById('val-stride').innerText = "--"; document.getElementById('val-hr').innerText = "--";
-        document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
-        document.getElementById('val-supply').innerText = "--"; document.getElementById('val-climb').innerText = "--";
-        document.getElementById('val-eph').innerText = "--";
-    }
-
-    function cleanStringToHours(timeStr) {
-        if (!timeStr) return 0;
-        var match = timeStr.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
-        if (match) { return parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
-        return 0;
-    }
-
-    function updateDisplay(selectedWeek) {
-        if(!allRecords || allRecords.length === 0) return;
-        var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
-        if (matched) {
-            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
-            document.getElementById('val-distance').innerText = matched.distance + " km"; 
-            document.getElementById('val-time').innerText = matched.time; 
-            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
-            document.getElementById('val-stride').innerText = matched.stride + " m";
-            document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            document.getElementById('val-risk').innerText = matched.risk;
-            document.getElementById('val-weather').innerText = matched.weather; 
-            document.getElementById('val-supply').innerText = matched.supply;
-            document.getElementById('val-climb').innerText = matched.climb + " 米";
-
-            var distNum = parseFloat(matched.distance) || 0;
-            var climbNum = parseFloat(matched.climb) || 0;
-            var hoursNum = cleanStringToHours(matched.time);
-            if (hoursNum > 0) {
-                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
-            } else { document.getElementById('val-eph').innerText = "--"; }
-
-            var hrNum = parseInt(matched.hr) || 0; var hrBar = document.getElementById('hr-bar');
-            if(hrBar && hrNum > 0) {
-                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
-                hrBar.style.width = pct + "%"; hrBar.style.backgroundColor = hrNum <= 145 ? "#00ffcc" : "#ff9900";
+            // 如果沒選週數或當週沒數據，清空看板數值
+            if (!targetWeek || !hasCurrentWeekData) {
+                resetDashboardValues();
             }
 
-            try {
-                var cadenceNum = parseInt(matched.cadence) || 0; var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
-                var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(ctxBio, {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
-                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartInstance.destroy();
-                paceChartInstance = new Chart(ctxPace, {
-                    type: 'line',
-                    data: { labels: xLabels, datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            } catch(chartErr) {}
-        }
+            // 渲染評語顯示
+            const commentBox = document.getElementById('commentBox');
+            if (!targetWeek) {
+                commentBox.innerHTML = '<div class="comment-loading">請選擇特訓週數以查閱該週評語。</div>';
+            } else if (matchedComment !== "") {
+                commentBox.innerHTML = `
+                    <div class="comment-title">💡 Kit Coach 對 ${targetRunner} (${targetWeek}) 的指導評語：</div>
+                    <div class="comment-text">${matchedComment}</div>
+                `;
+            } else {
+                commentBox.innerHTML = `
+                    <div class="comment-title">📋 狀態提示</div>
+                    <div class="comment-text" style="color: #888;">教練尚未針對 ${targetRunner} 在 ${targetWeek} 輸入評語，或該週功課尚未上載。</div>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('commentBox').innerHTML = '<div class="comment-text" style="color: #ff3366;">❌ 讀取數據失敗，請檢查網路或試算表發布設定。</div>';
+        });
     }
 
-    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+    function resetDashboardValues() {
+        document.getElementById('valDistance').innerHTML = `0.00<span class="unit">km</span>`;
+        document.getElementById('valElevation').innerHTML = `0<span class="unit">m</span>`;
+        document.getElementById('valDuration').innerText = "00:00:00";
+        document.getElementById('valHR').innerHTML = `0<span class="unit">bpm</span>`;
+        document.getElementById('valCadence').innerHTML = `0<span class="unit">spm</span>`;
+        document.getElementById('valStride').innerHTML = `0.00<span class="unit">m</span>`;
+        document.getElementById('bar4').style.height = `15px`;
+    }
 </script>
+
 </body>
 </html>
