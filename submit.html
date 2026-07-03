@@ -2,55 +2,32 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>Kit Coach 團隊特訓大數據平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kit Coach 數據回報</title>
     <style>
-        /* 這裡放回你最喜歡、最完整嘅 CSS 樣式，我會確保它與你的 HTML 結構完美匹配 */
         body { background-color: #16161a; color: #fff; font-family: sans-serif; padding: 20px; }
-        .form-container { max-width: 412px; margin: 0 auto; }
-        .input-ctrl, .select-ctrl { width: 100%; padding: 12px; margin: 8px 0; background: #1e1e24; border: 1px solid #333; color: #fff; border-radius: 6px; }
-        .upload-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .upload-box { flex: 1; padding: 15px; border: 2px dashed #444; text-align: center; cursor: pointer; border-radius: 8px; }
-        .hidden-file { display: none; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .input-ctrl, .select-ctrl { width: 100%; padding: 12px; margin: 10px 0; background: #1e1e24; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="form-container">
-    <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST">
-        <div class="upload-row">
-            <label class="upload-box" for="fitFile">投放 .FIT 檔</label>
-            <input type="file" id="fitFile" class="hidden-file" accept=".fit">
-            <label class="upload-box" for="imgFile">上載截圖</label>
-            <input type="file" id="imgFile" class="hidden-file" accept="image/*">
-        </div>
-        
-        <select class="select-ctrl" name="entry.477574654" required>
-            <option value="">選擇跑手...</option>
-            <option value="Kit">Kit</option>
+    <div class="container">
+        <h2>特訓數據回報</h2>
+        <form action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST">
+            
+            <select class="select-ctrl" name="entry.477574654" required>
+                <option value="">選擇跑手...</option>
+                <option value="Kit">Kit</option><option value="Nien">Nien</option>
             </select>
 
-        <input type="text" class="input-ctrl" id="distance" name="entry.148761576" placeholder="長距離 (km)" required>
-        <button type="submit" class="select-ctrl" style="background:#ff3366; border:none;">確認提交</button>
-    </form>
-</div>
-
-<script>
-    // 嚴格只負責「解析到先填入」，解析唔到只彈提示，絕不亂清空數據
-    document.getElementById('fitFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                // 這裡放最穩陣的解析代碼，如果失敗就 catch
-                alert("已成功讀取檔案。");
-            } catch(e) {
-                alert("無法自動提取數據，請手動輸入。");
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    });
-</script>
+            <input type="password" class="input-ctrl" name="entry.595584756" placeholder="特訓密碼" required>
+            
+            <input type="text" class="input-ctrl" name="entry.148761576" placeholder="長距離 (km)" required>
+            <input type="text" class="input-ctrl" name="entry.1312042737" placeholder="爬升海拔 (米)" required>
+            
+            <button type="submit" class="btn">提交數據</button>
+        </form>
+    </div>
 </body>
 </html>
