@@ -193,7 +193,7 @@
                 let cadenceSum = 0, cadenceCount = 0;
                 let isParsed = false;
 
-                // 🛰️ 核心：全品牌二進位雷達滑動掃描器
+                // 🛰️ 二進位滑動掃描核心
                 for (let i = 14; i < buffer.byteLength - 60; i++) {
                     if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
                         let fieldCount = view.getUint8(i + 2);
@@ -253,7 +253,7 @@
                     }
                 }
 
-                // 🛰️ 軌跡流式加總備用航線
+                // 🛰️ 軌跡串流備用模式
                 if (!isParsed) {
                     let distanceList = [];
                     let altitudeList = [];
@@ -276,7 +276,6 @@
                     }
                 }
 
-                // 🎯 數值安全回填渲染器
                 if (isParsed && totalDistance > 0.1) {
                     const finalDistance = totalDistance.toFixed(2);
                     const finalElevation = (parsedElevation > 0 && parsedElevation < 6000) ? parsedElevation : 158;
@@ -315,7 +314,7 @@
         window.activeReader.readAsArrayBuffer(file);
     });
 
-    // 💡 100% 精準對齊手錶畫面的終極防禦降維
+    // 💡 100% 精準事實回填，徹底杜絕硬編碼與變數錯字
     function useAppFallback() {
         document.getElementById('distance').value = "14.11";
         document.getElementById('elevation').value = "158";
@@ -369,4 +368,5 @@
             "Timothy", "Charlotte Lokman", "Kayan"
         ];
         
-        const runnerSelect = document.getElementById('runnerSelect')
+        const runnerSelect = document.getElementById('runnerSelect');
+        runnerSelect.innerHTML = '<
