@@ -3,251 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v44.0</title>
+    <title>Kit Coach - 上報今日特訓功課</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
-        .header { background: #ff3366; padding: 20px; text-align: left; }
-        .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
-        .form-container { padding: 20px; }
-        .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
-        .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
-        .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
-        .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; }
-        .upload-box.fit { border: 2px dashed #00f2fe; }
-        .upload-box.img { border: 2px dashed #ff3366; }
-        .upload-box .icon { font-size: 24px; margin-bottom: 8px; display: block; text-align: center; width: 100%; }
-        .upload-box .title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
-        .upload-box.fit .title { color: #00f2fe; }
-        .upload-box.img .title { color: #ff3366; }
-        .upload-box .desc { font-size: 11px; color: #888888; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
-        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
-        .grid-2 { display: flex; gap: 12px; }
-        .grid-2 .input-group { flex: 1; }
-        
-        /* v36 體感 Badge 樣式 */
-        .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
-        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
-        .status-badge.active { background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; }
-        .status-badge.active.danger { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; }
-        
-        .nav-zone { text-align: center; margin-top: 30px; }
-        .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
-        .hidden-file { display: none !important; }
+        body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; text-align: center; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px; padding-bottom: 40px; box-sizing: border-box; text-align: left; }
+        .header { background: #ff3366; padding: 20px; margin: -20px -20px 20px -20px; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: bold; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 6px; color: #aaaaaa; font-weight: bold; }
+        .form-control { width: 100%; background: #2a2a35; border: 1px solid #ff3366; color: #ffffff; padding: 10px; border-radius: 4px; font-size: 15px; box-sizing: border-box; outline: none; }
+        .form-control:focus { border-color: #00ffcc; }
+        select.form-control { height: 42px; }
+        .btn-submit { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        .btn-submit:hover { background: #e02e5b; }
+        .nav-back { display: block; text-align: center; color: #ff3366; font-size: 14px; margin-top: 20px; text-decoration: none; }
     </style>
 </head>
 <body>
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v44.0</p>
+        <h1>📝 上報今日特訓功課</h1>
+        <p>慢慢跑團 遠程特訓數據同步表單</p>
     </div>
 
-    <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感指標）已完美同步至 Google Form 後台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+    <form action="https://docs.google.com/forms/d/e/1FAIpQLScl9Cenw6uBbeN6_76P1q9-A_LwXU8_3pQG6qL_G2vM1Y0Ulw/formResponse" method="POST" target="_self">
         
-        <form id="trainingForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true;">
-            <div class="section-title">📝 步驟一：學員功課手動回報</div>
-            
-            <div class="upload-row">
-                <div class="upload-box fit" id="fitTrigger">
-                    <span class="icon">⚡</span>
-                    <div class="title">投放 .FIT 原始檔</div>
-                    <div class="desc">任選路線．智慧動態自動拆段</div>
-                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
-                </div>
-                <div class="upload-box img" id="imgTrigger">
-                    <span class="icon">📸</span>
-                    <div class="title">上載數據截圖</div>
-                    <div class="desc">支援多圖智慧補完</div>
-                    <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>學員姓名</label>
-                <select class="select-ctrl" name="entry.1882046892" id="runnerSelect" required>
-                    <option value="">正在載入跑手...</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label>特訓密碼 (請輸入個人登入密碼)</label>
-                <input type="text" class="input-ctrl" placeholder="e.g. 1000" id="passwordInput" required>
-                <input type="hidden" name="entry.1508218683" id="realPasswordColumn">
-            </div>
-
-            <div class="input-group">
-                <label>特訓週數</label>
-                <select class="select-ctrl" name="entry.1432130528" id="weekSelect" required>
-                    <option value="">正在載入週數...</option>
-                </select>
-            </div>
-
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>長距離 (km)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="entry.480031853" required>
-                </div>
-                <div class="input-group">
-                    <label>爬升海拔 (米)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="entry.785461947" required>
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>長跑時間</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="entry.1118126830" required>
-                </div>
-                <div class="input-group">
-                    <label>平均步頻 (spm)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="entry.1017417937" required>
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>平均心率 (bpm)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="entry.1353272993" required>
-                </div>
-                <div class="input-group">
-                    <label>平均步距 (m)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="entry.848206253" required>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>身體風險 (可複選)</label>
-                <div class="badge-container" id="riskContainer">
-                    <div class="status-badge active" data-value="良好">良好 (無傷痛)</div>
-                    <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
-                    <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
-                    <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>環境天氣</label>
-                <div class="badge-container" id="weatherContainer">
-                    <div class="status-badge active" data-value="舒適常溫">舒適常溫</div>
-                    <div class="status-badge" data-value="炎熱高溫">炎熱高溫</div>
-                    <div class="status-badge" data-value="大雨濕滑">大雨濕滑</div>
-                    <div class="status-badge" data-value="強風逆風">強風逆風</div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>補給問題</label>
-                <div class="badge-container" id="supplyContainer">
-                    <div class="status-badge active" data-value="補給正常">補給正常</div>
-                    <div class="status-badge" data-value="後半段抽筋/缺水">後半段抽筋/缺水</div>
-                    <div class="status-badge" data-value="能量不足/撞牆">能量不足/撞牆</div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 30px;">
-                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer;">確認提交功課 ➔</button>
-            </div>
-        </form>
-        
-        <div class="nav-zone">
-            <a href="index.html" class="nav-link">⬅ 返回智慧看板主頁</a>
+        <div class="form-group">
+            <label>👤 學員姓名</label>
+            <select name="entry.1848529239" class="form-control" required>
+                <option value="">請選擇你的名字...</option>
+                <option value="Kit">Kit</option>
+                <option value="Nein">Nein</option>
+                <option value="Simon">Simon</option>
+                <option value="Alex">Alex</option>
+                <option value="Sun">Sun</option>
+                <option value="Jackson">Jackson</option>
+                <option value="Joy">Joy</option>
+                <option value="George">George</option>
+                <option value="Lip">Lip</option>
+                <option value="Wing_PTL">Wing_PTL</option>
+                <option value="Jason_PTL">Jason_PTL</option>
+                <option value="Alwyn">Alwyn</option>
+                <option value="Camille">Camille</option>
+                <option value="Fion">Fion</option>
+                <option value="Daniel">Daniel</option>
+                <option value="KingYan">KingYan</option>
+                <option value="Szero">Szero</option>
+                <option value="Frances">Frances</option>
+                <option value="Bianca">Bianca</option>
+                <option value="Mabel">Mabel</option>
+                <option value="Avis">Avis</option>
+                <option value="Jason">Jason</option>
+                <option value="Jerry">Jerry</option>
+                <option value="Rita">Rita</option>
+                <option value="Ruby">Ruby</option>
+                <option value="Calvin Siu">Calvin Siu</option>
+                <option value="Thomas">Thomas</option>
+                <option value="Yin Wai">Yin Wai</option>
+                <option value="Gary">Gary</option>
+                <option value="Lois">Lois</option>
+                <option value="Gaby">Gaby</option>
+                <option value="Carol">Carol</option>
+                <option value="Timothy">Timothy</option>
+                <option value="Charlotte Lokman">Charlotte Lokman</option>
+                <option value="Kayan">Kayan</option>
+            </select>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label>📅 特訓週數</label>
+            <input type="number" name="entry.1436444850" class="form-control" placeholder="例如：1" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label>🏃‍♂️ 長跑距離 (km)</label>
+            <input type="number" name="entry.1708819545" class="form-control" placeholder="例如：12.5" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label>⏱️ 長跑時間 (格式必須為 HH:MM:SS)</label>
+            <input type="text" name="entry.1189445163" class="form-control" placeholder="例如：01:15:30" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" required>
+        </div>
+
+        <div class="form-group">
+            <label>👟 平均步頻 (spm)</label>
+            <input type="number" name="entry.1979927909" class="form-control" placeholder="例如：180" required>
+        </div>
+
+        <div class="form-group">
+            <label>📏 平均步距 (米/m)</label>
+            <input type="number" name="entry.159392376" class="form-control" placeholder="例如：0.95" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label>❤️ 平均心率 (bpm)</label>
+            <input type="number" name="entry.1287661073" class="form-control" placeholder="例如：142" required>
+        </div>
+
+        <div class="form-group">
+            <label>⛰️ 爬升海拔 (米)</label>
+            <input type="number" name="entry.1341144089" class="form-control" placeholder="例如：150" required>
+        </div>
+
+        <div class="form-group">
+            <label>☀️ 環境天氣</label>
+            <input type="text" name="entry.1565541604" class="form-control" placeholder="例如：晴天 / 微風 22度" required>
+        </div>
+
+        <div class="form-group">
+            <label>⚠️ 身體風險與體感問題</label>
+            <select name="entry.116560372" class="form-control" required>
+                <option value="良好">良好 (無痛楚、體感正常)</option>
+                <option value="輕微疲勞">輕微疲勞 (肌肉正常酸痛)</option>
+                <option value="關節不適">關節不適 (需特別留意)</option>
+                <option value="有受傷風險">⚠️ 有受傷風險 (有痛楚，建議停練)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>🍼 補給狀況或遇到的問題</label>
+            <textarea name="entry.1972583561" class="form-control" rows="3" placeholder="例如：第8公里的時候抽筋 / 能量啫喱不夠 / 補水正常..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">🚀 安全提交特訓數據</button>
+    </form>
+
+    <a href="index.html" class="nav-back">⬅️ 返回智慧數據看板</a>
 </div>
 
-<script>
-    let submitted = false;
-
-    document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
-    document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
-
-    document.getElementById('fitFile').addEventListener('change', function() {
-        if(this.files.length > 0) {
-            document.getElementById('distance').value = "34.14";
-            document.getElementById('elevation').value = "2222";
-            document.getElementById('duration').value = "06:48:21";
-            document.getElementById('cadence').value = "175";
-            document.getElementById('hr').value = "142";
-            document.getElementById('stride').value = "1.15";
-            alert('⚡ .FIT 運動檔自動數據提取已補完！');
-            updateCombinedNotes();
-        }
-    });
-
-    function setupBadges(containerId, isMultiple = false) {
-        const container = document.getElementById(containerId);
-        container.addEventListener('click', function(e) {
-            if (e.target.classList.contains('status-badge')) {
-                if (!isMultiple) {
-                    container.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                } else {
-                    e.target.classList.toggle('active');
-                    if (e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
-                        container.querySelectorAll('.status-badge').forEach(b => {
-                            if(!b.innerText.includes('良好')) b.classList.remove('active');
-                        });
-                    } else if (!e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
-                        container.querySelectorAll('.status-badge').forEach(b => {
-                            if(b.innerText.includes('良好')) b.classList.remove('active');
-                        });
-                    }
-                }
-                updateCombinedNotes();
-            }
-        });
-    }
-    setupBadges('riskContainer', true);
-    setupBadges('weatherContainer', false);
-    setupBadges('supplyContainer', false);
-
-    function updateCombinedNotes() {
-        const password = document.getElementById('passwordInput').value;
-        const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(',');
-        const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常';
-        const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常';
-        
-        document.getElementById('realPasswordColumn').value = `${password} [風險:${risks}|天氣:${weather}|補給:${supply}]`;
-    }
-
-    document.getElementById('passwordInput').addEventListener('input', updateCombinedNotes);
-
-    function resetBadges() {
-        document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
-        document.querySelector('#riskContainer [data-value="良好"]').classList.add('active');
-        document.querySelector('#weatherContainer [data-value="舒適常溫"]').classList.add('active');
-        document.querySelector('#supplyContainer [data-value="補給正常"]').classList.add('active');
-        updateCombinedNotes();
-        submitted = false;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        const runners = ["Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
-        const runnerSelect = document.getElementById('runnerSelect');
-        runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
-        runners.forEach(name => {
-            let opt = document.createElement('option');
-            opt.value = name; opt.textContent = name;
-            runnerSelect.appendChild(opt);
-        });
-
-        // 🎯 100% 精準對齊新表單格式（無空格：第1週～第40週）
-        const weekSelect = document.getElementById('weekSelect');
-        weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-        for(let i = 1; i <= 40; i++) {
-            let opt = document.createElement('option');
-            opt.value = `第${i}週`; 
-            opt.textContent = `第${i}週`;
-            weekSelect.appendChild(opt);
-        }
-        updateCombinedNotes();
-    });
-</script>
 </body>
 </html>
