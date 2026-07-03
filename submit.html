@@ -3,30 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kit Coach 數據回報</title>
+    <title>Kit Coach 團隊特訓大數據平台</title>
     <style>
         body { background-color: #16161a; color: #fff; font-family: sans-serif; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; }
-        .input-ctrl, .select-ctrl { width: 100%; padding: 12px; margin: 10px 0; background: #1e1e24; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .form-container { max-width: 412px; margin: 0 auto; }
+        .input-ctrl, .select-ctrl { width: 100%; padding: 12px; margin: 8px 0; background: #1e1e24; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .section-title { font-size: 16px; margin: 20px 0; color: #fff; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>特訓數據回報</h2>
+    <div class="form-container">
+        <h1>Kit Coach 團隊特訓大數據平台</h1>
         <form action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST">
+            <div class="section-title">學員功課手動回報</div>
             
             <select class="select-ctrl" name="entry.477574654" required>
                 <option value="">選擇跑手...</option>
-                <option value="Kit">Kit</option><option value="Nien">Nien</option>
+                <option value="Kit">Kit</option>
+                <option value="Nien">Nien</option>
+                <option value="Simon">Simon</option>
+                <option value="Alex">Alex</option>
+                <option value="Sun">Sun</option>
+                <option value="Jackson">Jackson</option>
+                <option value="Joy">Joy</option>
+                <option value="George">George</option>
+                <option value="Lip">Lip</option>
             </select>
 
             <input type="password" class="input-ctrl" name="entry.595584756" placeholder="特訓密碼" required>
-            
             <input type="text" class="input-ctrl" name="entry.148761576" placeholder="長距離 (km)" required>
             <input type="text" class="input-ctrl" name="entry.1312042737" placeholder="爬升海拔 (米)" required>
+            <input type="text" class="input-ctrl" name="entry.1180292056" placeholder="長跑時間 (HH:MM:SS)" required>
             
-            <button type="submit" class="btn">提交數據</button>
+            <button type="submit" class="btn">確認提交</button>
         </form>
     </div>
 </body>
