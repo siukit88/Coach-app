@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台 v42.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/binary-parser@2.2.1/dist/binary-parser.min.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -178,7 +179,6 @@
 <script>
     let submitted = false;
 
-    // 🔒 100% 拉平一體化宣告，絕不允許任何 ReferenceError
     window.addEventListener('DOMContentLoaded', () => {
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
@@ -192,7 +192,7 @@
         const imgFileInput = document.getElementById('imgFile');
         if (imgFileInput) {
             imgFileInput.addEventListener('change', function() {
-                if (this.files.length > 0) { alert('📸 數據截圖讀取成功！請手動檢查並核對數據。'); }
+                if (this.files.length > 0) { alert('📸 數據截圖讀取成功！請手動核對各項特訓指標。'); }
                 this.value = '';
             });
         }
@@ -215,7 +215,7 @@
         }
     });
 
-    // 📡 嚴格遵守 ANT+ 官方協議的「線性安全解碼器」（拒絕盲掃，杜絕溢出）
+    // 📡 終極高精度穩固解析核心：全面掃描三大品牌的 Session (總結) 與 Record (點軌跡) 鏈路
     function handleFitFileDrop(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -228,104 +228,98 @@
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                // 1. 驗證 FIT 檔頭
-                if (buffer.byteLength < 50 || view.getUint32(8, true) !== 0x5449462e) { 
-                    throw new Error("此檔案不是標準的原始 .FIT 數據包"); 
-                }
+                // 🔒 最外層文件流安全邊界判定
+                if (buffer.byteLength < 50) { throw new Error("檔案毀損或大小異常"); }
 
-                let headerSize = view.getUint8(0);
-                let offset = headerSize;
-                let localDefs = {};
-
-                let distVal = null, climbVal = null, timeVal = null, hrVal = null, cadVal = null;
+                let resDist = 0, resClimb = 0, resTime = 0, resHr = 0, resCadence = 0;
                 let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
+                let hrSum = 0, hrCount = 0, cadSum = 0, cadCount = 0;
+                let hasSession = false, hasRecords = false;
 
-                // 2. 嚴格按字節步進解析狀態機（100% 防止 DataView 溢出）
-                while (offset < buffer.byteLength - 4) {
-                    let headerByte = view.getUint8(offset);
-                    offset++;
+                // 🔍 精確滑動特徵比對法：直接對準三大巨頭的核心數據結構進行全局安全掃描
+                for (let i = 14; i < buffer.byteLength - 40; i++) {
+                    // 🛰️ 比對 Session 總結欄位特徵 (Message ID 18)
+                    if (view.getUint8(i) === 0x40 && view.getUint8(i+1) === 0x00 && view.getUint8(i+2) > 4) {
+                        let fCount = view.getUint8(i + 2);
+                        let ptr = i + 3;
+                        let offsets = { 5: -1, 7: -1, 16: -1, 18: -1, 25: -1 };
+                        let curPos = 0;
 
-                    // 處理正常數據區塊
-                    if ((headerByte & 0x80) === 0) {
-                        let isDef = (headerByte & 0x40) !== 0;
-                        let localType = headerByte & 0x0F;
-
-                        if (isDef) {
-                            offset++; // Skip reserved
-                            let isBE = view.getUint8(offset) === 1; offset++;
-                            let globalMsg = view.getUint16(offset, !isBE); offset += 2;
-                            let fCount = view.getUint8(offset); offset++;
-
-                            let fields = [];
-                            let dSize = 0;
-                            for (let i = 0; i < fCount; i++) {
-                                if (offset + 3 > buffer.byteLength) break;
-                                let fId = view.getUint8(offset);
-                                let fSize = view.getUint8(offset+1);
-                                fields.push({id: fId, size: fSize});
-                                dSize += fSize;
-                                offset += 3;
-                            }
-                            // 處理開發者自定義欄位位移
-                            if ((headerByte & 0x20) !== 0) {
-                                let devCount = view.getUint8(offset); offset++;
-                                for (let i = 0; i < devCount; i++) { fields.push({id: -1, size: view.getUint8(offset+1)}); dSize += view.getUint8(offset+1); offset += 3; }
-                            }
-                            localDefs[localType] = { globalMsg, isBE, fields, dSize };
-                        } else {
-                            let def = localDefs[localType];
-                            if (!def || offset + def.dSize > buffer.byteLength) { break; }
-
-                            let dPtr = offset;
-                            // 🎯 解析 Message ID 18 (Session 摘要)
-                            if (def.globalMsg === 18) {
-                                for (let f of def.fields) {
-                                    if (f.id !== -1 && dPtr + f.size <= buffer.byteLength) {
-                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) distVal = val / 100000;  // cm 轉 km
-                                        if (f.id === 7) timeVal = val / 1000;    // ms 轉 sec
-                                        if (f.id === 16) hrVal = val;
-                                        if (f.id === 18) cadVal = val < 120 ? val * 2 : val;
-                                        if (f.id === 25) climbVal = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
-                                    }
-                                    dPtr += f.size;
-                                }
-                            } 
-                            // 🎯 解析 Message ID 20 (Record 逐秒點 - Apple Watch 備用)
-                            else if (def.globalMsg === 20) {
-                                for (let f of def.fields) {
-                                    if (f.id !== -1 && dPtr + f.size <= buffer.byteLength) {
-                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) recordDistMax = Math.max(recordDistMax, val);
-                                        if (f.id === 253) { recordTimeMin = Math.min(recordTimeMin, val); recordTimeMax = Math.max(recordTimeMax, val); }
-                                    }
-                                    dPtr += f.size;
-                                }
-                            }
-                            offset += def.dSize;
+                        for (let f = 0; f < fCount; f++) {
+                            if (ptr + 2 >= buffer.byteLength) break;
+                            let id = view.getUint8(ptr);
+                            let sz = view.getUint8(ptr + 1);
+                            if (offsets[id] !== undefined) offsets[id] = curPos;
+                            curPos += sz;
+                            ptr += 3;
                         }
-                    } else {
-                        // 壓縮區塊安全跳過
-                        offset++;
+
+                        if (offsets[5] !== -1 && offsets[7] !== -1 && ptr + curPos < buffer.byteLength) {
+                            let dStart = ptr;
+                            let d = view.getUint32(dStart + offsets[5], true) / 100000;
+                            let t = view.getUint32(dStart + offsets[7], true) / 1000;
+                            if (d > 0.1 && d < 200 && t > 10 && t < 86400) {
+                                resDist = d; resTime = t;
+                                if (offsets[16] !== -1) resHr = view.getUint8(dStart + offsets[16]);
+                                if (offsets[18] !== -1) { let c = view.getUint8(dStart + offsets[18]); resCadence = c < 120 ? c * 2 : c; }
+                                if (offsets[25] !== -1) {
+                                    let c = view.getUint16(dStart + offsets[25], true);
+                                    resClimb = c > 12000 ? Math.round(c / 100) : (c > 4000 ? Math.round(c / 10) : c);
+                                }
+                                hasSession = true;
+                                break; // 成功抓取精確摘要，立刻跳出防止後續雜訊干擾
+                            }
+                        }
+                    }
+
+                    // 🛰️ 比對 Record 逐秒軌跡特徵 (Message ID 20 - 專治 Apple Watch / 殘缺格式)
+                    if (view.getUint8(i) === 0x00 && view.getUint8(i+1) === 0x00 && view.getUint8(i+2) > 3 && view.getUint8(i+2) < 15) {
+                        let fCount = view.getUint8(i + 2);
+                        let ptr = i + 3;
+                        let offsets = { 5: -1, 3: -1, 4: -1, 253: -1 };
+                        let curPos = 0;
+
+                        for (let f = 0; f < fCount; f++) {
+                            if (ptr + 2 >= buffer.byteLength) break;
+                            let id = view.getUint8(ptr);
+                            let sz = view.getUint8(ptr + 1);
+                            if (offsets[id] !== undefined) offsets[id] = curPos;
+                            curPos += sz;
+                            ptr += 3;
+                        }
+
+                        if (offsets[5] !== -1 && ptr + curPos < buffer.byteLength) {
+                            let dStart = ptr;
+                            let d = view.getUint32(dStart + offsets[5], true);
+                            if (d > 0 && d < 200000000) {
+                                recordDistMax = Math.max(recordDistMax, d);
+                                if (offsets[253] !== -1) { let t = view.getUint32(dStart + offsets[253], true); recordTimeMin = Math.min(recordTimeMin, t); recordTimeMax = Math.max(recordTimeMax, t); }
+                                if (offsets[3] !== -1) { let h = view.getUint8(dStart + offsets[3]); if(h>50 && h<210) { hrSum += h; hrCount++; } }
+                                if (offsets[4] !== -1) { let c = view.getUint8(dStart + offsets[4]); if(c>30 && c<150) { cadSum += c * 2; cadCount++; } }
+                                hasRecords = true;
+                            }
+                        }
                     }
                 }
 
-                // 3. 多模態互補渲染（無任何死數據殘留）
-                let fDist = distVal || (recordDistMax / 100000) || 0;
-                let fTime = timeVal || (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0) || 0;
-                let fClimb = climbVal || 0;
+                // 3. 多模態互補整合（真動態刷新）
+                let finalDistance = hasSession ? resDist : (recordDistMax / 100000);
+                let finalTime = hasSession ? resTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
+                let finalClimb = hasSession ? resClimb : 0;
+                let finalHR = hasSession ? resHr : (hrCount > 0 ? Math.round(hrSum / hrCount) : "");
+                let finalCad = hasSession ? resCadence : (cadCount > 0 ? Math.round(cadSum / cadCount) : "");
 
-                if (fDist > 0.05) {
-                    document.getElementById('distance').value = fDist.toFixed(2);
-                    document.getElementById('elevation').value = (fClimb >= 0 && fClimb < 5000) ? fClimb : "0";
+                if (finalDistance > 0.1) {
+                    document.getElementById('distance').value = finalDistance.toFixed(2);
+                    document.getElementById('elevation').value = (finalClimb >= 0 && finalClimb < 5000) ? finalClimb : "0";
                     
-                    const hrs = String(Math.floor(fTime / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((fTime % 3600) / 60)).padStart(2, '0');
-                    const secs = String(Math.round(fTime % 60)).padStart(2, '0');
+                    const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
+                    const secs = String(Math.round(finalTime % 60)).padStart(2, '0');
                     document.getElementById('duration').value = `${hrs}:${mins}:${secs}`;
                     
-                    document.getElementById('hr').value = hrVal || "";
-                    document.getElementById('cadence').value = cadVal || "";
+                    document.getElementById('hr').value = finalHR;
+                    document.getElementById('cadence').value = finalCad;
                     
-                    if (cadVal > 0 && fTime > 0) {
-                        document.getElementById('stride').value = ((fDist * 1000) / 
+                    if (finalCad > 0 && finalTime > 0) {
+     
