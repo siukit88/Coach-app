@@ -36,9 +36,9 @@
     </style>
 
     <script>
-        // 📡 完美重新對接到教練最新生成且發布嘅【表單回應 5】原始安全通道 (gid=99162601)
+        // 📡 【表單回應 5】原始安全通道 (gid=99162601)
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
-        var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
+        var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
         
         // 🔒 [安全防護] 100% 對齊最新名冊
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
@@ -93,7 +93,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.1-Stable</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.2-Stable</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -197,12 +197,22 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 📊 完美的物理欄位下標鎖定：
-                var idxName = 1; var idxPwdPack = 2; var idxWeek = 3; var idxDist = 4; var idxClimb = 5;
-                var idxTime = 6; var idxCadence = 7; var idxHr = 8; var idxStride = 9;
-                var idxRisk = 10; var idxWeather = 11; var idxSupply = 12; var idxComment = 13; // M 欄或 N 欄
+                // 📊 修正對齊：最安全可靠的 B 欄 (Index 1) 姓名過濾
+                var idxName = 1; 
+                var idxPwdPack = 2; 
+                var idxWeek = 3; 
+                var idxDist = 4; 
+                var idxClimb = 5;
+                var idxTime = 6; 
+                var idxCadence = 7; 
+                var idxHr = 8; 
+                var idxStride = 9;
+                var idxRisk = 10; 
+                var idxWeather = 11; 
+                var idxSupply = 12; 
+                var idxComment = 13; 
 
-                // 檢查是否有「時間戳記」平移情況
+                // 檢查是否有第一欄是「時間戳記」以外的異常平移情況
                 if (lines[0][0] && lines[0][0].indexOf("時間戳記") === -1 && lines[0][1] && lines[0][1].indexOf("時間戳記") !== -1) {
                     idxName = 2; idxPwdPack = 3; idxWeek = 4; idxDist = 5; idxClimb = 6; idxTime = 7; idxCadence = 8; idxHr = 9; idxStride = 10;
                     idxRisk = 11; idxWeather = 12; idxSupply = 13; idxComment = 14;
@@ -214,16 +224,12 @@
                         var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             
-                            var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "第1週";
+                            var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             
-                            // 💡 修正Bug：這裡安全使用固定下標與防呆
+                            // 💡 修正與防呆
                             var rawCommentVal = "";
-                            if (row.length > idxComment) {
-                                rawCommentVal = row[idxComment] || "";
-                            }
-                            
-                            // 避免誤把帶有特殊括號的密碼包當成評語
-                            if(rawCommentVal && rawCommentVal.indexOf('[') !== -1 && rawCommentVal.indexOf(']') !== -1) { rawCommentVal = ""; } 
+                            if (row.length > idxComment) { rawCommentVal = row[idxComment] || ""; }
+                            if (rawCommentVal && rawCommentVal.indexOf('[') !== -1) { rawCommentVal = ""; } 
 
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, rawPwd: row[idxPwdPack]||"--",
@@ -242,7 +248,6 @@
             }
 
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            // 週數智慧排序
             Object.keys(weeks).sort(function(a,b){
                 var numA = parseInt(a.match(/\d+/)) || 0;
                 var numB = parseInt(b.match(/\d+/)) || 0;
@@ -319,4 +324,4 @@
 
             var hrNum = parseInt(matched.hr) || 0; var hrBar = document.getElementById('hr-bar');
             if(hrBar && hrNum > 0) {
-                var p
+                var pct = Math.min(100, Math.max(10, (hrNum / 200) 
