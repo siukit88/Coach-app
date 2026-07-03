@@ -29,7 +29,7 @@
         .grid-2 { display: flex; gap: 12px; }
         .grid-2 .input-group { flex: 1; }
         .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
-        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
+        .status-badge { inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
         .status-badge.active { background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; }
         .status-badge.active.danger { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; }
         .nav-zone { text-align: center; margin-top: 30px; }
@@ -162,8 +162,10 @@
 </div>
 
 <script>
-    // 🔒 隔離安全線一：最優先、無套件 UI 初始化
-    // 100% 保證名冊與週數選單在網頁打開時秒速生成，徹底根除死機問題。
+    let submitted = false;
+
+    // 🔒 隔離安全防護線一：網頁基礎 UI 初始化
+    // 徹底拔除任何容易出錯的二進位變數，網頁一打開，名冊和選單 100% 秒速生成，絕對不會卡死！
     window.addEventListener('DOMContentLoaded', () => {
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
@@ -194,7 +196,6 @@
             }
         }
 
-        // 綁定基礎點擊導向
         const fitTrigger = document.getElementById('fitTrigger');
         if (fitTrigger) fitTrigger.addEventListener('click', () => document.getElementById('fitFile').click());
         
@@ -206,7 +207,7 @@
         setupBadges('supplyContainer', false);  
     });
 
-    // 📡 隔離安全線二：動態核心。僅針對 Garmin, Suunto, Apple Watch 標準位移解碼
+    // 📡 隔離安全防護線二：精確特徵偏移定位狀態機（僅相容 Garmin, Suunto, Apple Watch）
     const fitFileInput = document.getElementById('fitFile');
     if (fitFileInput) {
         fitFileInput.addEventListener('change', function(e) {
@@ -222,17 +223,17 @@
 
             window.activeReader = new FileReader();
             window.activeReader.onload = function(event) {
-                // 所有二進位運算封裝在純淨沙盒中，任何未知格式或解碼位移錯誤皆會被內部消化，絕不干擾主 UI 運作
+                // 將所有解析運算封裝在純淨沙盒中，若出錯一律執行清空並 Alert，絕不殘留舊數據
                 try {
                     const buffer = event.target.result;
                     const view = new DataView(buffer);
                     
-                    if (buffer.byteLength < 100) { throw new Error("Invalid file"); }
+                    if (buffer.byteLength < 100) { throw new Error("Invalid Size"); }
 
                     let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
                     let isParsed = false;
 
-                    // 🛰️ 【模式一】加明、頌拓標準 Session 總結層區塊遍歷
+                    // 🛰️ 【模式一】加明、頌拓標準 Session 總結層區塊掃描
                     for (let i = 14; i < buffer.byteLength - 60; i++) {
                         if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
                             let fieldCount = view.getUint8(i + 2);
@@ -268,7 +269,6 @@
                                         resDist = tempDist;
                                         resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
 
-                                        // ⛰️ 頌拓自定義寬度與計量自我校正
                                         if (climbOffset !== -1) {
                                             let rawClimb = view.getUint16(dataStart + climbOffset, true);
                                             if (rawClimb > 8000) {
@@ -289,7 +289,7 @@
                         }
                     }
 
-                    // 🛰️ 【模式二】蘋果 Record 軌跡流單點累加備用機制
+                    // 🛰️ 【模式二】蘋果 Record 軌跡流單點累加備用航線
                     if (!isParsed) {
                         let maxDistRecord = 0;
                         let hrList = [], cadList = [];
@@ -319,7 +319,7 @@
                         }
                     }
 
-                    // 🎯 3. 真動態即時跳變回填（徹底剔除所有歷史殘留的未定義錯誤函數）
+                    // 🎯 真動態即時跳變回填（完全移除所有拼錯、殘留的未定義錯誤變數）
                     if (isParsed && resDist && resDist > 0.1) {
                         const finalDistance = resDist.toFixed(2);
                         const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
@@ -352,12 +352,13 @@
                         document.getElementById('cadence').value = finalCad;
                         document.getElementById('stride').value = finalStride;
 
-                        alert(`⚡ 功課數據動態提取成功！\n🏃 里程: ${finalDistance} km\n⛰️ 爬升: ${finalElevation} 米`);
+                        alert(`⚡ 運動數據動態解讀成功！\n🏃 里程: ${finalDistance} km\n⛰️ 爬升: ${finalElevation} 米`);
                     } else {
-                        throw new Error("Parse failed");
+                        throw new Error("Parse Failed");
                     }
 
                 } catch (err) {
                     console.error(err);
-                    // ❌ 實踐承諾：解析失敗一律直接清空表格，絕不硬塞任何固定死數據！
-                    clearAllFiel
+                    // ❌ 履行承諾：只要解析不匹配或出錯，立刻將表格全數清空，絕不硬塞任何 14.11 的死數據！
+                    clearAllFields();
+                    alert('❌ 無法識別此 FIT
