@@ -162,7 +162,10 @@
 </div>
 
 <script>
-    // 🛠️ 第一優先隔離線：基礎 UI（名冊、週數選單）直接載入，確保網頁絕不死機
+    let submitted = false;
+
+    // 🔒 隔離層一：最高安全級網頁初始化。
+    // 與二進位邏輯 100% 斷絕聯絡，網頁一打開，名冊選單和按鈕絕對秒速正常生成，永不死機！
     window.addEventListener('DOMContentLoaded', () => {
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
@@ -173,203 +176,193 @@
         ];
         
         const runnerSelect = document.getElementById('runnerSelect');
-        runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
-        runners.forEach(name => {
-            let opt = document.createElement('option');
-            opt.value = name; opt.textContent = name;
-            runnerSelect.appendChild(opt);
-        });
-
-        const weekSelect = document.getElementById('weekSelect');
-        weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-        for(let i = 1; i <= 40; i++) {
-            let opt = document.createElement('option');
-            opt.value = "第 " + i + " 週"; 
-            opt.textContent = "第 " + i + " 週";
-            weekSelect.appendChild(opt);
+        if (runnerSelect) {
+            runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
+            runners.forEach(name => {
+                let opt = document.createElement('option');
+                opt.value = name; opt.textContent = name;
+                runnerSelect.appendChild(opt);
+            });
         }
 
-        // 綁定點擊事件
-        document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
-        document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
-        
+        const weekSelect = document.getElementById('weekSelect');
+        if (weekSelect) {
+            weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+            for(let i = 1; i <= 40; i++) {
+                let opt = document.createElement('option');
+                opt.value = "第 " + i + " 週"; 
+                opt.textContent = "第 " + i + " 週";
+                weekSelect.appendChild(opt);
+            }
+        }
+
+        // 綁定原生原生檔案選擇按鈕
+        const fitTrigger = document.getElementById('fitTrigger');
+        const fitFile = document.getElementById('fitFile');
+        if (fitTrigger && fitFile) {
+            fitTrigger.addEventListener('click', () => fitFile.click());
+        }
+
+        const imgTrigger = document.getElementById('imgTrigger');
+        const imgFile = document.getElementById('imgFile');
+        if (imgTrigger && imgFile) {
+            imgTrigger.addEventListener('click', () => imgFile.click());
+        }
+
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
         setupBadges('supplyContainer', false);  
     });
 
-    // 📡 精確特徵偏移定位狀態機（僅針對 Garmin, Suunto, Apple Watch）
-    document.getElementById('fitFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    // 🔒 隔離層二：完全封閉、獨立觸發的動態二進位狀態機（僅相容 Garmin, Suunto, Apple）
+    const fitFileInput = document.getElementById('fitFile');
+    if (fitFileInput) {
+        fitFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-        const inputElement = this;
+            const inputElement = this;
 
-        if (window.activeReader) {
-            try { window.activeReader.abort(); } catch(err){}
-            delete window.activeReader;
-        }
+            if (window.activeReader) {
+                try { window.activeReader.abort(); } catch(err){}
+                delete window.activeReader;
+            }
 
-        window.activeReader = new FileReader();
-        window.activeReader.onload = function(event) {
-            // 🔒 封閉式防護網：出錯時清空並警告，絕不殘留上一檔的鎖死舊數據
-            try {
-                const buffer = event.target.result;
-                const view = new DataView(buffer);
-                
-                if (buffer.byteLength < 100) { throw new Error("Invalid FIT Length"); }
+            window.activeReader = new FileReader();
+            window.activeReader.onload = function(event) {
+                // 所有的數據掃描全部包在獨立的沙盒中，出錯也絕對動不到網頁 UI
+                try {
+                    const buffer = event.target.result;
+                    const view = new DataView(buffer);
+                    
+                    if (buffer.byteLength < 100) { throw new Error("Empty File"); }
 
-                let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
-                let isParsed = false;
+                    let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
+                    let isParsed = false;
 
-                // 🛰️ 【模式一】針對 Garmin 與 Suunto 摘要區塊：定位 Message ID 18 (Session)
-                for (let i = 14; i < buffer.byteLength - 60; i++) {
-                    if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
-                        let fieldCount = view.getUint8(i + 2);
-                        
-                        if (fieldCount > 5 && fieldCount < 50) {
-                            let scanPointer = i + 3;
-                            let distOffset = -1, climbOffset = -1, timeOffset = -1, hrOffset = -1, cadOffset = -1;
-                            let currentDataPos = 0;
+                    // 🛰️ 【摘要模式】Garmin, Suunto 核心 Session 解構
+                    for (let i = 14; i < buffer.byteLength - 60; i++) {
+                        if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
+                            let fieldCount = view.getUint8(i + 2);
+                            if (fieldCount > 5 && fieldCount < 50) {
+                                let scanPointer = i + 3;
+                                let distOffset = -1, climbOffset = -1, timeOffset = -1, hrOffset = -1, cadOffset = -1;
+                                let currentDataPos = 0;
 
-                            for (let f = 0; f < fieldCount; f++) {
-                                if (scanPointer + 2 >= buffer.byteLength) break;
-                                let fDefNum = view.getUint8(scanPointer);
-                                let fSize = view.getUint8(scanPointer + 1);
-                                
-                                if (fDefNum === 5)  distOffset = currentDataPos;   
-                                if (fDefNum === 25) climbOffset = currentDataPos;  
-                                if (fDefNum === 7)  timeOffset = currentDataPos;   
-                                if (fDefNum === 16) hrOffset = currentDataPos;     
-                                if (fDefNum === 18) cadOffset = currentDataPos;    
-                                
-                                currentDataPos += fSize;
-                                scanPointer += 3;
-                            }
+                                for (let f = 0; f < fieldCount; f++) {
+                                    if (scanPointer + 2 >= buffer.byteLength) break;
+                                    let fDefNum = view.getUint8(scanPointer);
+                                    let fSize = view.getUint8(scanPointer + 1);
+                                    
+                                    if (fDefNum === 5)  distOffset = currentDataPos;   
+                                    if (fDefNum === 25) climbOffset = currentDataPos;  
+                                    if (fDefNum === 7)  timeOffset = currentDataPos;   
+                                    if (fDefNum === 16) hrOffset = currentDataPos;     
+                                    if (fDefNum === 18) cadOffset = currentDataPos;    
+                                    
+                                    currentDataPos += fSize;
+                                    scanPointer += 3;
+                                }
 
-                            if (distOffset !== -1 && timeOffset !== -1 && scanPointer + currentDataPos < buffer.byteLength) {
-                                let dataStart = scanPointer;
-                                let rawDist = view.getUint32(dataStart + distOffset, true);
-                                let rawTime = view.getUint32(dataStart + timeOffset, true);
-                                
-                                let tempDist = rawDist / 100;
-                                if (tempDist > 100000) tempDist = rawDist / 100000; 
+                                if (distOffset !== -1 && timeOffset !== -1 && scanPointer + currentDataPos < buffer.byteLength) {
+                                    let dataStart = scanPointer;
+                                    let rawDist = view.getUint32(dataStart + distOffset, true);
+                                    let rawTime = view.getUint32(dataStart + timeOffset, true);
+                                    
+                                    let tempDist = rawDist / 100;
+                                    if (tempDist > 100000) tempDist = rawDist / 100000; 
 
-                                if (tempDist > 0.1 && tempDist < 250) {
-                                    resDist = tempDist;
-                                    resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
+                                    if (tempDist > 0.1 && tempDist < 250) {
+                                        resDist = tempDist;
+                                        resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
 
-                                    // ⛰️ 頌拓超大爬升欄位與計量位移修正
-                                    if (climbOffset !== -1) {
-                                        let rawClimb = view.getUint16(dataStart + climbOffset, true);
-                                        if (rawClimb > 8000) {
-                                            let bigClimb = view.getUint32(dataStart + climbOffset, true);
-                                            if (bigClimb < 500000) rawClimb = bigClimb;
+                                        if (climbOffset !== -1) {
+                                            let rawClimb = view.getUint16(dataStart + climbOffset, true);
+                                            if (rawClimb > 8000) {
+                                                let bigClimb = view.getUint32(dataStart + climbOffset, true);
+                                                if (bigClimb < 500000) rawClimb = bigClimb;
+                                            }
+                                            if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       
+                                            else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    
+                                            resClimb = rawClimb;
                                         }
-                                        if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       
-                                        else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    
-                                        resClimb = rawClimb;
+                                        if (hrOffset !== -1) resHr = view.getUint8(dataStart + hrOffset);
+                                        if (cadOffset !== -1) resCadence = view.getUint8(dataStart + cadOffset);
+                                        isParsed = true;
+                                        break;
                                     }
-
-                                    if (hrOffset !== -1) resHr = view.getUint8(dataStart + hrOffset);
-                                    if (cadOffset !== -1) resCadence = view.getUint8(dataStart + cadOffset);
-                                    isParsed = true;
-                                    break;
                                 }
                             }
                         }
                     }
-                }
 
-                // 🛰️ 【模式二】針對 Apple Watch 逐秒軌跡點（Record）：尾端多軌累加
-                if (!isParsed) {
-                    let maxDistRecord = 0;
-                    let hrList = [], cadList = [];
-                    let minTime = Infinity, maxTime = -Infinity;
+                    // 🛰️ 【軌跡模式】Apple Watch (HealthFit) 逐秒流加總備用航線
+                    if (!isParsed) {
+                        let maxDistRecord = 0;
+                        let hrList = [], cadList = [];
+                        let minTime = Infinity, maxTime = -Infinity;
 
-                    for (let i = 14; i < buffer.byteLength - 8; i += 2) {
-                        let tag = view.getUint16(i, true);
-                        if (tag === 0x0504) { 
-                            let dVal = view.getUint32(i + 2, true) / 100;
-                            if (dVal > maxDistRecord && dVal < 250000) maxDistRecord = dVal;
+                        for (let i = 14; i < buffer.byteLength - 8; i += 2) {
+                            let tag = view.getUint16(i, true);
+                            if (tag === 0x0504) { 
+                                let dVal = view.getUint32(i + 2, true) / 100;
+                                if (dVal > maxDistRecord && dVal < 250000) maxDistRecord = dVal;
+                            }
+                            if (tag === 0x0304) hrList.push(view.getUint8(i + 2));
+                            if (tag === 0x0403) cadList.push(view.getUint8(i + 2) * 2);
+                            if (tag === 0xFD04) { 
+                                let tVal = view.getUint32(i + 2, true);
+                                minTime = Math.min(minTime, tVal); maxTime = Math.max(maxTime, tVal);
+                            }
                         }
-                        if (tag === 0x0304) hrList.push(view.getUint8(i + 2));
-                        if (tag === 0x0403) cadList.push(view.getUint8(i + 2) * 2);
-                        if (tag === 0xFD04) { 
-                            let tVal = view.getUint32(i + 2, true);
-                            minTime = Math.min(minTime, tVal); maxTime = Math.max(maxTime, tVal);
+
+                        if (maxDistRecord > 100) {
+                            resDist = maxDistRecord / 1000; 
+                            resClimb = 0; 
+                            if (maxTime > minTime) resTime = maxTime - minTime;
+                            if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
+                            if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
+                            isParsed = true;
                         }
                     }
 
-                    if (maxDistRecord > 100) {
-                        resDist = maxDistRecord / 1000; 
-                        resClimb = 0; 
-                        if (maxTime > minTime) resTime = maxTime - minTime;
-                        if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
-                        if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
-                        isParsed = true;
+                    // 🎯 3. 數據動態刷新回填（每次更換檔案，數值即時跳變更新）
+                    if (isParsed && resDist && resDist > 0.1) {
+                        const finalDistance = resDist.toFixed(2);
+                        const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
+
+                        const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
+                        const secs = String(Math.round(resTime % 60)).padStart(2, '0');
+                        const finalDurationStr = `${hrs}:${mins}:${secs}`;
+
+                        const finalHR = (resHr && resHr > 40 && resHr < 220) ? resHr : "";
+                        
+                        let finalCad = "";
+                        if (resCadence && resCadence > 0) {
+                            if (resCadence > 120 && resCadence < 240) finalCad = resCadence;
+                            else if (resCadence <= 120) finalCad = resCadence * 2;
+                        }
+
+                        const totalMinutes = resTime / 60;
+                        let finalStride = "";
+                        if (finalCad > 0 && totalMinutes > 0) {
+                            finalStride = ((resDist * 1000) / (finalCad * totalMinutes)).toFixed(2);
+                            if (parseFloat(finalStride) < 0.3 || parseFloat(finalStride) > 2.3) finalStride = "";
+                        }
+
+                        // 完全動態寫入新數據
+                        document.getElementById('distance').value = finalDistance;
+                        document.getElementById('elevation').value = finalElevation;
+                        document.getElementById('duration').value = finalDurationStr;
+                        document.getElementById('hr').value = finalHR;
+                        document.getElementById('cadence').value = finalCad;
+                        document.getElementById('stride').value = finalStride;
+
+                        alert(`⚡ 功課數據動態提取成功！\n🏃 里程: ${finalDistance} km\n⛰️ 爬升: ${finalElevation} 米`);
+                    } else {
+                        throw new Error("Parse Failed");
                     }
-                }
 
-                // 🎯 數據即時動態渲染（純動態，絕無任何隨機數或 14.11 等死數據）
-                if (isParsed && resDist && resDist > 0.1) {
-                    const finalDistance = resDist.toFixed(2);
-                    const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
-
-                    const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
-                    const secs = String(Math.round(resTime % 60)).padStart(2, '0');
-                    const finalDurationStr = `${hrs}:${mins}:${secs}`;
-
-                    const finalHR = (resHr && resHr > 40 && resHr < 220) ? resHr : "";
-                    
-                    let finalCad = "";
-                    if (resCadence && resCadence > 0) {
-                        if (resCadence > 120 && resCadence < 240) finalCad = resCadence;
-                        else if (resCadence <= 120) finalCad = resCadence * 2;
-                    }
-
-                    const totalMinutes = resTime / 60;
-                    let finalStride = "";
-                    if (finalCad > 0 && totalMinutes > 0) {
-                        finalStride = ((resDist * 1000) / (finalCad * totalMinutes)).toFixed(2);
-                        if (parseFloat(finalStride) < 0.3 || parseFloat(finalStride) > 2.3) finalStride = "";
-                    }
-
-                    // 完全依照此檔案的解析數值注入畫面
-                    document.getElementById('distance').value = finalDistance;
-                    document.getElementById('elevation').value = finalElevation;
-                    document.getElementById('duration').value = finalDurationStr;
-                    document.getElementById('hr').value = finalHR;
-                    document.getElementById('cadence').value = finalCad;
-                    document.getElementById('stride').value = finalStride;
-
-                    alert(`⚡ 功課數據動態提取成功！\n🏃 里程: ${finalDistance} km\n⛰️ 爬升: ${finalElevation} 米`);
-                } else {
-                    throw new Error("Parse Failed");
-                }
-
-            } catch (err) {
-                console.error(err);
-                // ❌ 實踐承諾：解析失敗一律清空表格，杜絕死數據偽裝
-                clearAllFields();
-                alert('❌ 無法識別此 FIT 檔案的特訓里程。\n請確認檔案為 Garmin, Suunto 或 Apple Watch 的原始匯出檔，或直接改用手動輸入數據。');
-            } finally {
-                inputElement.value = ''; // 強制清除選取器指針快取，允許連續重複更換檔案刷新
-            }
-        };
-        window.activeReader.readAsArrayBuffer(file);
-    });
-
-    function clearAllFields() {
-        document.getElementById('distance').value = "";
-        document.getElementById('elevation').value = "";
-        document.getElementById('duration').value = "";
-        document.getElementById('hr').value = "";
-        document.getElementById('cadence').value = "";
-        document.getElementById('stride').value = "";
-    }
-
-    function setupBadges(containerId, isMultiple = false) {
-        const container = document.getElementById(containerId);
-        container.addEventListene
+                } catch (err) {
+                    console.error(
