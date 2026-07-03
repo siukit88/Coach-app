@@ -29,7 +29,7 @@
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .loading-text { font-size: 14px; color: #00ffcc; margin: 10px 0; text-align: center; }
 
-        /* 📢 新增：教練評語專屬酷炫區塊樣式 */
+        /* 📢 教練評語專屬酷炫區塊樣式 */
         .comment-box { background: rgba(0, 242, 254, 0.08); border: 1px solid #00f2fe; border-radius: 6px; padding: 12px; margin-bottom: 15px; text-align: left; }
         .comment-title { color: #00f2fe; font-weight: bold; font-size: 13px; margin-bottom: 4px; }
         .comment-text { font-size: 14px; line-height: 1.4; color: #ffffff; white-space: pre-wrap; }
@@ -42,7 +42,7 @@
         
         // 🔒 [安全防護] 100% 對齊最新名冊
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
-        var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
+        var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x3b2c[i+1]; }
 
         var authorizedName = "";
         var isCoachMode = false;
@@ -93,7 +93,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.0-Stable</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.1-Stable</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -197,16 +197,15 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 📊 絕對物理欄位下標鎖定：
+                // 📊 完美的物理欄位下標鎖定：
                 var idxName = 1; var idxPwdPack = 2; var idxWeek = 3; var idxDist = 4; var idxClimb = 5;
                 var idxTime = 6; var idxCadence = 7; var idxHr = 8; var idxStride = 9;
-                
-                // 💡 預留第 11 欄 (Index 10), 第 12 欄 (Index 11), 第 13 欄 (Index 12) 給體感與教練評語
-                var idxRisk = 10; var idxWeather = 11; var idxSupply = 12; var idxComment = 12; // 👈 評語位於 M 欄 (Index 12)
+                var idxRisk = 10; var idxWeather = 11; var idxSupply = 12; var idxComment = 13; // M 欄或 N 欄
 
+                // 檢查是否有「時間戳記」平移情況
                 if (lines[0][0] && lines[0][0].indexOf("時間戳記") === -1 && lines[0][1] && lines[0][1].indexOf("時間戳記") !== -1) {
                     idxName = 2; idxPwdPack = 3; idxWeek = 4; idxDist = 5; idxClimb = 6; idxTime = 7; idxCadence = 8; idxHr = 9; idxStride = 10;
-                    idxRisk = 11; idxWeather = 12; idxSupply = 13; idxComment = 13;
+                    idxRisk = 11; idxWeather = 12; idxSupply = 13; idxComment = 14;
                 }
 
                 for(var i = 1; i < lines.length; i++) {
@@ -217,9 +216,13 @@
                             
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "第1週";
                             
-                            // 提取與防呆：如果 Excel 欄位不夠長，給予預設值防止當機
-                            var rawCommentVal = row.length > idxComment ? row[commentIdx] || row[row.length-1] : "";
-                            // 如果最後一欄包含了體感封包，則單獨抽取指導評語字眼
+                            // 💡 修正Bug：這裡安全使用固定下標與防呆
+                            var rawCommentVal = "";
+                            if (row.length > idxComment) {
+                                rawCommentVal = row[idxComment] || "";
+                            }
+                            
+                            // 避免誤把帶有特殊括號的密碼包當成評語
                             if(rawCommentVal && rawCommentVal.indexOf('[') !== -1 && rawCommentVal.indexOf(']') !== -1) { rawCommentVal = ""; } 
 
                             allRecords.push({ 
@@ -239,7 +242,7 @@
             }
 
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            // 週數排序優化
+            // 週數智慧排序
             Object.keys(weeks).sort(function(a,b){
                 var numA = parseInt(a.match(/\d+/)) || 0;
                 var numB = parseInt(b.match(/\d+/)) || 0;
@@ -288,12 +291,11 @@
             document.getElementById('val-climb').innerText = matched.climb + " 米";
             document.getElementById('val-raw-pwd').innerText = matched.rawPwd;
 
-            // 🎯 解析與顯示 v36 體感指標（優化防呆切換）
             document.getElementById('val-risk').innerText = matched.risk;
             document.getElementById('val-weather').innerText = matched.weather;
             document.getElementById('val-supply').innerText = matched.supply;
 
-            // 📢 智慧評語動態渲染邏輯
+            // 📢 智慧導師評語動態渲染
             var commentZone = document.getElementById('coach-comment-zone');
             var commentTextElem = document.getElementById('val-coach-comment');
             var titleTextElem = document.getElementById('comment-title-text');
@@ -317,4 +319,4 @@
 
             var hrNum = parseInt(matched.hr) || 0; var hrBar = document.getElementById('hr-bar');
             if(hrBar && hrNum > 0) {
-  
+                var p
