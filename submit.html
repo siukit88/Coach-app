@@ -46,9 +46,9 @@
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感選擇）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;"></iframe>
 
-        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
+        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -162,10 +162,9 @@
 </div>
 
 <script>
+    // 💡 將變數和監聽統一收攏在完全解析完畢後執行，保證環境極度安全
     let submitted = false;
 
-    // 🔒 安全防護層一：網頁基礎 UI 初始化（100% 優先加載、絕不卡死）
-    // 徹底將二進位邏輯隔離在外，確保網頁一打開，名冊同週數必能秒速加載！
     window.addEventListener('DOMContentLoaded', () => {
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
@@ -196,6 +195,7 @@
             }
         }
 
+        // 🟢 純 JS 安全綁定按鈕與事件
         const fitTrigger = document.getElementById('fitTrigger');
         if (fitTrigger) fitTrigger.addEventListener('click', () => document.getElementById('fitFile').click());
         
@@ -205,9 +205,31 @@
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
         setupBadges('supplyContainer', false);  
+
+        // 用 JS 接管隱藏 iframe 的載入事件，徹底避免 HTML 搶先加載引發的 ReferenceError
+        const hiddenIframe = document.getElementById('hidden_submit_target');
+        if (hiddenIframe) {
+            hiddenIframe.addEventListener('load', () => {
+                if (submitted) {
+                    alert('🚀 功課數據（連同體感選擇）已完美同步至大數據平台！');
+                    const form = document.getElementById('trainingForm');
+                    if (form) form.reset();
+                    resetBadges();
+                }
+            });
+        }
+
+        // 用 JS 接管表單提交事件
+        const trainingForm = document.getElementById('trainingForm');
+        if (trainingForm) {
+            trainingForm.addEventListener('submit', () => {
+                submitted = true;
+                collectBadgeValues();
+            });
+        }
     });
 
-    // 📡 安全防護層二：純淨封閉沙盒（不含任何未定義髒代碼，解析失敗自動清空絕不鎖死）
+    // 📡 完全封閉、獨立運作的二進位解析器（不含任何外部隨機數，解析出錯一律歸零重設）
     const fitFileInput = document.getElementById('fitFile');
     if (fitFileInput) {
         fitFileInput.addEventListener('change', function(e) {
@@ -227,12 +249,12 @@
                     const buffer = event.target.result;
                     const view = new DataView(buffer);
                     
-                    if (buffer.byteLength < 100) { throw new Error("Invalid Size"); }
+                    if (buffer.byteLength < 100) { throw new Error("Invalid FIT size"); }
 
                     let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
                     let isParsed = false;
 
-                    // 🛰️ 【解碼模式 A】Garmin / Suunto 核心 Session 總結欄位動態定位
+                    // 🛰️ 【模式 A】針對 Garmin、Suunto 摘要層解析
                     for (let i = 14; i < buffer.byteLength - 60; i++) {
                         if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
                             let fieldCount = view.getUint8(i + 2);
@@ -288,7 +310,7 @@
                         }
                     }
 
-                    // 🛰️ 【解碼模式 B】Apple Watch 軌跡點流單點累加計算法
+                    // 🛰️ 【模式 B】針對 Apple Watch 逐秒軌跡流累加
                     if (!isParsed) {
                         let maxDistRecord = 0;
                         let hrList = [], cadList = [];
@@ -318,7 +340,7 @@
                         }
                     }
 
-                    // 🎯 數據實時跳變回填（完全移除未定義函數與變數，只根據解析事實填寫欄位）
+                    // 🎯 數據真實動態渲染
                     if (isParsed && resDist && resDist > 0.1) {
                         const finalDistance = resDist.toFixed(2);
                         const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
@@ -348,17 +370,4 @@
                         document.getElementById('duration').value = finalDurationStr;
                         document.getElementById('hr').value = finalHR;
                         document.getElementById('cadence').value = finalCad;
-                        document.getElementById('stride').value = finalStride;
-
-                        alert(`⚡ 功課數據提取成功！\n🏃 里程: ${finalDistance} km\n⛰️ 爬升: ${finalElevation} 米`);
-                    } else {
-                        throw new Error("Parse failed");
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    // ❌ 解析失敗立刻執行欄位清空，絕對不強塞任何固定死數據，確保高度安全
-                    clearAllFields();
-                    alert('❌ 無法識別此 FIT 檔案的特訓里程。\n請確認檔案為 Garmin, Suunto 或 Apple Watch 的原始匯出檔，或直接改用手動輸入。');
-                } finally {
-  
+                        d
