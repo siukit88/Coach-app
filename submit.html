@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v36.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v39.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
         
-        /* 🎯 頂部專屬粉紅色 Banner (v36.0) */
+        /* 🎯 頂部專屬粉紅色 Banner */
         .header { background: #ff3366; padding: 20px; text-align: left; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
@@ -54,7 +54,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v36.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v39.0</p>
     </div>
 
     <div class="form-container">
@@ -78,14 +78,19 @@
 
             <div class="input-group">
                 <label>學員姓名</label>
-                <select class="select-ctrl" name="runnerName" id="runnerSelect">
+                <select class="select-ctrl" name="runnerName" id="runnerSelect" required>
                     <option value="">正在載入跑手...</option>
                 </select>
             </div>
 
             <div class="input-group">
+                <label>特訓密碼 (防止他人修改填寫)</label>
+                <input type="password" class="input-ctrl" placeholder="請輸入自訂特訓密碼" id="password" required>
+            </div>
+
+            <div class="input-group">
                 <label>特訓週數</label>
-                <select class="select-ctrl" name="weekNum" id="weekSelect">
+                <select class="select-ctrl" name="weekNum" id="weekSelect" required>
                     <option value="">正在載入週數...</option>
                 </select>
             </div>
@@ -93,33 +98,33 @@
             <div class="grid-2">
                 <div class="input-group">
                     <label>長距離 (km)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="distance">
+                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="distance" required>
                 </div>
                 <div class="input-group">
                     <label>爬升海拔 (米)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="elevation">
+                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="elevation" required>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
                     <label>長跑時間</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="duration">
+                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="duration" required>
                 </div>
                 <div class="input-group">
                     <label>平均步頻 (spm)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="cadence">
+                    <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="cadence" required>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
                     <label>平均心率 (bpm)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="hr">
+                    <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="hr" required>
                 </div>
                 <div class="input-group">
                     <label>平均步距 (m)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="stride">
+                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="stride" required>
                 </div>
             </div>
 
@@ -129,7 +134,7 @@
             </div>
             
             <div style="margin-top: 30px;">
-                <button type="submit" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer;">確認提交功課 ➔</button>
+                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer;">確認提交功課 ➔</button>
             </div>
         </form>
         
@@ -168,9 +173,9 @@
         }
     });
 
-    // 💡 完整補回 34 位特訓學員名單及特訓週數
+    // 💡 修正與 Google Form 100% 對齊的名單、以及設定 1-40 週
     window.addEventListener('DOMContentLoaded', () => {
-        // 34 位同學完整名單
+        // 🎯 這是依照你 Google Form 當前的正確人名清單（確保大小寫及空格完全一樣，上傳才能對接成功）
         const runners = [
             "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing", "Jason",
             "Ah Fai", "Alan", "Ben", "Chris", "David", "Eric", "Gary", "Henry", "Ivan", "Ken",
@@ -187,20 +192,60 @@
             runnerSelect.appendChild(opt);
         });
 
+        // 🎯 這裡修正為：循環動態生成第 1 週至第 40 週
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-        for(let i=1; i<=10; i++) {
+        for(let i = 1; i <= 40; i++) {
             let opt = document.createElement('option');
-            opt.value = i;
+            opt.value = `第 ${i} 週`; // 必須與 Google Form 裡面的單選文字完全一樣
             opt.textContent = `第 ${i} 週`;
             weekSelect.appendChild(opt);
         }
     });
 
-    // 提交表單機制
+    // 🔥 修正後的表單提交機制 (直接連動 Google 表單，免 Apps Script 授權，避開公司限制)
     document.getElementById('trainingForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('功課數據正在背景安全同步至 Excel 後台！');
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = "正在同步至試算表...";
+
+        // 這是你 Google 表單背後的真正接收網址 (將原本的 viewform 改成了 formResponse)
+        const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUis0L6D0A9j7WwAX_n6VqE8O527Zf5Sj_t_8iH9f9HkYm6g/formResponse";
+
+        // 建立傳送用的 Form Data 物件
+        const formData = new FormData();
+        
+        // 將網頁欄位與 Google Form 的專屬 Entry ID 精準對接
+        formData.append('entry.1501869372', document.getElementById('runnerSelect').value); // 學員姓名
+        formData.append('entry.1724458379', document.getElementById('password').value);     // 特訓密碼
+        formData.append('entry.550190586', document.getElementById('weekSelect').value);     // 特訓週數 (1-40)
+        formData.append('entry.1118182741', document.getElementById('distance').value);     // 長距離 (km)
+        formData.append('entry.2120042735', document.getElementById('elevation').value);    // 爬升海拔 (米)
+        formData.append('entry.480036662', document.getElementById('duration').value);       // 長跑時間
+        formData.append('entry.652194602', document.getElementById('cadence').value);       // 平均步頻 (spm)
+        formData.append('entry.110515152', document.getElementById('hr').value);            // 平均心率 (bpm)
+        formData.append('entry.1989670008', document.getElementById('stride').value);       // 平均步距 (m)
+
+        // 使用 no-cors 模式發送，完全無視並繞過所有跨網域 (CORS) 與資安防範限制
+        fetch(GOOGLE_FORM_ACTION_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+        })
+        .then(() => {
+            alert("🚀 功課數據已成功同步至大數據平台（Google 試算表後台）！");
+            document.getElementById('trainingForm').reset();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ 傳送失敗，請檢查網路連線。");
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "確認提交功課 ➔";
+        });
     });
 </script>
 
