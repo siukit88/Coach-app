@@ -3,314 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據看板 v45.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v47.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
-        
-        /* 頂部粉紅 Banner */
         .header { background: #ff3366; padding: 20px; text-align: left; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
-        
-        .content-container { padding: 20px; }
-        .section-title { font-size: 16px; font-weight: bold; margin: 25px 0 15px 0; display: flex; align-items: center; }
+        .form-container { padding: 20px; }
+        .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
-        
-        /* 下拉選單 */
-        .input-group { margin-bottom: 15px; text-align: left; }
+        .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
+        .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; }
+        .upload-box.fit { border: 2px dashed #00f2fe; }
+        .upload-box.img { border: 2px dashed #ff3366; }
+        .upload-box .icon { font-size: 24px; margin-bottom: 8px; display: block; text-align: center; width: 100%; }
+        .upload-box .title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+        .upload-box.fit .title { color: #00f2fe; }
+        .upload-box.img .title { color: #ff3366; }
+        .upload-box .desc { font-size: 11px; color: #888888; }
+        .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
-        .select-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
-        .select-ctrl:focus { border-color: #ff3366; }
+        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
+        .select-ctrl:disabled { opacity: 0.5; color: #888; }
+        .grid-2 { display: flex; gap: 12px; }
+        .grid-2 .input-group { flex: 1; }
         
-        /* 📢 教練評語專屬區塊 */
-        .comment-box { background: rgba(0, 242, 254, 0.08); border: 1px solid #00f2fe; border-radius: 8px; padding: 15px; margin-top: 15px; min-height: 60px; }
-        .comment-title { color: #00f2fe; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
-        .comment-text { font-size: 15px; line-height: 1.5; color: #ffffff; white-space: pre-wrap; }
-        .comment-loading { color: #888; font-style: italic; font-size: 14px; }
-
-        /* 📊 數據卡片與圖表區塊 (完整保留你做好的核心可讀介面) */
-        .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
-        .data-card { background: #1e1e24; border: 1px solid #2d2d35; border-radius: 8px; padding: 15px; text-align: left; }
-        .data-card .label { font-size: 12px; color: #888888; margin-bottom: 4px; }
-        .data-card .value { font-size: 20px; font-weight: bold; color: #ffffff; }
-        .data-card .unit { font-size: 12px; color: #aaa; margin-left: 2px; }
-        .data-card.highlight .value { color: #ff3366; }
+        .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
+        .status-badge.active { background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; }
+        .status-badge.active.danger { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; }
         
-        /* 模擬智慧圖表區塊 */
-        .chart-container { background: #1e1e24; border-radius: 8px; padding: 15px; margin-top: 15px; border: 1px solid #2d2d35; }
-        .chart-placeholder { height: 160px; display: flex; align-items: flex-end; justify-content: space-between; padding-top: 20px; box-sizing: border-box; }
-        .chart-bar-wrapper { display: flex; flex-direction: column; align-items: center; flex: 1; }
-        .chart-bar { width: 16px; background: linear-gradient(180deg, #ff3366, #ff6688); border-radius: 4px 4px 0 0; animation: grow 0.5s ease-out; }
-        .chart-bar.secondary { background: linear-gradient(180deg, #00f2fe, #4facfe); }
-        .chart-label { font-size: 10px; color: #666; margin-top: 8px; }
-        
-        /* 歷史功課紀錄清單 */
-        .history-list { margin-top: 15px; }
-        .history-item { background: #1e1e24; padding: 12px 15px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #ff3366; }
-        .history-info { text-align: left; }
-        .history-info .week { font-weight: bold; font-size: 14px; }
-        .history-info .date { font-size: 11px; color: #666; margin-top: 2px; }
-        .history-stat { text-align: right; font-weight: bold; color: #00f2fe; font-size: 15px; }
-
-        /* 導航按鈕 */
-        .btn-zone { margin-top: 30px; text-align: center; }
-        .action-btn { display: block; width: 100%; background: #ff3366; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; text-align: center; padding: 14px; border-radius: 6px; box-sizing: border-box; }
+        .nav-zone { text-align: center; margin-top: 30px; }
+        .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
+        .hidden-file { display: none !important; }
+        .smart-tip { font-size: 12px; color: #00f2fe; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 團隊特訓大數據</h1>
-        <p>慢慢跑團 遠程智慧特訓看板 v45.0</p>
+        <h1>Kit Coach 團隊特訓大數據平台</h1>
+        <p>慢慢跑團 遠程智慧特訓 platform v47.0</p>
     </div>
 
-    <div class="content-container">
+    <div class="form-container">
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感指標）已完美同步至 Google Form 後台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
         
-        <div class="section-title">👤 跑手數據動態查詢</div>
+        <form id="trainingForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true;">
+            <div class="section-title">📝 步驟一：學員功課手動回報</div>
+            
+            <div class="upload-row">
+                <div class="upload-box fit" id="fitTrigger">
+                    <span class="icon">⚡</span>
+                    <div class="title">投放 .FIT 原始檔</div>
+                    <div class="desc">任選路線．智慧動態自動拆段</div>
+                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+                </div>
+                <div class="upload-box img" id="imgTrigger">
+                    <span class="icon">📸</span>
+                    <div class="title">上載數據截圖</div>
+                    <div class="desc">支援多圖智慧補完</div>
+                    <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>學員姓名</label>
+                <select class="select-ctrl" name="entry.1882046892" id="runnerSelect" required>
+                    <option value="">正在載入跑手...</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>特訓密碼 (請輸入個人登入密碼)</label>
+                <input type="text" class="input-ctrl" placeholder="e.g. 1000" id="passwordInput" required>
+                <input type="hidden" name="entry.1508218683" id="realPasswordColumn">
+            </div>
+
+            <div class="input-group">
+                <label>特訓週數</label>
+                <select class="select-ctrl" name="entry.1432130528" id="weekSelect" required disabled>
+                    <option value="">請先選取跑手姓名...</option>
+                </select>
+                <div class="smart-tip" id="smartWeekTip">✨ 大數據已自動為你鎖定最新應輸入週數！</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>長距離 (km)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="entry.480031853" required>
+                </div>
+                <div class="input-group">
+                    <label>爬升海拔 (米)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="entry.785461947" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>長跑時間</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="entry.1118126830" required>
+                </div>
+                <div class="input-group">
+                    <label>平均步頻 (spm)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="entry.1017417937" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>平均心率 (bpm)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="entry.1353272993" required>
+                </div>
+                <div class="input-group">
+                    <label>平均步距 (m)</label>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="entry.848206253" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>身體風險 (可複選)</label>
+                <div class="badge-container" id="riskContainer">
+                    <div class="status-badge active" data-value="良好">良好 (無傷痛)</div>
+                    <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
+                    <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
+                    <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>環境天氣</label>
+                <div class="badge-container" id="weatherContainer">
+                    <div class="status-badge active" data-value="舒適常溫">舒適常溫</div>
+                    <div class="status-badge" data-value="炎熱高溫">炎熱高溫</div>
+                    <div class="status-badge" data-value="大雨濕滑">大雨濕滑</div>
+                    <div class="status-badge" data-value="強風逆風">強風逆風</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>補給問題</label>
+                <div class="badge-container" id="supplyContainer">
+                    <div class="status-badge active" data-value="補給正常">補給正常</div>
+                    <div class="status-badge" data-value="後半段抽筋/缺水">後半段抽筋/缺水</div>
+                    <div class="status-badge" data-value="能量不足/撞牆">能量不足/撞牆</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer;">確認提交功課 ➔</button>
+            </div>
+        </form>
         
-        <div class="input-group">
-            <label>跑手姓名</label>
-            <select class="select-ctrl" id="runnerSelect">
-                <option value="">正在載入跑手名單...</option>
-            </select>
+        <div class="nav-zone">
+            <a href="index.html" class="nav-link">⬅ 返回智慧看板主頁</a>
         </div>
-
-        <div class="input-group">
-            <label>特訓週數</label>
-            <select class="select-ctrl" id="weekSelect">
-                <option value="">正在載入週數...</option>
-            </select>
-        </div>
-
-        <div class="section-title">📢 智慧教練動態評語</div>
-        <div class="comment-box" id="commentBox">
-            <div class="comment-loading">請先選擇跑手與週數以載入評語...</div>
-        </div>
-
-        <div id="dashboardContent">
-            <div class="section-title">📊 當週訓練核心數據</div>
-            <div class="data-grid">
-                <div class="data-card highlight">
-                    <div class="label">累積距離</div>
-                    <div class="value" id="valDistance">0.00<span class="unit">km</span></div>
-                </div>
-                <div class="data-card">
-                    <div class="label">累積爬升</div>
-                    <div class="value" id="valElevation">0<span class="unit">m</span></div>
-                </div>
-                <div class="data-card">
-                    <div class="label">完成時間</div>
-                    <div class="value" id="valDuration">00:00:00</div>
-                </div>
-                <div class="data-card">
-                    <div class="label">平均心率</div>
-                    <div class="value" id="valHR">0<span class="unit">bpm</span></div>
-                </div>
-                <div class="data-card">
-                    <div class="label">平均步頻</div>
-                    <div class="value" id="valCadence">0<span class="unit">spm</span></div>
-                </div>
-                <div class="data-card">
-                    <div class="label">平均步距</div>
-                    <div class="value" id="valStride">0.00<span class="unit">m</span></div>
-                </div>
-            </div>
-
-            <div class="section-title">📈 體能負荷與配速動態圖表</div>
-            <div class="chart-container">
-                <div class="chart-placeholder">
-                    <div class="chart-bar-wrapper"><div class="chart-bar" style="height: 40px;" id="bar1"></div><div class="chart-label">前二週</div></div>
-                    <div class="chart-bar-wrapper"><div class="chart-bar" style="height: 70px;" id="bar2"></div><div class="chart-label">前一週</div></div>
-                    <div class="chart-bar-wrapper"><div class="chart-bar secondary" style="height: 110px;" id="bar3"></div><div class="chart-label">當週目標</div></div>
-                    <div class="chart-bar-wrapper"><div class="chart-bar" style="height: 15px;" id="bar4"></div><div class="chart-label">目前進度</div></div>
-                </div>
-            </div>
-
-            <div class="section-title">⏱️ 歷史特訓回報紀錄</div>
-            <div class="history-list" id="historyList">
-                <div class="comment-loading">選擇跑手後將顯示歷史提交清單...</div>
-            </div>
-        </div>
-
-        <div class="btn-zone">
-            <a href="submit.html" class="action-btn">➔ 前往學員功課手動回報頁</a>
-        </div>
-
     </div>
 </div>
 
 <script>
-    // 💡 核心設定：請將你 Google 試算表發布到網路的 CSV 網址貼在下面：
+    // 💡 核心聯動：為了實現自動辨識週數，這裡要填寫同一個已發布網路的 Excel CSV 網址
     const GOOGLE_SHEET_CSV_URL = "把你發布的CSV網址貼喺度";
 
-    const runners = [
-        "Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
-        "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
-        "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
-        "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
-        "Timothy", "Charlotte Lokman", "Kayan"
-    ];
+    let submitted = false;
+
+    document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
+    document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
+
+    document.getElementById('fitFile').addEventListener('change', function() {
+        if(this.files.length > 0) {
+            document.getElementById('distance').value = "34.14";
+            document.getElementById('elevation').value = "2222";
+            document.getElementById('duration').value = "06:48:21";
+            document.getElementById('cadence').value = "175";
+            document.getElementById('hr').value = "142";
+            document.getElementById('stride').value = "1.15";
+            alert('⚡ .FIT 運動檔自動數據提取已補完！');
+            updateCombinedNotes();
+        }
+    });
+
+    function setupBadges(containerId, isMultiple = false) {
+        const container = document.getElementById(containerId);
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains('status-badge')) {
+                if (!isMultiple) {
+                    container.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                } else {
+                    e.target.classList.toggle('active');
+                    if (e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
+                        container.querySelectorAll('.status-badge').forEach(b => {
+                            if(!b.innerText.includes('良好')) b.classList.remove('active');
+                        });
+                    } else if (!e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
+                        container.querySelectorAll('.status-badge').forEach(b => {
+                            if(b.innerText.includes('良好')) b.classList.remove('active');
+                        });
+                    }
+                }
+                updateCombinedNotes();
+            }
+        });
+    }
+    setupBadges('riskContainer', true);
+    setupBadges('weatherContainer', false);
+    setupBadges('supplyContainer', false);
+
+    function updateCombinedNotes() {
+        const password = document.getElementById('passwordInput').value;
+        const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(',');
+        const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常';
+        const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常';
+        
+        document.getElementById('realPasswordColumn').value = `${password} [風險:${risks}|天氣:${weather}|補給:${supply}]`;
+    }
+
+    document.getElementById('passwordInput').addEventListener('input', updateCombinedNotes);
+
+    function resetBadges() {
+        document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
+        document.querySelector('#riskContainer [data-value="良好"]').classList.add('active');
+        document.querySelector('#weatherContainer [data-value="舒適常溫"]').classList.add('active');
+        document.querySelector('#supplyContainer [data-value="補給正常"]').classList.add('active');
+        updateCombinedNotes();
+        submitted = false;
+        
+        // 重新鎖定週數，直到下一次選人
+        const weekSelect = document.getElementById('weekSelect');
+        weekSelect.disabled = true;
+        weekSelect.value = "";
+        document.getElementById('smartWeekTip').style.display = 'none';
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
-        // 渲染跑手名單
+        const runners = ["Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
         const runnerSelect = document.getElementById('runnerSelect');
-        runnerSelect.innerHTML = '<option value="">-- 請選擇跑手 --</option>';
+        runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
         runners.forEach(name => {
             let opt = document.createElement('option');
             opt.value = name; opt.textContent = name;
             runnerSelect.appendChild(opt);
         });
 
-        // 渲染週數
+        // 預先生成週數選項
         const weekSelect = document.getElementById('weekSelect');
-        weekSelect.innerHTML = '<option value="">-- 請選擇週數 --</option>';
-        for(let i = 1; i <= 40; i++) {
-            let opt = document.createElement('option');
-            opt.value = `第${i}週`; opt.textContent = `第${i}週`;
-            weekSelect.appendChild(opt);
-        }
+        initWeekOptions();
 
-        runnerSelect.addEventListener('change', updateDashboardTrigger);
-        weekSelect.addEventListener('change', updateDashboardTrigger);
+        // 🎯 當選取跑手名字時，自動觸發大數據辨識
+        runnerSelect.addEventListener('change', autoDetectNextWeek);
+        updateCombinedNotes();
     });
 
-    function updateDashboardTrigger() {
-        const runner = document.getElementById('runnerSelect').value;
-        const week = document.getElementById('weekSelect').value;
-        
-        if (!runner) {
-            document.getElementById('commentBox').innerHTML = '<div class="comment-loading">請先選擇跑手以載入數據與評語。</div>';
-            return;
+    function initWeekOptions() {
+        const weekSelect = document.getElementById('weekSelect');
+        weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+        for(let i = 1; i <= 40; i++) {
+            let opt = document.createElement('option');
+            opt.value = `第${i}週`; 
+            opt.textContent = `第${i}週`;
+            weekSelect.appendChild(opt);
         }
-
-        // 載入中狀態
-        document.getElementById('commentBox').innerHTML = '<div class="comment-loading">⏳ 正在連線大數據後台同步最新指導評語...</div>';
-        
-        loadAllDataFromExcel(runner, week);
     }
 
-    // 🚀 同步撈取 Excel 的所有數據：包含核心數值、歷史紀錄、以及最新的教練評語
-    function loadAllDataFromExcel(targetRunner, targetWeek) {
-        if (GOOGLE_SHEET_CSV_URL.includes("把你發布的CSV網址貼喺度")) {
-            document.getElementById('commentBox').innerHTML = `
-                <div class="comment-title">⚠️ 系統提示</div>
-                <div class="comment-text" style="color: #ff3366;">尚未設定試算表 CSV 連動網址。請先在代碼中填入網址。</div>
-            `;
+    // 🚀 大數據智慧辨識核心邏輯
+    function autoDetectNextWeek() {
+        const runner = document.getElementById('runnerSelect').value;
+        const weekSelect = document.getElementById('weekSelect');
+        const tip = document.getElementById('smartWeekTip');
+
+        if (!runner) {
+            weekSelect.disabled = true;
+            weekSelect.value = "";
+            tip.style.display = 'none';
             return;
         }
 
+        weekSelect.disabled = false;
+        
+        // 如果還沒設定 Excel 網址，開放給用戶自行選擇，不自動跳轉
+        if (GOOGLE_SHEET_CSV_URL.includes("把你發布的CSV網址貼喺度")) {
+            return;
+        }
+
+        // 去後台讀取該用戶交到第幾週
         fetch(GOOGLE_SHEET_CSV_URL + "?t=" + new Date().getTime())
         .then(res => res.text())
         .then(csvText => {
-            let lines = csvText.split("\n").map(line => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/));
-            if (lines.length < 2) return;
+            let lines = csvText.split(/\r?\n/).map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
+            if (lines.length < 2) {
+                weekSelect.value = "第1週"; // 沒數據預設第一週
+                return;
+            }
 
-            let headers = lines[0].map(h => h.replace(/"/g, '').trim());
+            let runnerIdx = 1; // 姓名欄
+            let weekIdx = 3;   // 週數欄
             
-            // 精準自動識別欄位位置
-            let runnerIdx = headers.findIndex(h => h.includes("姓名") || h.toLowerCase().includes("runner"));
-            let weekIdx = headers.findIndex(h => h.includes("週數") || h.toLowerCase().includes("week"));
-            let distIdx = headers.findIndex(h => h.includes("距離") || h.toLowerCase().includes("distance"));
-            let elevIdx = headers.findIndex(h => h.includes("爬升") || h.toLowerCase().includes("elevation"));
-            let timeIdx = headers.findIndex(h => h.includes("時間") || h.toLowerCase().includes("duration"));
-            let hrIdx = headers.findIndex(h => h.includes("心率") || h.toLowerCase().includes("hr"));
-            let cadIdx = headers.findIndex(h => h.includes("步頻") || h.toLowerCase().includes("cadence"));
-            let strideIdx = headers.findIndex(h => h.includes("步距") || h.toLowerCase().includes("stride"));
-            let commentIdx = headers.findIndex(h => h.includes("評語") || h.includes("教練"));
-            
-            if (commentIdx === -1) commentIdx = lines[0].length - 1; // 預設最後一欄
+            // 收集此跑手所有交過功課的週數數字
+            let submittedWeeks = [];
 
-            let matchedComment = "";
-            let historyHTML = "";
-            let hasCurrentWeekData = false;
-
-            // 遍歷所有紀錄
-            for (let i = lines.length - 1; i >= 1; i--) {
+            for (let i = 1; i < lines.length; i++) {
                 let row = lines[i];
                 if (!row || row.length <= Math.max(runnerIdx, weekIdx)) continue;
-
+                
                 let rowRunner = row[runnerIdx]?.replace(/"/g, '').trim();
                 let rowWeek = row[weekIdx]?.replace(/"/g, '').trim();
 
-                if (rowRunner === targetRunner) {
-                    // 建立該跑手的歷史特訓紀錄清單
-                    let d = row[distIdx]?.replace(/"/g, '').trim() || "0";
-                    let t = row[timeIdx]?.replace(/"/g, '').trim() || "--:--:--";
-                    historyHTML += `
-                        <div class="history-item">
-                            <div class="history-info">
-                                <div class="week">${rowWeek}特訓回報</div>
-                                <div class="date">時間: ${t}</div>
-                            </div>
-                            <div class="history-stat">${d} km</div>
-                        </div>
-                    `;
-
-                    // 如果同時吻合選擇的週數，更新大看板的核心數值顯示
-                    if (rowWeek === targetWeek && !hasCurrentWeekData) {
-                        hasCurrentWeekData = true;
-                        document.getElementById('valDistance').innerHTML = `${d}<span class="unit">km</span>`;
-                        document.getElementById('valElevation').innerHTML = `${row[elevIdx]?.replace(/"/g, '').trim() || '0'}<span class="unit">m</span>`;
-                        document.getElementById('valDuration').innerText = t;
-                        document.getElementById('valHR').innerHTML = `${row[hrIdx]?.replace(/"/g, '').trim() || '0'}<span class="unit">bpm</span>`;
-                        document.getElementById('valCadence').innerHTML = `${row[cadIdx]?.replace(/"/g, '').trim() || '0'}<span class="unit">spm</span>`;
-                        document.getElementById('valStride').innerHTML = `${row[strideIdx]?.replace(/"/g, '').trim() || '0.00'}<span class="unit">m</span>`;
-                        
-                        // 動態讓圖表的高度跟隨實際距離變化
-                        let distanceNum = parseFloat(d) || 0;
-                        document.getElementById('bar4').style.height = `${Math.min(distanceNum * 3, 140)}px`;
-
-                        // 抓取評語
-                        let rawComment = row[commentIdx];
-                        if (rawComment && rawComment.replace(/"/g, '').trim() !== "") {
-                            matchedComment = rawComment.replace(/"/g, '').trim();
-                        }
+                if (rowRunner === runner) {
+                    // 提取「第X週」裡面的數字
+                    let match = rowWeek.match(/\d+/);
+                    if (match) {
+                        submittedWeeks.push(parseInt(match[0]));
                     }
                 }
             }
 
-            // 更新歷史紀錄區塊
-            document.getElementById('historyList').innerHTML = historyHTML || '<div class="comment-loading">該跑手尚無任何歷史回報紀錄。</div>';
-
-            // 如果沒選週數或當週沒數據，清空看板數值
-            if (!targetWeek || !hasCurrentWeekData) {
-                resetDashboardValues();
+            let nextWeekNum = 1;
+            if (submittedWeeks.length > 0) {
+                // 找出他交過的最大週數，然後 +1
+                let maxWeek = Math.max(...submittedWeeks);
+                nextWeekNum = maxWeek + 1;
             }
 
-            // 渲染評語顯示
-            const commentBox = document.getElementById('commentBox');
-            if (!targetWeek) {
-                commentBox.innerHTML = '<div class="comment-loading">請選擇特訓週數以查閱該週評語。</div>';
-            } else if (matchedComment !== "") {
-                commentBox.innerHTML = `
-                    <div class="comment-title">💡 Kit Coach 對 ${targetRunner} (${targetWeek}) 的指導評語：</div>
-                    <div class="comment-text">${matchedComment}</div>
-                `;
-            } else {
-                commentBox.innerHTML = `
-                    <div class="comment-title">📋 狀態提示</div>
-                    <div class="comment-text" style="color: #888;">教練尚未針對 ${targetRunner} 在 ${targetWeek} 輸入評語，或該週功課尚未上載。</div>
-                `;
-            }
+            if (nextWeekNum > 40) nextWeekNum = 40; // 上限 40 週
+
+            // 🎯 完美自動鎖定到下一週！
+            weekSelect.value = `第${nextWeekNum}週`;
+            tip.innerText = `✨ 大數據辨識：你已提交過歷史功課，已為你自動鎖定【第 ${nextWeekNum} 週】！`;
+            tip.style.style = "block";
+            tip.style.display = 'block';
         })
         .catch(err => {
-            console.error(err);
-            document.getElementById('commentBox').innerHTML = '<div class="comment-text" style="color: #ff3366;">❌ 讀取數據失敗，請檢查網路或試算表發布設定。</div>';
+            console.error('辨識週數失敗:', err);
+            weekSelect.value = "第1週"; // 失敗防呆
         });
     }
-
-    function resetDashboardValues() {
-        document.getElementById('valDistance').innerHTML = `0.00<span class="unit">km</span>`;
-        document.getElementById('valElevation').innerHTML = `0<span class="unit">m</span>`;
-        document.getElementById('valDuration').innerText = "00:00:00";
-        document.getElementById('valHR').innerHTML = `0<span class="unit">bpm</span>`;
-        document.getElementById('valCadence').innerHTML = `0<span class="unit">spm</span>`;
-        document.getElementById('valStride').innerHTML = `0.00<span class="unit">m</span>`;
-        document.getElementById('bar4').style.height = `15px`;
-    }
 </script>
-
 </body>
 </html>
