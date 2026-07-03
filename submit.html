@@ -164,7 +164,7 @@
 <script>
     let submitted = false;
 
-    // 🔒 隔離安全線一：最優先 UI 載入（全域零語法隱患，100% 正常加載）
+    // 🔒 安全防護層一：網頁基礎 UI 初始化（100% 優先加載、絕不卡死）
     window.addEventListener('DOMContentLoaded', () => {
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
@@ -226,7 +226,7 @@
         }
     });
 
-    // 📡 隔離安全線二：封閉沙盒解析器
+    // 📡 安全防護層二：封閉沙盒解析器
     const fitFileInput = document.getElementById('fitFile');
     if (fitFileInput) {
         fitFileInput.addEventListener('change', function(e) {
@@ -246,7 +246,7 @@
                     const buffer = event.target.result;
                     const view = new DataView(buffer);
                     
-                    if (buffer.byteLength < 100) { throw new Error("Invalid FIT"); }
+                    if (buffer.byteLength < 100) { throw new Error("Invalid Size"); }
 
                     let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
                     let isParsed = false;
