@@ -31,11 +31,9 @@
     </style>
 
     <script>
-        // 📡 完美重新對接到教練最新生成且發布嘅【表單回應 5】原始安全通道 (gid=99162601)
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
         var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
         
-        // 🔒 [安全防護] 100% 對齊最新名冊（已進行高強度防抄襲底層混淆加密）
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
         var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
 
@@ -133,7 +131,9 @@
                     <div class="clear"></div>
                     <div class="bar-bg"><div id="hr-bar" class="bar-fill"></div></div>
                 </div>
-                <div class="data-row" style="margin-top: 10px;">身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
+                <div class="data-row" style="padding-top: 10px;">
+                    <div>身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
+                </div>
                 <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
                 <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
             </div>
@@ -186,7 +186,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 📊 對齊【表單回應 5】最精確的物理欄位下標：
+                // 📊 完美的物理欄位下標映射
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -201,21 +201,31 @@
                         var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
+                            
+                            // 💡 核心安全修復：將試算表原始數據中的「第 1 週」等空格清除，與 wClean 完美映射，擊碎篩選盲點！
+                            var wClean = wValue.replace(/\s+/g, ""); 
+                            
                             allRecords.push({ 
-                                timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
+                                timestamp: row[0]||"--", name: row[idxName].trim(), week: wClean, 
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                 stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
                                 weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0"
                             });
-                            weeks[wValue] = true;
+                            weeks[wClean] = true;
                         }
                     }
                 }
             }
 
+            // 💡 核心修復：動態生成前端帶空格的精美選單（如「第 1 週」），但底層 value 指向無空格，完美銜接
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-            Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
-                weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
+            Object.keys(weeks).sort(function(a,b){
+                var numA = parseInt(a.replace(/[^0-9]/g, '')) || 0;
+                var numB = parseInt(b.replace(/[^0-9]/g, '')) || 0;
+                return numA - numB;
+            }).forEach(function(w) { 
+                var displayWeekStr = w.replace("第", "第 ").replace("週", " 週");
+                weekSelect.innerHTML += '<option value="' + w + '">' + displayWeekStr + '</option>'; 
             });
             
             document.getElementById('loading-status').style.display = 'none';
