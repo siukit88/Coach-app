@@ -50,7 +50,7 @@
     <div class="form-container">
         <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感指標）已完美同步至 Google Form 後台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
         
-        <form id="trainingForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true;">
+        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true;">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -237,7 +237,6 @@
             runnerSelect.appendChild(opt);
         });
 
-        // 🎯 100% 精準對齊新表單格式（無空格：第1週～第40週）
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
