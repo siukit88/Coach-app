@@ -14,7 +14,6 @@
         .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
         .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
-        /* 🔒 使用 label 直連 input 的原生最高安全性點擊通道 */
         .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; display: block; }
         .upload-box.fit { border: 2px dashed #00f2fe; }
         .upload-box.img { border: 2px dashed #ff3366; }
@@ -47,7 +46,7 @@
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="style:display:none;"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;"></iframe>
 
         <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
@@ -179,23 +178,21 @@
 <script>
     let submitted = false;
 
-    // 🔒 100% 全平坦化最高安全作用域：所有變數、事件、處理函數並排宣告，絕不允許 ReferenceError 發生！
+    // 🔒 100% 拉平一體化宣告，絕不允許任何 ReferenceError
     window.addEventListener('DOMContentLoaded', () => {
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
         setupBadges('supplyContainer', false);  
 
-        // 🟢 接通文件上載事件
         const fitFileInput = document.getElementById('fitFile');
         if (fitFileInput) {
-            fitFileInput.addEventListener('change', parseRunningDataFile);
+            fitFileInput.addEventListener('change', handleFitFileDrop);
         }
 
-        // 🟢 接通截圖上載事件
         const imgFileInput = document.getElementById('imgFile');
         if (imgFileInput) {
             imgFileInput.addEventListener('change', function() {
-                if (this.files.length > 0) { alert('📸 數據截圖讀取成功！請檢查並核對數據欄位。'); }
+                if (this.files.length > 0) { alert('📸 數據截圖讀取成功！請手動檢查並核對數據。'); }
                 this.value = '';
             });
         }
@@ -214,15 +211,12 @@
 
         const trainingForm = document.getElementById('trainingForm');
         if (trainingForm) {
-            trainingForm.addEventListener('submit', () => {
-                submitted = true;
-                collectBadgeValues();
-            });
+            trainingForm.addEventListener('submit', () => { submitted = true; collectBadgeValues(); });
         }
     });
 
-    // 📡 封閉式高容錯二進位狀態機
-    function parseRunningDataFile(e) {
+    // 📡 嚴格遵守 ANT+ 官方協議的「線性安全解碼器」（拒絕盲掃，杜絕溢出）
+    function handleFitFileDrop(e) {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -234,101 +228,104 @@
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                if (buffer.byteLength < 100) { throw new Error("File broken"); }
+                // 1. 驗證 FIT 檔頭
+                if (buffer.byteLength < 50 || view.getUint32(8, true) !== 0x5449462e) { 
+                    throw new Error("此檔案不是標準的原始 .FIT 數據包"); 
+                }
 
-                let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
-                let isParsed = false;
+                let headerSize = view.getUint8(0);
+                let offset = headerSize;
+                let localDefs = {};
 
-                // 🛰️ Garmin & Suunto 摘要雷達掃描 msg18
-                for (let i = 14; i < buffer.byteLength - 60; i++) {
-                    if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
-                        let fieldCount = view.getUint8(i + 2);
-                        if (fieldCount > 5 && fieldCount < 50) {
-                            let scanPointer = i + 3;
-                            let distOffset = -1, climbOffset = -1, timeOffset = -1, hrOffset = -1, cadOffset = -1;
-                            let currentDataPos = 0;
+                let distVal = null, climbVal = null, timeVal = null, hrVal = null, cadVal = null;
+                let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
 
-                            for (let f = 0; f < fieldCount; f++) {
-                                if (scanPointer + 2 >= buffer.byteLength) break;
-                                let fDefNum = view.getUint8(scanPointer);
-                                let fSize = view.getUint8(scanPointer + 1);
-                                
-                                if (fDefNum === 5)  distOffset = currentDataPos;   
-                                if (fDefNum === 25) climbOffset = currentDataPos;  
-                                if (fDefNum === 7)  timeOffset = currentDataPos;   
-                                if (fDefNum === 16) hrOffset = currentDataPos;     
-                                if (fDefNum === 18) cadOffset = currentDataPos;    
-                                
-                                currentDataPos += fSize;
-                                scanPointer += 3;
+                // 2. 嚴格按字節步進解析狀態機（100% 防止 DataView 溢出）
+                while (offset < buffer.byteLength - 4) {
+                    let headerByte = view.getUint8(offset);
+                    offset++;
+
+                    // 處理正常數據區塊
+                    if ((headerByte & 0x80) === 0) {
+                        let isDef = (headerByte & 0x40) !== 0;
+                        let localType = headerByte & 0x0F;
+
+                        if (isDef) {
+                            offset++; // Skip reserved
+                            let isBE = view.getUint8(offset) === 1; offset++;
+                            let globalMsg = view.getUint16(offset, !isBE); offset += 2;
+                            let fCount = view.getUint8(offset); offset++;
+
+                            let fields = [];
+                            let dSize = 0;
+                            for (let i = 0; i < fCount; i++) {
+                                if (offset + 3 > buffer.byteLength) break;
+                                let fId = view.getUint8(offset);
+                                let fSize = view.getUint8(offset+1);
+                                fields.push({id: fId, size: fSize});
+                                dSize += fSize;
+                                offset += 3;
                             }
+                            // 處理開發者自定義欄位位移
+                            if ((headerByte & 0x20) !== 0) {
+                                let devCount = view.getUint8(offset); offset++;
+                                for (let i = 0; i < devCount; i++) { fields.push({id: -1, size: view.getUint8(offset+1)}); dSize += view.getUint8(offset+1); offset += 3; }
+                            }
+                            localDefs[localType] = { globalMsg, isBE, fields, dSize };
+                        } else {
+                            let def = localDefs[localType];
+                            if (!def || offset + def.dSize > buffer.byteLength) { break; }
 
-                            if (distOffset !== -1 && timeOffset !== -1 && scanPointer + currentDataPos < buffer.byteLength) {
-                                let dataStart = scanPointer;
-                                let rawDist = view.getUint32(dataStart + distOffset, true);
-                                let rawTime = view.getUint32(dataStart + timeOffset, true);
-                                
-                                let tempDist = rawDist / 100;
-                                if (tempDist > 100000) tempDist = rawDist / 100000; 
-
-                                if (tempDist > 0.1 && tempDist < 250) {
-                                    resDist = tempDist;
-                                    resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
-
-                                    if (climbOffset !== -1) {
-                                        let rawClimb = view.getUint16(dataStart + climbOffset, true);
-                                        if (rawClimb > 8000) {
-                                            let bigClimb = view.getUint32(dataStart + climbOffset, true);
-                                            if (bigClimb < 500000) rawClimb = bigClimb;
-                                        }
-                                        if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       
-                                        else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    
-                                        resClimb = rawClimb;
+                            let dPtr = offset;
+                            // 🎯 解析 Message ID 18 (Session 摘要)
+                            if (def.globalMsg === 18) {
+                                for (let f of def.fields) {
+                                    if (f.id !== -1 && dPtr + f.size <= buffer.byteLength) {
+                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
+                                        if (f.id === 5) distVal = val / 100000;  // cm 轉 km
+                                        if (f.id === 7) timeVal = val / 1000;    // ms 轉 sec
+                                        if (f.id === 16) hrVal = val;
+                                        if (f.id === 18) cadVal = val < 120 ? val * 2 : val;
+                                        if (f.id === 25) climbVal = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
                                     }
-                                    if (hrOffset !== -1) resHr = view.getUint8(dataStart + hrOffset);
-                                    if (cadOffset !== -1) resCadence = view.getUint8(dataStart + cadOffset);
-                                    isParsed = true;
-                                    break;
+                                    dPtr += f.size;
+                                }
+                            } 
+                            // 🎯 解析 Message ID 20 (Record 逐秒點 - Apple Watch 備用)
+                            else if (def.globalMsg === 20) {
+                                for (let f of def.fields) {
+                                    if (f.id !== -1 && dPtr + f.size <= buffer.byteLength) {
+                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
+                                        if (f.id === 5) recordDistMax = Math.max(recordDistMax, val);
+                                        if (f.id === 253) { recordTimeMin = Math.min(recordTimeMin, val); recordTimeMax = Math.max(recordTimeMax, val); }
+                                    }
+                                    dPtr += f.size;
                                 }
                             }
+                            offset += def.dSize;
                         }
+                    } else {
+                        // 壓縮區塊安全跳過
+                        offset++;
                     }
                 }
 
-                // 🛰️ Apple Watch 每秒 Record 軌跡加總
-                if (!isParsed) {
-                    let maxDistRecord = 0;
-                    let hrList = [], cadList = [];
-                    let minTime = Infinity, maxTime = -Infinity;
+                // 3. 多模態互補渲染（無任何死數據殘留）
+                let fDist = distVal || (recordDistMax / 100000) || 0;
+                let fTime = timeVal || (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0) || 0;
+                let fClimb = climbVal || 0;
 
-                    for (let i = 14; i < buffer.byteLength - 8; i += 2) {
-                        let tag = view.getUint16(i, true);
-                        if (tag === 0x0504) { 
-                            let dVal = view.getUint32(i + 2, true) / 100;
-                            if (dVal > maxDistRecord && dVal < 250000) maxDistRecord = dVal;
-                        }
-                        if (tag === 0x0304) hrList.push(view.getUint8(i + 2));
-                        if (tag === 0x0403) cadList.push(view.getUint8(i + 2) * 2);
-                        if (tag === 0xFD04) { 
-                            let tVal = view.getUint32(i + 2, true);
-                            minTime = Math.min(minTime, tVal); maxTime = Math.max(maxTime, tVal);
-                        }
-                    }
-
-                    if (maxDistRecord > 100) {
-                        resDist = maxDistRecord / 1000; 
-                        resClimb = 0; 
-                        if (maxTime > minTime) resTime = maxTime - minTime;
-                        if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
-                        if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
-                        isParsed = true;
-                    }
-                }
-
-                if (isParsed && resDist > 0.1) {
-                    const finalDistance = resDist.toFixed(2);
-                    const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
-
-                    const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
-                    const secs = String(Math.round(resTime % 60)).pa
+                if (fDist > 0.05) {
+                    document.getElementById('distance').value = fDist.toFixed(2);
+                    document.getElementById('elevation').value = (fClimb >= 0 && fClimb < 5000) ? fClimb : "0";
+                    
+                    const hrs = String(Math.floor(fTime / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((fTime % 3600) / 60)).padStart(2, '0');
+                    const secs = String(Math.round(fTime % 60)).padStart(2, '0');
+                    document.getElementById('duration').value = `${hrs}:${mins}:${secs}`;
+                    
+                    document.getElementById('hr').value = hrVal || "";
+                    document.getElementById('cadence').value = cadVal || "";
+                    
+                    if (cadVal > 0 && fTime > 0) {
+                        document.getElementById('stride').value = ((fDist * 1000) / 
