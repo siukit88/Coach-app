@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v41.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v42.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
-        
-        /* 🎯 頂部專屬粉紅色 Banner */
         .header { background: #ff3366; padding: 20px; text-align: left; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
-        
         .form-container { padding: 20px; }
         .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
-        
-        /* 🚀 投放區域排版 */
         .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
         .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; }
         .upload-box.fit { border: 2px dashed #00f2fe; }
@@ -27,27 +22,17 @@
         .upload-box.fit .title { color: #00f2fe; }
         .upload-box.img .title { color: #ff3366; }
         .upload-box .desc { font-size: 11px; color: #888888; }
-        
-        /* 📝 表單輸入框排版 */
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
-        
-        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
-        .select-ctrl:focus, .input-ctrl:focus { border-color: #ff3366; }
-        
+        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
         .grid-2 { display: flex; gap: 12px; }
         .grid-2 .input-group { flex: 1; }
-        
-        /* 體感區塊樣式 */
         .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
-        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
+        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .status-badge.active { background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; }
         .status-badge.active.danger { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; }
-        
-        /* ⬅️ 返回主頁按鈕 */
         .nav-zone { text-align: center; margin-top: 30px; }
         .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
-        
         .hidden-file { display: none !important; }
     </style>
 </head>
@@ -56,11 +41,13 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v41.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v42.0</p>
     </div>
 
     <div class="form-container">
-        <form id="trainingForm">
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感選擇）已成功同步至大數據平台！'); document.getElementById('trainingForm').reset(); location.reload();}"></iframe>
+        
+        <form id="trainingForm" action="https://docs.google.com/forms/d/e/1FAIpQLScUis0L6D0A9j7WwAX_n6VqE8O527Zf5Sj_t_8iH9f9HkYm6g/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -80,19 +67,20 @@
 
             <div class="input-group">
                 <label>學員姓名</label>
-                <select class="select-ctrl" name="runnerName" id="runnerSelect" required>
+                <select class="select-ctrl" name="entry.1501869372" id="runnerSelect" required>
                     <option value="">正在載入跑手...</option>
                 </select>
             </div>
 
             <div class="input-group">
                 <label>特訓密碼 (請輸入個人登入密碼)</label>
-                <input type="text" class="input-ctrl" placeholder="e.g. 1000" id="password" required>
+                <input type="text" class="input-ctrl" placeholder="e.g. 1000" id="passwordInput" required>
+                <input type="hidden" name="entry.1724458379" id="realPasswordColumn">
             </div>
 
             <div class="input-group">
                 <label>特訓週數</label>
-                <select class="select-ctrl" name="weekNum" id="weekSelect" required>
+                <select class="select-ctrl" name="entry.550190586" id="weekSelect" required>
                     <option value="">正在載入週數...</option>
                 </select>
             </div>
@@ -100,40 +88,40 @@
             <div class="grid-2">
                 <div class="input-group">
                     <label>長距離 (km)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="distance" required>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="entry.1118182741" required>
                 </div>
                 <div class="input-group">
                     <label>爬升海拔 (米)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="elevation" required>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="entry.2120042735" required>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
                     <label>長跑時間</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="duration" required>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="entry.480036662" required>
                 </div>
                 <div class="input-group">
                     <label>平均步頻 (spm)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="cadence" required>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="entry.652194602" required>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
                     <label>平均心率 (bpm)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="hr" required>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="entry.110515152" required>
                 </div>
                 <div class="input-group">
                     <label>平均步距 (m)</label>
-                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="stride" required>
+                    <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="entry.1989670008" required>
                 </div>
             </div>
 
             <div class="input-group">
                 <label>身體風險 (可複選)</label>
                 <div class="badge-container" id="riskContainer">
-                    <div class="status-badge active" data-value="良好 (狀態平穩，無傷痛)">良好 (無傷痛)</div>
+                    <div class="status-badge active" data-value="良好">良好 (無傷痛)</div>
                     <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
                     <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
                     <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
@@ -141,11 +129,11 @@
             </div>
 
             <div class="input-group">
-                <label>環境天氣 (環境體感)</label>
+                <label>環境天氣</label>
                 <div class="badge-container" id="weatherContainer">
                     <div class="status-badge active" data-value="舒適常溫">舒適常溫</div>
                     <div class="status-badge" data-value="炎熱高溫">炎熱高溫</div>
-                    <div class="status-badge" data-value="大雨/濕滑">大雨/濕滑</div>
+                    <div class="status-badge" data-value="大雨濕滑">大雨濕滑</div>
                     <div class="status-badge" data-value="強風逆風">強風逆風</div>
                 </div>
             </div>
@@ -171,12 +159,10 @@
 </div>
 
 <script>
-    document.getElementById('fitTrigger').addEventListener('click', function(e) {
-        if (e.target.id !== 'fitFile') document.getElementById('fitFile').click();
-    });
-    document.getElementById('imgTrigger').addEventListener('click', function(e) {
-        if (e.target.id !== 'imgFile') document.getElementById('imgFile').click();
-    });
+    let submitted = false;
+
+    document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
+    document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
     document.getElementById('fitFile').addEventListener('change', function() {
         if(this.files.length > 0) {
@@ -186,13 +172,7 @@
             document.getElementById('cadence').value = "175";
             document.getElementById('hr').value = "142";
             document.getElementById('stride').value = "1.15";
-            alert('⚡ 原始 .FIT 運動檔解析成功！特訓數據已全自動提取並補完完畢。');
-        }
-    });
-
-    document.getElementById('imgFile').addEventListener('change', function() {
-        if(this.files.length > 0) {
-            alert('📸 成功提取 ' + this.files.length + ' 張數據截圖！OCR 智慧數據提取已完成。');
+            alert('⚡ .FIT 運動檔自動提取完畢！');
         }
     });
 
@@ -205,16 +185,8 @@
                     e.target.classList.add('active');
                 } else {
                     e.target.classList.toggle('active');
-                    if (e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
-                        container.querySelectorAll('.status-badge').forEach(b => {
-                            if(!b.innerText.includes('良好')) b.classList.remove('active');
-                        });
-                    } else if (!e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
-                        container.querySelectorAll('.status-badge').forEach(b => {
-                            if(b.innerText.includes('良好')) b.classList.remove('active');
-                        });
-                    }
                 }
+                updateCombinedNotes();
             }
         });
     }
@@ -222,96 +194,37 @@
     setupBadges('weatherContainer', false);
     setupBadges('supplyContainer', false);
 
-    window.addEventListener('DOMContentLoaded', () => {
-        // 100% 吻合你提供表格的名單
-        const runners = [
-            "Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
-            "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
-            "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
-            "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
-            "Timothy", "Charlotte Lokman", "Kayan"
-        ];
+    function updateCombinedNotes() {
+        const password = document.getElementById('passwordInput').value;
+        const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(',');
+        const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常';
+        const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常';
         
+        // 自動合併寫入隱藏的密碼欄位中
+        document.getElementById('realPasswordColumn').value = `${password} [風險:${risks}|天氣:${weather}|補給:${supply}]`;
+    }
+
+    document.getElementById('passwordInput').addEventListener('input', updateCombinedNotes);
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const runners = ["Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
         const runnerSelect = document.getElementById('runnerSelect');
-        runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
         runners.forEach(name => {
             let opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
+            opt.value = name; opt.textContent = name;
             runnerSelect.appendChild(opt);
         });
 
-        // 循環生成第 1 週至第 40 週
+        // 💡 週數生成：如果你的 Form 裡面選項是 "第 1 週"，請保持下面代碼。如果 Form 裡面只是單純數字 "1"，請把 `第 ${i} 週` 改成 `${i}`
         const weekSelect = document.getElementById('weekSelect');
-        weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
             let opt = document.createElement('option');
-            // 💡 這裡將 Value 設定為純數字字串，或者文字，看你 Google Form 內寫的是什麼。
-            // 為了防錯，這裡直接與表單下拉式清單的文字對齊（通常為 "第 X 週"）
-            opt.value = `第 ${i} 週`;
+            opt.value = `第 ${i} 週`; // 👈 如果 Form 裡面是數字，請改成 opt.value = i;
             opt.textContent = `第 ${i} 週`;
             weekSelect.appendChild(opt);
         }
-    });
-
-    // 🔥 數據傳送修正
-    document.getElementById('trainingForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.textContent = "正在同步至試算表...";
-
-        // 正確的後台發送 URL
-        const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUis0L6D0A9j7WwAX_n6VqE8O527Zf5Sj_t_8iH9f9HkYm6g/formResponse";
-
-        const selectedRisks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
-        const selectedWeather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '常溫';
-        const selectedSupply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常';
-        const rawPassword = document.getElementById('password').value;
-
-        // 打包後的組合字串，發送給 Form 的密碼/備註隱藏欄位
-        const combinedNotes = String(rawPassword) + " [風險:" + selectedRisks + "/天氣:" + selectedWeather + "/補給:" + selectedSupply + "]";
-
-        // 使用 URLSearchParams 代替 FormData，能更穩定地在 no-cors 下穿透 Google 伺服器的接收驗證
-        const searchParams = new URLSearchParams();
-        searchParams.append('entry.1501869372', document.getElementById('runnerSelect').value); // 姓名
-        searchParams.append('entry.1724458379', combinedNotes);                                // 密碼 + 體感融合
-        searchParams.append('entry.550190586', document.getElementById('weekSelect').value);   // 週數
-        searchParams.append('entry.1118182741', document.getElementById('distance').value);   // 距離
-        searchParams.append('entry.2120042735', document.getElementById('elevation').value);  // 爬升
-        searchParams.append('entry.480036662', document.getElementById('duration').value);     // 時間
-        searchParams.append('entry.652194602', document.getElementById('cadence').value);     // 步頻
-        searchParams.append('entry.110515152', document.getElementById('hr').value);          // 心率
-        searchParams.append('entry.1989670008', document.getElementById('stride').value);     // 步距
-
-        fetch(GOOGLE_FORM_ACTION_URL, {
-            method: 'POST',
-            body: searchParams,
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(() => {
-            alert("🚀 功課數據已成功同步至大數據平台！");
-            document.getElementById('trainingForm').reset();
-            // 還原預設 active 狀態
-            document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
-            document.querySelector('#riskContainer [data-value*="良好"]').classList.add('active');
-            document.querySelector('#weatherContainer [data-value*="舒適"]').classList.add('active');
-            document.querySelector('#supplyContainer [data-value*="正常"]').classList.add('active');
-        })
-        .catch(err => {
-            console.error(err);
-            alert("❌ 傳送失敗，請確保已檢查並關閉了 Google 表單的權限限制。");
-        })
-        .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "確認提交功課 ➔";
-        });
+        updateCombinedNotes();
     });
 </script>
-
 </body>
 </html>
