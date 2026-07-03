@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v45.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v47.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -41,11 +41,11 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v45.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v47.0</p>
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感指標）已完美同步至 Google Form 後台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據已完美同步至 Google Form 後台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
         
         <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true;">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
@@ -74,8 +74,7 @@
 
             <div class="input-group">
                 <label>特訓密碼 (請輸入個人登入密碼)</label>
-                <input type="text" class="input-ctrl" placeholder="e.g. 1000" id="passwordInput" required>
-                <input type="hidden" name="entry.1508218683" id="realPasswordColumn">
+                <input type="text" class="input-ctrl" name="entry.1508218683" placeholder="e.g. 1000" id="passwordInput" required>
             </div>
 
             <div class="input-group">
@@ -121,29 +120,29 @@
             <div class="input-group">
                 <label>身體風險 (可複選)</label>
                 <div class="badge-container" id="riskContainer">
-                    <div class="status-badge active" data-value="Normal">良好 (無傷痛)</div>
-                    <div class="status-badge danger" data-value="Knee">膝蓋不適</div>
-                    <div class="status-badge danger" data-value="Foot">足底痛楚</div>
-                    <div class="status-badge danger" data-value="Muscle">肌肉拉傷</div>
+                    <div class="status-badge active" data-value="良好">良好 (無傷痛)</div>
+                    <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
+                    <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
+                    <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
                 </div>
             </div>
 
             <div class="input-group">
                 <label>環境天氣</label>
                 <div class="badge-container" id="weatherContainer">
-                    <div class="status-badge active" data-value="Good">舒適常溫</div>
-                    <div class="status-badge" data-value="Hot">炎熱高溫</div>
-                    <div class="status-badge" data-value="Rain">大雨濕滑</div>
-                    <div class="status-badge" data-value="Wind">強風逆風</div>
+                    <div class="status-badge active" data-value="舒適常溫">舒適常溫</div>
+                    <div class="status-badge" data-value="炎熱高溫">炎熱高溫</div>
+                    <div class="status-badge" data-value="大雨濕滑">大雨濕滑</div>
+                    <div class="status-badge" data-value="強風逆風">強風逆風</div>
                 </div>
             </div>
 
             <div class="input-group">
                 <label>補給問題</label>
                 <div class="badge-container" id="supplyContainer">
-                    <div class="status-badge active" data-value="OK">補給正常</div>
-                    <div class="status-badge" data-value="Cramp">後半段抽筋/缺水</div>
-                    <div class="status-badge" data-value="Wall">能量不足/撞牆</div>
+                    <div class="status-badge active" data-value="補給正常">補給正常</div>
+                    <div class="status-badge" data-value="後半段抽筋/缺水">後半段抽筋/缺水</div>
+                    <div class="status-badge" data-value="能量不足/撞牆">能量不足/撞牆</div>
                 </div>
             </div>
             
@@ -173,7 +172,6 @@
             document.getElementById('hr').value = "142";
             document.getElementById('stride').value = "1.15";
             alert('⚡ .FIT 運動檔自動數據提取已補完！');
-            updateCombinedNotes();
         }
     });
 
@@ -196,7 +194,6 @@
                         });
                     }
                 }
-                updateCombinedNotes();
             }
         });
     }
@@ -204,25 +201,11 @@
     setupBadges('weatherContainer', false);
     setupBadges('supplyContainer', false);
 
-    // 💡 安全淨化編碼：完全移除了反引號內的中文結構，改用標準無害的 ASCII 碼與底線符號拼接
-    function updateCombinedNotes() {
-        const password = document.getElementById('passwordInput').value;
-        const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join('_');
-        const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || 'Good';
-        const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || 'OK';
-        
-        // 生成純安全英文字元封包，如 "1001_Knee_Hot_Cramp"，這絕對不會引發 Google Form 400 格式錯誤
-        document.getElementById('realPasswordColumn').value = password + "_" + risks + "_" + weather + "_" + supply;
-    }
-
-    document.getElementById('passwordInput').addEventListener('input', updateCombinedNotes);
-
     function resetBadges() {
         document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
-        document.querySelector('#riskContainer [data-value="Normal"]').classList.add('active');
-        document.querySelector('#weatherContainer [data-value="Good"]').classList.add('active');
-        document.querySelector('#supplyContainer [data-value="OK"]').classList.add('active');
-        updateCombinedNotes();
+        document.querySelector('#riskContainer [data-value="良好"]').classList.add('active');
+        document.querySelector('#weatherContainer [data-value="舒適常溫"]').classList.add('active');
+        document.querySelector('#supplyContainer [data-value="補給正常"]').classList.add('active');
         submitted = false;
     }
 
@@ -236,6 +219,7 @@
             runnerSelect.appendChild(opt);
         });
 
+        // 🎯 100% 遵照真實表單設定：完全沒有空格（第1週 ～ 第40週）
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
@@ -244,7 +228,6 @@
             opt.textContent = `第${i}週`;
             weekSelect.appendChild(opt);
         }
-        updateCombinedNotes();
     });
 </script>
 </body>
