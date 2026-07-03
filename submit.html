@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kit Coach 團隊特訓大數據平台 v40.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/fit-file-parser-browser@1.0.1/dist/fit-parser.min.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -167,16 +168,85 @@
     document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
-    document.getElementById('fitFile').addEventListener('change', function() {
-        if(this.files.length > 0) {
-            document.getElementById('distance').value = "34.14";
-            document.getElementById('elevation').value = "2222";
-            document.getElementById('duration').value = "06:48:21";
-            document.getElementById('cadence').value = "175";
-            document.getElementById('hr').value = "142";
-            document.getElementById('stride').value = "1.15";
-            alert('⚡ 原始 .FIT 運動檔數據全自動提取完畢！');
-        }
+    // 📡 核心升級：精準讀取真實二進位流並解碼運動紀錄
+    document.getElementById('fitFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const arrayBuffer = event.target.result;
+                // 實例化二進位解碼引擎
+                const fitParser = new FitParser({
+                    force: true,
+                    targetAttributes: ['session', 'record']
+                });
+
+                fitParser.parse(arrayBuffer, function(error, data) {
+                    if (error) {
+                        alert('❌ .FIT 檔案破損或無法解析，請重新匯出後投放。');
+                        console.error(error);
+                        return;
+                    }
+
+                    // 🛠️ 從 Garmin 官方定義的數據摘要層（Session）提取核心總量資料
+                    if (data && data.sessions && data.sessions.length > 0) {
+                        const session = data.sessions[0];
+
+                        // 1. 總距離計算（官方二進位預設為公米，需轉換為標準 km）
+                        const rawDistance = session.total_distance ? (session.total_distance / 1000).toFixed(2) : "0.00";
+                        
+                        // 2. 總爬升海拔（米）
+                        const rawElevation = session.total_ascent ? Math.round(session.total_ascent) : "0";
+                        
+                        // 3. 長跑總時長（官方預設秒數，自動轉換為國際標準 HH:MM:SS 格式）
+                        let rawDuration = "--:--:--";
+                        if (session.total_timer_time) {
+                            const totalSeconds = Math.round(session.total_timer_time);
+                            const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+                            const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                            const secs = String(totalSeconds % 60).padStart(2, '0');
+                            rawDuration = `${hrs}:${mins}:${secs}`;
+                        }
+
+                        // 4. 平均心率 (Bpm)
+                        const rawHR = session.avg_heart_rate ? Math.round(session.avg_heart_rate) : "";
+
+                        // 5. 平均步頻（官方規格常規為單腳步頻，自動放大為全配速步頻 spm）
+                        const rawCadence = session.avg_cadence ? Math.round(session.avg_cadence * 2) : "";
+
+                        // 6. 平均步距（公尺，依動態步態分析四捨五入）
+                        const rawStride = session.avg_stance_time_percent ? (session.avg_speed ? (session.avg_speed * 60 / rawCadence).toFixed(2) : "1.00") : "1.15";
+
+                        // 🎯 100% 真實運動指標動態回填，徹底擊碎固定假數據
+                        document.getElementById('distance').value = rawDistance;
+                        document.getElementById('elevation').value = rawElevation;
+                        document.getElementById('duration').value = rawDuration;
+                        if (rawCadence) document.getElementById('cadence').value = rawCadence;
+                        if (rawHR) document.getElementById('hr').value = rawHR;
+                        
+                        // 如果解析出的步距不合理，提供標準動態估算值
+                        if (rawCadence && rawDistance > 0) {
+                            const totalMinutes = session.total_timer_time / 60;
+                            const totalSteps = rawCadence * totalMinutes;
+                            const calculatedStride = ((session.total_distance) / totalSteps).toFixed(2);
+                            document.getElementById('stride').value = (calculatedStride > 0.3 && calculatedStride < 2.5) ? calculatedStride : "1.15";
+                        } else {
+                            document.getElementById('stride').value = rawStride;
+                        }
+
+                        alert(`⚡ 成功解密跑手真實數據！\n🏃長距離: ${rawDistance}km\n⛰️爬升: ${rawElevation}米\n⏱️時長: ${rawDuration}`);
+                    } else {
+                        alert('⚠️ 該檔案未包含完整的特訓 Session 摘要區塊，請確認手錶已完成儲存。');
+                    }
+                });
+            } catch (err) {
+                alert('❌ 瀏覽器二進位解碼緩衝區發生錯誤。');
+                console.error(err);
+            }
+        };
+        reader.readAsArrayBuffer(file);
     });
 
     function setupBadges(containerId, isMultiple = false) {
@@ -213,7 +283,6 @@
         submitted = false;
     }
 
-    // 💡 100% 姓名對齊（包含了 Kit、以及正確拼寫的大寫 Nien）
     window.addEventListener('DOMContentLoaded', () => {
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
@@ -231,7 +300,6 @@
             runnerSelect.appendChild(opt);
         });
 
-        // 🎯 100% 遵照帶有空格的原始看板解讀格式（第 1 週 至 第 40 週）
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
@@ -242,7 +310,6 @@
         }
     });
 
-    // 🔥 在提交的最後一刻，把選中的體感文字直接塞給各自獨立的簡答隱藏 input 發送
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '舒適常溫';
