@@ -133,7 +133,7 @@
             <div class="input-group">
                 <label>身體風險 (可複選)</label>
                 <div class="badge-container" id="riskContainer">
-                    <div class="status-badge active" data-value="良好 (狀態平穩，無傷痛)">良好 (無傷痛)</div>
+                    <div class="status-badge active" data-value="良好">良好 (無傷痛)</div>
                     <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
                     <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
                     <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
@@ -255,7 +255,7 @@
         }
     });
 
-    // 🔥 表單提交機制 (將體感選擇自動融合打包發送)
+    // 🔥 表單提交機制
     document.getElementById('trainingForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -263,21 +263,21 @@
         submitBtn.disabled = true;
         submitBtn.textContent = "正在同步至試算表...";
 
-        // 🎯 這裡修正為你提供的「真正真正有在用」的 Google 表單發送位址
         const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse";
 
-        // 收集選中的體感數據
         const selectedRisks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
-        const selectedWeather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '未選擇';
-        const selectedSupply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '未選擇';
+        const selectedWeather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || 'Comfortable';
+        const selectedSupply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || 'Normal';
 
         const passwordFieldVal = document.getElementById('password').value;
 
+        // 🎯 核心修復：將反引號拼湊中的中文字拿走，完全改用標準英文字元與符包，防止 GitHub Actions 編譯崩潰
+        const combinedNotes = passwordFieldVal + " [RISK:" + selectedRisks + " | WTH:" + selectedWeather + " | SPL:" + selectedSupply + "]";
+
         const formData = new FormData();
-        // 🎯 這裡已經 100% 替換為新表單回應5通道的「真實 Entry ID」
         formData.append('entry.1882046892', document.getElementById('runnerSelect').value); // 學員姓名
-        formData.append('entry.1508218683', `${passwordFieldVal} [狀態: ${selectedRisks} | 天氣: ${selectedWeather} | 補給: ${selectedSupply}]`); // 密碼 + 體感紀錄
-        formData.append('entry.1432130528', document.getElementById('weekSelect').value);     // 特訓週數
+        formData.append('entry.1508218683', combinedNotes);                                // 密碼與體感封包
+        formData.append('entry.1432130528', document.getElementById('weekSelect').value);   // 特訓週數
         formData.append('entry.480031853', document.getElementById('distance').value);       // 長距離
         formData.append('entry.785461947', document.getElementById('elevation').value);      // 爬升海拔
         formData.append('entry.1118126830', document.getElementById('duration').value);      // 長跑時間
@@ -291,9 +291,8 @@
             mode: 'no-cors'
         })
         .then(() => {
-            alert("🚀 功課數據（連同體感選擇）已成功同步至大數據平台（Google 試算表後台）！");
+            alert("🚀 功課數據（連同體感選擇）已成功同步至大數據平台！");
             document.getElementById('trainingForm').reset();
-            // 重設 badge 狀態
             document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
             document.querySelector('#riskContainer [data-value*="良好"]').classList.add('active');
             document.querySelector('#weatherContainer [data-value*="舒適"]').classList.add('active');
