@@ -52,18 +52,19 @@
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
-                <div class="upload-box fit" id="fitTrigger">
+                <label class="upload-box fit" for="fitFile">
                     <span class="icon">⚡</span>
-                    <div class="title">投放 .FIT 原始檔</div>
-                    <div class="desc">支援 Garmin, Suunto, Apple Watch</div>
-                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
-                </div>
-                <div class="upload-box img" id="imgTrigger">
+                    <span class="title" style="color: #00f2fe; font-weight: bold;">投放 .FIT 原始檔</span>
+                    <span class="desc" style="display:block; margin-top:4px;">支援 Garmin, Suunto, Apple Watch</span>
+                </label>
+                <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+
+                <label class="upload-box img" for="imgFile">
                     <span class="icon">📸</span>
-                    <div class="title">上載數據截圖</div>
-                    <div class="desc">支援多圖智慧補完</div>
-                    <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
-                </div>
+                    <span class="title" style="color: #ff3366; font-weight: bold;">上載數據截圖</span>
+                    <span class="desc" style="display:block; margin-top:4px;">支援多圖智慧補完</span>
+                </label>
+                <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
             </div>
 
             <div class="input-group">
@@ -94,7 +95,7 @@
                 <label for="weekSelect">特訓週數</label>
                 <select class="select-ctrl" name="entry.1489498214" id="weekSelect" required>
                     <option value="">請選擇特訓週數...</option>
-                    <option value="第 1 週">第 1 週</option><option value="第 2 週">第 2 週</option><option value="第 3 週">第 3 週</option><option value="第 4 週">第 4 週</option><option value="第 5 週">第 5 週</option><option value="第 6 週">第 6 週</option><option value="第 7 週">第 7 週</option><option value="第 8 週">第 8 週</option><option value="第 9 週">第 9 週</option><option value="第 10 週">第 10 週</option><option value="第 11 週">第 11 週</option><option value="第 12 週">第 12 週</option><option value="第 13 週">第 13 週</option><option value="第 14 週">第 14 週</option><option value="第 15 週">第 15 週</option><option value="第 16 週">第 16 週</option><option value="第 17 週">第 17 週</option><option value="第 18 週">第 18 週</option><option value="第 19 週">第 19 週</option><option value="第 20 週">第 20 週</option><option value="第 21 週">第 21 週</option><option value="第 22 週">第 22 週</option><option value="第 23 週">第 23 週</option><option value="第 24 週">第 24 週</option><option value="第 25 週">第 25 週</option><option value="第 26 週">第 26 週</option><option value="第 27 週">第 27 週</option><option value="第 28 週">第 28 週</option><option value="第 29 週">第 29 週</option><option value="第 30 週">第 30 週</option><option value="第 31 週">第 31 週</option><option value="第 32 週">第 32 週</option><option value="第 33 週">第 33 週</option><option value="第 34 週">第 34 週</option><option value="第 35 週">第 35 週</option><option value="第 36 週">第 36 週</option><option value="第 37 週">第 37 週</option><option value="第 38 週">第 38 週</option><option value="第 39 週">第 39 週</option><option value="第 40 週">第 40 週</option>
+                    <option value="第 1 週">第 1 週</option><option value="第 2 週">第 2 週</option><option value="第 3 週">第 3 週</option><option value="第 4 週">第 4 週</option><option value="第 5 週">第 5 週</option><option value="第 6 週">第 6 週</option><option value="第 7 週">第 7 週</option><option value="第 8 週">第 8 週</option><option value="第 9 週">第 9 週</option><option value="第 10 週">第 10 週</option><option value="第 11 週">第 11 週</option><option value="第 12 週">第 12 週</option><option value="第 13 週">第 13 週</option><option value="第 14 週">第 14 週</option><option value="第 15 週">第 15 週</option><option value="第 16 週">第 16 週</option><option value="開設 17 週">第 17 週</option><option value="第 18 週">第 18 週</option><option value="第 19 週">第 19 週</option><option value="第 20 週">第 20 週</option><option value="第 21 週">第 21 週</option><option value="第 22 週">第 22 週</option><option value="第 23 週">第 23 週</option><option value="第 24 週">第 24 週</option><option value="第 25 週">第 25 週</option><option value="第 26 週">第 26 週</option><option value="第 27 週">第 27 週</option><option value="第 28 週">第 28 週</option><option value="第 29 週">第 29 週</option><option value="第 30 週">第 30 週</option><option value="第 31 週">第 31 週</option><option value="第 32 週">第 32 週</option><option value="第 33 週">第 33 週</option><option value="第 34 週">第 34 週</option><option value="第 35 週">第 35 週</option><option value="第 36 週">第 36 週</option><option value="第 37 週">第 37 週</option><option value="第 38 週">第 38 週</option><option value="第 39 週">第 39 週</option><option value="第 40 週">第 40 週</option>
                 </select>
             </div>
 
@@ -104,7 +105,7 @@
                     <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="entry.148761576" required>
                 </div>
                 <div class="input-group">
-                    <label default="0" for="elevation">爬升海拔 (米)</label>
+                    <label for="elevation">爬升海拔 (米)</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="entry.1312042737" required>
                 </div>
             </div>
@@ -175,28 +176,14 @@
 </div>
 
 <script>
-    // 🔒 乾淨全域狀態宣告（絕不包含任何非標準 CSS 或未定義髒代碼）
     let submitted = false;
 
+    // 🔒 100% 純淨安全初始化（不包含任何可能報錯的非標準全域變數）
     window.addEventListener('DOMContentLoaded', () => {
-        // 安全綁定 DOM 點擊導向
-        const fitTrigger = document.getElementById('fitTrigger');
-        if (fitTrigger) fitTrigger.addEventListener('click', () => {
-            const el = document.getElementById('fitFile');
-            if (el) el.click();
-        });
-        
-        const imgTrigger = document.getElementById('imgTrigger');
-        if (imgTrigger) imgTrigger.addEventListener('click', () => {
-            const el = document.getElementById('imgFile');
-            if (el) el.click();
-        });
-
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
         setupBadges('supplyContainer', false);  
 
-        // 以標準非同步監聽接管 Google Form 與 iframe 聯動，防止時序死鎖
         const hiddenIframe = document.getElementById('hidden_submit_target');
         if (hiddenIframe) {
             hiddenIframe.addEventListener('load', () => {
@@ -218,7 +205,7 @@
         }
     });
 
-    // 📡 封閉安全沙盒：精確位移定位狀態機（僅相容 Garmin, Suunto, Apple Watch）
+    // 📡 獨立二進位解析沙盒
     const fitFileInput = document.getElementById('fitFile');
     if (fitFileInput) {
         fitFileInput.addEventListener('change', function(e) {
@@ -226,24 +213,19 @@
             if (!file) return;
 
             const inputElement = this;
-
-            if (window.activeReader) {
-                try { window.activeReader.abort(); } catch(err){}
-                delete window.activeReader;
-            }
-
-            window.activeReader = new FileReader();
-            window.activeReader.onload = function(event) {
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
                 try {
                     const buffer = event.target.result;
                     const view = new DataView(buffer);
                     
-                    if (buffer.byteLength < 100) { throw new Error("File empty"); }
+                    if (buffer.byteLength < 100) { throw new Error("Format error"); }
 
                     let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
                     let isParsed = false;
 
-                    // 🛰️ 【模式 A】加明、頌拓標準摘要
+                    // 🛰️ Garmin / Suunto 摘要掃描
                     for (let i = 14; i < buffer.byteLength - 60; i++) {
                         if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
                             let fieldCount = view.getUint8(i + 2);
@@ -299,7 +281,7 @@
                         }
                     }
 
-                    // 🛰️ 【模式 B】蘋果軌跡累加
+                    // 🛰️ Apple Watch 軌跡點加總
                     if (!isParsed) {
                         let maxDistRecord = 0;
                         let hrList = [], cadList = [];
@@ -324,4 +306,15 @@
                             resClimb = 0; 
                             if (maxTime > minTime) resTime = maxTime - minTime;
                             if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
-                            if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadLis
+                            if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
+                            isParsed = true;
+                        }
+                    }
+
+                    if (isParsed && resDist > 0.1) {
+                        const finalDistance = resDist.toFixed(2);
+                        const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
+
+                        const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
+                        const secs = String(Math.round(resTime % 60)).padStart(2, '
