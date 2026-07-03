@@ -177,10 +177,8 @@
             climb: parsedFitData.climb, risk: risk, weather: weather, supply: supply
         };
 
-        // 🛡️ 安全拆解技術：將網址切斷成多段拼湊，防止 GitHub Pages 編譯器進行語法限制誤判
-        var p1 = "https://" + "script.google.com";
-        var p2 = "/macros/s/" + "AKfycbyemNvYJCWRVrNrZPGIyTt2Md8eqZK5R8Gqh32L844Or4p_MGy47RBXPxmuaPejXDQR";
-        var googleAppsScriptUrl = p1 + p2 + "/exec";
+        // 原始直接貼上網址的版本
+        var googleAppsScriptUrl = "https://script.google.com/macros/s/AKfycbyemNvYJCWRVrNrZPGIyTt2Md8eqZK5R8Gqh32L844Or4p_MGy47RBXPxmuaPejXDQR/exec";
 
         fetch(googleAppsScriptUrl, {
             method: 'POST',
