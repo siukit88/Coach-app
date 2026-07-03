@@ -67,53 +67,66 @@
             </div>
 
             <div class="input-group">
-                <label>學員姓名</label>
+                <label for="runnerSelect">學員姓名</label>
                 <select class="select-ctrl" name="entry.477574654" id="runnerSelect" required>
-                    <option value="">正在載入跑手...</option>
+                    <option value="">請選擇跑手...</option>
+                    <option value="Kit">Kit</option><option value="Nien">Nien</option><option value="Simon">Simon</option>
+                    <option value="Alex">Alex</option><option value="Sun">Sun</option><option value="Jackson">Jackson</option>
+                    <option value="Joy">Joy</option><option value="George">George</option><option value="Lip">Lip</option>
+                    <option value="Wing_PTL">Wing_PTL</option><option value="Jason_PTL">Jason_PTL</option><option value="Alwyn">Alwyn</option>
+                    <option value="Camille">Camille</option><option value="Fion">Fion</option><option value="Daniel">Daniel</option>
+                    <option value="KingYan">KingYan</option><option value="Szero">Szero</option><option value="Frances">Frances</option>
+                    <option value="Bianca">Bianca</option><option value="Mabel">Mabel</option><option value="Avis">Avis</option>
+                    <option value="Jason">Jason</option><option value="Jerry">Jerry</option><option value="Rita">Rita</option>
+                    <option value="Ruby">Ruby</option><option value="Calvin Siu">Calvin Siu</option><option value="Thomas">Thomas</option>
+                    <option value="Yin Wai">Yin Wai</option><option value="Gary">Gary</option><option value="Lois">Lois</option>
+                    <option value="Gaby">Gaby</option><option value="Carol">Carol</option><option value="Timothy">Timothy</option>
+                    <option value="Charlotte Lokman">Charlotte Lokman</option><option value="Kayan">Kayan</option>
                 </select>
             </div>
 
             <div class="input-group">
-                <label>特訓密碼 (請輸入個人登入密碼)</label>
+                <label for="password">特訓密碼 (請輸入個人登入密碼)</label>
                 <input type="password" class="input-ctrl" name="entry.595584756" placeholder="e.g. 1000" id="password" required>
             </div>
 
             <div class="input-group">
-                <label>特訓週數</label>
+                <label for="weekSelect">特訓週數</label>
                 <select class="select-ctrl" name="entry.1489498214" id="weekSelect" required>
-                    <option value="">正在載入週數...</option>
+                    <option value="">請選擇特訓週數...</option>
+                    <option value="第 1 週">第 1 週</option><option value="第 2 週">第 2 週</option><option value="第 3 週">第 3 週</option><option value="第 4 週">第 4 週</option><option value="第 5 週">第 5 週</option><option value="第 6 週">第 6 週</option><option value="第 7 週">第 7 週</option><option value="第 8 週">第 8 週</option><option value="第 9 週">第 9 週</option><option value="第 10 週">第 10 週</option><option value="第 11 週">第 11 週</option><option value="第 12 週">第 12 週</option><option value="第 13 週">第 13 週</option><option value="第 14 週">第 14 週</option><option value="第 15 週">第 15 週</option><option value="第 16 週">第 16 週</option><option value="第 17 週">第 17 週</option><option value="第 18 週">第 18 週</option><option value="第 19 週">第 19 週</option><option value="第 20 週">第 20 週</option><option value="第 21 週">第 21 週</option><option value="第 22 週">第 22 週</option><option value="第 23 週">第 23 週</option><option value="第 24 週">第 24 週</option><option value="第 25 週">第 25 週</option><option value="第 26 週">第 26 週</option><option value="第 27 週">第 27 週</option><option value="第 28 週">第 28 週</option><option value="第 29 週">第 29 週</option><option value="第 30 週">第 30 週</option><option value="第 31 週">第 31 週</option><option value="第 32 週">第 32 週</option><option value="第 33 週">第 33 週</option><option value="第 34 週">第 34 週</option><option value="第 35 週">第 35 週</option><option value="第 36 週">第 36 週</option><option value="第 37 週">第 37 週</option><option value="第 38 週">第 38 週</option><option value="第 39 週">第 39 週</option><option value="第 40 週">第 40 週</option>
                 </select>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
-                    <label>長距離 (km)</label>
+                    <label for="distance">長距離 (km)</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 34.14" id="distance" name="entry.148761576" required>
                 </div>
                 <div class="input-group">
-                    <label>爬升海拔 (米)</label>
+                    <label default="0" for="elevation">爬升海拔 (米)</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 2222" id="elevation" name="entry.1312042737" required>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
-                    <label>長跑時間</label>
+                    <label for="duration">長跑時間</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 06:48:21" id="duration" name="entry.1180292056" required>
                 </div>
                 <div class="input-group">
-                    <label>平均步頻 (spm)</label>
+                    <label for="cadence">平均步頻 (spm)</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 175" id="cadence" name="entry.1706083544" required>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="input-group">
-                    <label>平均心率 (bpm)</label>
+                    <label for="hr">平均心率 (bpm)</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 142" id="hr" name="entry.1835781605" required>
                 </div>
                 <div class="input-group">
-                    <label>平均步距 (m)</label>
+                    <label for="stride">平均步距 (m)</label>
                     <input type="text" class="input-ctrl" placeholder="e.g. 1.15" id="stride" name="entry.772436490" required>
                 </div>
             </div>
@@ -162,49 +175,28 @@
 </div>
 
 <script>
+    // 🔒 乾淨全域狀態宣告（絕不包含任何非標準 CSS 或未定義髒代碼）
     let submitted = false;
 
-    // 🔒 安全防護層一：網頁基礎 UI 初始化（100% 優先加載、絕不卡死）
     window.addEventListener('DOMContentLoaded', () => {
-        const runners = [
-            "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
-            "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
-            "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
-            "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
-            "Timothy", "Charlotte Lokman", "Kayan"
-        ];
-        
-        const runnerSelect = document.getElementById('runnerSelect');
-        if (runnerSelect) {
-            runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
-            runners.forEach(name => {
-                let opt = document.createElement('option');
-                opt.value = name; opt.textContent = name;
-                runnerSelect.appendChild(opt);
-            });
-        }
-
-        const weekSelect = document.getElementById('weekSelect');
-        if (weekSelect) {
-            weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-            for(let i = 1; i <= 40; i++) {
-                let opt = document.createElement('option');
-                opt.value = "第 " + i + " 週"; 
-                opt.textContent = "第 " + i + " 週";
-                weekSelect.appendChild(opt);
-            }
-        }
-
+        // 安全綁定 DOM 點擊導向
         const fitTrigger = document.getElementById('fitTrigger');
-        if (fitTrigger) fitTrigger.addEventListener('click', () => document.getElementById('fitFile').click());
+        if (fitTrigger) fitTrigger.addEventListener('click', () => {
+            const el = document.getElementById('fitFile');
+            if (el) el.click();
+        });
         
         const imgTrigger = document.getElementById('imgTrigger');
-        if (imgTrigger) imgTrigger.addEventListener('click', () => document.getElementById('imgFile').click());
+        if (imgTrigger) imgTrigger.addEventListener('click', () => {
+            const el = document.getElementById('imgFile');
+            if (el) el.click();
+        });
 
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
         setupBadges('supplyContainer', false);  
 
+        // 以標準非同步監聽接管 Google Form 與 iframe 聯動，防止時序死鎖
         const hiddenIframe = document.getElementById('hidden_submit_target');
         if (hiddenIframe) {
             hiddenIframe.addEventListener('load', () => {
@@ -226,7 +218,7 @@
         }
     });
 
-    // 📡 安全防護層二：封閉沙盒解析器
+    // 📡 封閉安全沙盒：精確位移定位狀態機（僅相容 Garmin, Suunto, Apple Watch）
     const fitFileInput = document.getElementById('fitFile');
     if (fitFileInput) {
         fitFileInput.addEventListener('change', function(e) {
@@ -246,11 +238,12 @@
                     const buffer = event.target.result;
                     const view = new DataView(buffer);
                     
-                    if (buffer.byteLength < 100) { throw new Error("Invalid Size"); }
+                    if (buffer.byteLength < 100) { throw new Error("File empty"); }
 
                     let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
                     let isParsed = false;
 
+                    // 🛰️ 【模式 A】加明、頌拓標準摘要
                     for (let i = 14; i < buffer.byteLength - 60; i++) {
                         if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
                             let fieldCount = view.getUint8(i + 2);
@@ -306,6 +299,7 @@
                         }
                     }
 
+                    // 🛰️ 【模式 B】蘋果軌跡累加
                     if (!isParsed) {
                         let maxDistRecord = 0;
                         let hrList = [], cadList = [];
@@ -330,45 +324,4 @@
                             resClimb = 0; 
                             if (maxTime > minTime) resTime = maxTime - minTime;
                             if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
-                            if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
-                            isParsed = true;
-                        }
-                    }
-
-                    if (isParsed && resDist && resDist > 0.1) {
-                        const finalDistance = resDist.toFixed(2);
-                        const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
-
-                        const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
-                        const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
-                        const secs = String(Math.round(resTime % 60)).padStart(2, '0');
-                        const finalDurationStr = `${hrs}:${mins}:${secs}`;
-
-                        const finalHR = (resHr && resHr > 40 && resHr < 220) ? resHr : "";
-                        
-                        let finalCad = "";
-                        if (resCadence && resCadence > 0) {
-                            if (resCadence > 120 && resCadence < 240) finalCad = resCadence;
-                            else if (resCadence <= 120) finalCad = resCadence * 2;
-                        }
-
-                        const totalMinutes = resTime / 60;
-                        let finalStride = "";
-                        if (finalCad > 0 && totalMinutes > 0) {
-                            finalStride = ((resDist * 1000) / (finalCad * totalMinutes)).toFixed(2);
-                            if (parseFloat(finalStride) < 0.3 || parseFloat(finalStride) > 2.3) finalStride = "";
-                        }
-
-                        document.getElementById('distance').value = finalDistance;
-                        document.getElementById('elevation').value = finalElevation;
-                        document.getElementById('duration').value = finalDurationStr;
-                        document.getElementById('hr').value = finalHR;
-                        document.getElementById('cadence').value = finalCad;
-                        document.getElementById('stride').value = finalStride;
-
-                        alert(`⚡ 功課數據動態提取完成！\n🏃 里程: ${finalDistance} km\n⛰️ 爬升: ${finalElevation} 米`);
-                    } else {
-                        throw new Error("Parse Error");
-                    }
-
-                } catch 
+                            if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadLis
