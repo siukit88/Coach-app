@@ -2,68 +2,25 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kit Coach 數據回報</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #16161a; font-family: sans-serif; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px; box-sizing: border-box; }
-        .input-ctrl, .select-ctrl { width: 100%; padding: 12px; margin: 8px 0; background: #1e1e24; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        .upload-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .upload-box { flex: 1; padding: 15px; border: 2px dashed #444; text-align: center; cursor: pointer; border-radius: 8px; }
-        .hidden-file { display: none; }
-        .btn { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        body { background-color: #16161a; color: #fff; font-family: sans-serif; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .input-ctrl { width: 100%; padding: 12px; margin: 8px 0; background: #1e1e24; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="phone-container">
-    <h2>特訓數據回報</h2>
-    <form id="trainingForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST">
-        
-        <div class="upload-row">
-            <label class="upload-box" for="fitFile">投放 .FIT 檔</label>
-            <input type="file" id="fitFile" class="hidden-file" accept=".fit">
-            <label class="upload-box" for="imgFile">上載截圖</label>
-            <input type="file" id="imgFile" class="hidden-file" accept="image/*">
-        </div>
-
-        <select class="select-ctrl" name="entry.477574654" required>
-            <option value="">選擇跑手...</option>
-            <option value="Kit">Kit</option><option value="Nien">Nien</option><option value="Simon">Simon</option>
-            <option value="Alex">Alex</option><option value="Sun">Sun</option><option value="Jackson">Jackson</option>
-            <option value="Joy">Joy</option><option value="George">George</option><option value="Lip">Lip</option>
-            <option value="Wing_PTL">Wing_PTL</option><option value="Jason_PTL">Jason_PTL</option><option value="Alwyn">Alwyn</option>
-            <option value="Camille">Camille</option><option value="Fion">Fion</option><option value="Daniel">Daniel</option>
-            <option value="KingYan">KingYan</option><option value="Szero">Szero</option><option value="Frances">Frances</option>
-            <option value="Bianca">Bianca</option><option value="Mabel">Mabel</option><option value="Avis">Avis</option>
-            <option value="Jason">Jason</option><option value="Jerry">Jerry</option><option value="Rita">Rita</option>
-            <option value="Ruby">Ruby</option><option value="Calvin Siu">Calvin Siu</option><option value="Thomas">Thomas</option>
-            <option value="Yin Wai">Yin Wai</option><option value="Gary">Gary</option><option value="Lois">Lois</option>
-            <option value="Gaby">Gaby</option><option value="Carol">Carol</option><option value="Timothy">Timothy</option>
-            <option value="Charlotte Lokman">Charlotte Lokman</option><option value="Kayan">Kayan</option>
-        </select>
-
-        <input type="password" class="input-ctrl" name="entry.595584756" placeholder="特訓密碼" required>
-        <input type="text" class="input-ctrl" id="distance" name="entry.148761576" placeholder="長距離 (km)" required>
-        <input type="text" class="input-ctrl" id="elevation" name="entry.1312042737" placeholder="爬升海拔 (米)" required>
-        <input type="text" class="input-ctrl" id="duration" name="entry.1180292056" placeholder="長跑時間 (HH:MM:SS)" required>
-        
-        <button type="submit" class="btn">確認提交</button>
-    </form>
-</div>
-
-<script>
-    // 這裡保留你原本穩定的解析邏輯，但移除了 iframe 依賴，保證提交行為是純淨的
-    document.getElementById('fitFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            // 解析邏輯... (如需解析，這裡保持不變，只負責填入對應 ID 欄位)
-            alert("檔案已讀取，請確認數據已自動填入欄位。");
-        };
-        reader.readAsArrayBuffer(file);
-    });
-</script>
+    <div class="container">
+        <h1>數據回報</h1>
+        <form action="https://docs.google.com/forms/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST">
+            <input type="text" class="input-ctrl" name="entry.477574654" placeholder="學員姓名" required>
+            <input type="password" class="input-ctrl" name="entry.595584756" placeholder="密碼" required>
+            <input type="text" class="input-ctrl" name="entry.148761576" placeholder="長距離 (km)" required>
+            <input type="text" class="input-ctrl" name="entry.1312042737" placeholder="爬升海拔 (米)" required>
+            <button type="submit" class="btn">提交</button>
+        </form>
+    </div>
 </body>
 </html>
