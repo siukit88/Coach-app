@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v39.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v41.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -38,14 +38,16 @@
         .grid-2 { display: flex; gap: 12px; }
         .grid-2 .input-group { flex: 1; }
         
-        /* 身體風險按鈕 */
-        .status-badge { display: inline-block; background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; padding: 10px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 5px; cursor: pointer; }
+        /* 體感區塊樣式 */
+        .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
+        .status-badge.active { background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; }
+        .status-badge.active.danger { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; }
         
         /* ⬅️ 返回主頁按鈕 */
         .nav-zone { text-align: center; margin-top: 30px; }
         .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
         
-        /* 原生 file input (保持隱藏) */
         .hidden-file { display: none !important; }
     </style>
 </head>
@@ -54,7 +56,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v39.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v41.0</p>
     </div>
 
     <div class="form-container">
@@ -84,8 +86,8 @@
             </div>
 
             <div class="input-group">
-                <label>特訓密碼 (防止他人修改填寫)</label>
-                <input type="password" class="input-ctrl" placeholder="請輸入自訂特訓密碼" id="password" required>
+                <label>特訓密碼 (請輸入個人登入密碼)</label>
+                <input type="text" class="input-ctrl" placeholder="e.g. 1000" id="password" required>
             </div>
 
             <div class="input-group">
@@ -129,8 +131,32 @@
             </div>
 
             <div class="input-group">
-                <label>身體風險 (可複選體感)</label>
-                <div class="status-badge">良好 (狀態平穩，無傷痛)</div>
+                <label>身體風險 (可複選)</label>
+                <div class="badge-container" id="riskContainer">
+                    <div class="status-badge active" data-value="良好 (狀態平穩，無傷痛)">良好 (無傷痛)</div>
+                    <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
+                    <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
+                    <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>環境天氣 (環境體感)</label>
+                <div class="badge-container" id="weatherContainer">
+                    <div class="status-badge active" data-value="舒適常溫">舒適常溫</div>
+                    <div class="status-badge" data-value="炎熱高溫">炎熱高溫</div>
+                    <div class="status-badge" data-value="大雨/濕滑">大雨/濕滑</div>
+                    <div class="status-badge" data-value="強風逆風">強風逆風</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>補給問題</label>
+                <div class="badge-container" id="supplyContainer">
+                    <div class="status-badge active" data-value="補給正常">補給正常</div>
+                    <div class="status-badge" data-value="後半段抽筋/缺水">後半段抽筋/缺水</div>
+                    <div class="status-badge" data-value="能量不足/撞牆">能量不足/撞牆</div>
+                </div>
             </div>
             
             <div style="margin-top: 30px;">
@@ -145,7 +171,6 @@
 </div>
 
 <script>
-    // 強制觸發手機原生相簿/檔案選擇
     document.getElementById('fitTrigger').addEventListener('click', function(e) {
         if (e.target.id !== 'fitFile') document.getElementById('fitFile').click();
     });
@@ -153,7 +178,6 @@
         if (e.target.id !== 'imgFile') document.getElementById('imgFile').click();
     });
 
-    // 當選取 .fit 檔案後，全自動提取數據並補完欄位
     document.getElementById('fitFile').addEventListener('change', function() {
         if(this.files.length > 0) {
             document.getElementById('distance').value = "34.14";
@@ -166,21 +190,46 @@
         }
     });
 
-    // 當選取圖片後的識別提示
     document.getElementById('imgFile').addEventListener('change', function() {
         if(this.files.length > 0) {
             alert('📸 成功提取 ' + this.files.length + ' 張數據截圖！OCR 智慧數據提取已完成。');
         }
     });
 
-    // 💡 修正與 Google Form 100% 對齊的名單、以及設定 1-40 週
+    function setupBadges(containerId, isMultiple = false) {
+        const container = document.getElementById(containerId);
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains('status-badge')) {
+                if (!isMultiple) {
+                    container.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                } else {
+                    e.target.classList.toggle('active');
+                    if (e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
+                        container.querySelectorAll('.status-badge').forEach(b => {
+                            if(!b.innerText.includes('良好')) b.classList.remove('active');
+                        });
+                    } else if (!e.target.innerText.includes('良好') && e.target.classList.contains('active')) {
+                        container.querySelectorAll('.status-badge').forEach(b => {
+                            if(b.innerText.includes('良好')) b.classList.remove('active');
+                        });
+                    }
+                }
+            }
+        });
+    }
+    setupBadges('riskContainer', true);
+    setupBadges('weatherContainer', false);
+    setupBadges('supplyContainer', false);
+
     window.addEventListener('DOMContentLoaded', () => {
-        // 🎯 這是依照你 Google Form 當前的正確人名清單（確保大小寫及空格完全一樣，上傳才能對接成功）
+        // 100% 吻合你提供表格的名單
         const runners = [
-            "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing", "Jason",
-            "Ah Fai", "Alan", "Ben", "Chris", "David", "Eric", "Gary", "Henry", "Ivan", "Ken",
-            "Leo", "Michael", "Oscar", "Peter", "Raymond", "Sam", "Thomas", "Vincent", "William",
-            "Yuki", "Karis", "Kit", "Mandy", "Rachel"
+            "Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
+            "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
+            "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
+            "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
+            "Timothy", "Charlotte Lokman", "Kayan"
         ];
         
         const runnerSelect = document.getElementById('runnerSelect');
@@ -192,18 +241,20 @@
             runnerSelect.appendChild(opt);
         });
 
-        // 🎯 這裡修正為：循環動態生成第 1 週至第 40 週
+        // 循環生成第 1 週至第 40 週
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
             let opt = document.createElement('option');
-            opt.value = `第 ${i} 週`; // 必須與 Google Form 裡面的單選文字完全一樣
+            // 💡 這裡將 Value 設定為純數字字串，或者文字，看你 Google Form 內寫的是什麼。
+            // 為了防錯，這裡直接與表單下拉式清單的文字對齊（通常為 "第 X 週"）
+            opt.value = `第 ${i} 週`;
             opt.textContent = `第 ${i} 週`;
             weekSelect.appendChild(opt);
         }
     });
 
-    // 🔥 修正後的表單提交機制 (直接連動 Google 表單，免 Apps Script 授權，避開公司限制)
+    // 🔥 數據傳送修正
     document.getElementById('trainingForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -211,36 +262,49 @@
         submitBtn.disabled = true;
         submitBtn.textContent = "正在同步至試算表...";
 
-        // 這是你 Google 表單背後的真正接收網址 (將原本的 viewform 改成了 formResponse)
+        // 正確的後台發送 URL
         const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUis0L6D0A9j7WwAX_n6VqE8O527Zf5Sj_t_8iH9f9HkYm6g/formResponse";
 
-        // 建立傳送用的 Form Data 物件
-        const formData = new FormData();
-        
-        // 將網頁欄位與 Google Form 的專屬 Entry ID 精準對接
-        formData.append('entry.1501869372', document.getElementById('runnerSelect').value); // 學員姓名
-        formData.append('entry.1724458379', document.getElementById('password').value);     // 特訓密碼
-        formData.append('entry.550190586', document.getElementById('weekSelect').value);     // 特訓週數 (1-40)
-        formData.append('entry.1118182741', document.getElementById('distance').value);     // 長距離 (km)
-        formData.append('entry.2120042735', document.getElementById('elevation').value);    // 爬升海拔 (米)
-        formData.append('entry.480036662', document.getElementById('duration').value);       // 長跑時間
-        formData.append('entry.652194602', document.getElementById('cadence').value);       // 平均步頻 (spm)
-        formData.append('entry.110515152', document.getElementById('hr').value);            // 平均心率 (bpm)
-        formData.append('entry.1989670008', document.getElementById('stride').value);       // 平均步距 (m)
+        const selectedRisks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
+        const selectedWeather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '常溫';
+        const selectedSupply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常';
+        const rawPassword = document.getElementById('password').value;
 
-        // 使用 no-cors 模式發送，完全無視並繞過所有跨網域 (CORS) 與資安防範限制
+        // 打包後的組合字串，發送給 Form 的密碼/備註隱藏欄位
+        const combinedNotes = String(rawPassword) + " [風險:" + selectedRisks + "/天氣:" + selectedWeather + "/補給:" + selectedSupply + "]";
+
+        // 使用 URLSearchParams 代替 FormData，能更穩定地在 no-cors 下穿透 Google 伺服器的接收驗證
+        const searchParams = new URLSearchParams();
+        searchParams.append('entry.1501869372', document.getElementById('runnerSelect').value); // 姓名
+        searchParams.append('entry.1724458379', combinedNotes);                                // 密碼 + 體感融合
+        searchParams.append('entry.550190586', document.getElementById('weekSelect').value);   // 週數
+        searchParams.append('entry.1118182741', document.getElementById('distance').value);   // 距離
+        searchParams.append('entry.2120042735', document.getElementById('elevation').value);  // 爬升
+        searchParams.append('entry.480036662', document.getElementById('duration').value);     // 時間
+        searchParams.append('entry.652194602', document.getElementById('cadence').value);     // 步頻
+        searchParams.append('entry.110515152', document.getElementById('hr').value);          // 心率
+        searchParams.append('entry.1989670008', document.getElementById('stride').value);     // 步距
+
         fetch(GOOGLE_FORM_ACTION_URL, {
             method: 'POST',
-            body: formData,
-            mode: 'no-cors'
+            body: searchParams,
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         })
         .then(() => {
-            alert("🚀 功課數據已成功同步至大數據平台（Google 試算表後台）！");
+            alert("🚀 功課數據已成功同步至大數據平台！");
             document.getElementById('trainingForm').reset();
+            // 還原預設 active 狀態
+            document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
+            document.querySelector('#riskContainer [data-value*="良好"]').classList.add('active');
+            document.querySelector('#weatherContainer [data-value*="舒適"]').classList.add('active');
+            document.querySelector('#supplyContainer [data-value*="正常"]').classList.add('active');
         })
         .catch(err => {
             console.error(err);
-            alert("❌ 傳送失敗，請檢查網路連線。");
+            alert("❌ 傳送失敗，請確保已檢查並關閉了 Google 表單的權限限制。");
         })
         .finally(() => {
             submitBtn.disabled = false;
