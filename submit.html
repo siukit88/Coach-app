@@ -52,19 +52,18 @@
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
-                <label class="upload-box fit" for="fitFile">
+                <div class="upload-box fit" id="fitTrigger">
                     <span class="icon">⚡</span>
-                    <span class="title" style="color: #00f2fe; font-weight: bold;">投放 .FIT 原始檔</span>
-                    <span class="desc" style="display:block; margin-top:4px;">支援 Garmin, Suunto, Apple Watch</span>
-                </label>
-                <input type="file" id="fitFile" class="hidden-file" accept=".fit">
-
-                <label class="upload-box img" for="imgFile">
+                    <div class="title">投放 .FIT 原始檔</div>
+                    <div class="desc">支援 Garmin, Suunto, Apple Watch</div>
+                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+                </div>
+                <div class="upload-box img" id="imgTrigger">
                     <span class="icon">📸</span>
-                    <span class="title" style="color: #ff3366; font-weight: bold;">上載數據截圖</span>
-                    <span class="desc" style="display:block; margin-top:4px;">支援多圖智慧補完</span>
-                </label>
-                <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
+                    <div class="title">上載數據截圖</div>
+                    <div class="desc">支援多圖智慧補完</div>
+                    <input type="file" id="imgFile" class="hidden-file" accept="image/*" multiple>
+                </div>
             </div>
 
             <div class="input-group">
@@ -95,7 +94,7 @@
                 <label for="weekSelect">特訓週數</label>
                 <select class="select-ctrl" name="entry.1489498214" id="weekSelect" required>
                     <option value="">請選擇特訓週數...</option>
-                    <option value="第 1 週">第 1 週</option><option value="第 2 週">第 2 週</option><option value="第 3 週">第 3 週</option><option value="第 4 週">第 4 週</option><option value="第 5 週">第 5 週</option><option value="第 6 週">第 6 週</option><option value="第 7 週">第 7 週</option><option value="第 8 週">第 8 週</option><option value="第 9 週">第 9 週</option><option value="第 10 週">第 10 週</option><option value="第 11 週">第 11 週</option><option value="第 12 週">第 12 週</option><option value="第 13 週">第 13 週</option><option value="第 14 週">第 14 週</option><option value="第 15 週">第 15 週</option><option value="第 16 週">第 16 週</option><option value="開設 17 週">第 17 週</option><option value="第 18 週">第 18 週</option><option value="第 19 週">第 19 週</option><option value="第 20 週">第 20 週</option><option value="第 21 週">第 21 週</option><option value="第 22 週">第 22 週</option><option value="第 23 週">第 23 週</option><option value="第 24 週">第 24 週</option><option value="第 25 週">第 25 週</option><option value="第 26 週">第 26 週</option><option value="第 27 週">第 27 週</option><option value="第 28 週">第 28 週</option><option value="第 29 週">第 29 週</option><option value="第 30 週">第 30 週</option><option value="第 31 週">第 31 週</option><option value="第 32 週">第 32 週</option><option value="第 33 週">第 33 週</option><option value="第 34 週">第 34 週</option><option value="第 35 週">第 35 週</option><option value="第 36 週">第 36 週</option><option value="第 37 週">第 37 週</option><option value="第 38 週">第 38 週</option><option value="第 39 週">第 39 週</option><option value="第 40 週">第 40 週</option>
+                    <option value="第 1 週">第 1 週</option><option value="第 2 週">第 2 週</option><option value="第 3 週">第 3 週</option><option value="第 4 週">第 4 週</option><option value="第 5 週">第 5 週</option><option value="第 6 週">第 6 週</option><option value="第 7 週">第 7 週</option><option value="第 8 週">第 8 週</option><option value="第 9 週">第 9 週</option><option value="第 10 週">第 10 週</option><option value="第 11 週">第 11 週</option><option value="第 12 週">第 12 週</option><option value="第 13 週">第 13 週</option><option value="第 14 週">第 14 週</option><option value="第 15 週">第 15 週</option><option value="第 16 週">第 16 週</option><option value="第 17 週">第 17 週</option><option value="第 18 週">第 18 週</option><option value="第 19 週">第 19 週</option><option value="第 20 週">第 20 週</option><option value="第 21 週">第 21 週</option><option value="第 22 週">第 22 週</option><option value="第 23 週">第 23 週</option><option value="第 24 週">第 24 週</option><option value="滅 25 週">第 25 週</option><option value="第 26 週">第 26 週</option><option value="第 27 週">第 27 週</option><option value="第 28 週">第 28 週</option><option value="第 29 週">第 29 週</option><option value="第 30 週">第 30 週</option><option value="第 31 週">第 31 週</option><option value="第 32 週">第 32 週</option><option value="第 33 週">第 33 週</option><option value="第 34 週">第 34 週</option><option value="第 35 週">第 35 週</option><option value="第 36 週">第 36 週</option><option value="第 37 週">第 37 週</option><option value="第 38 週">第 38 週</option><option value="第 39 週">第 39 週</option><option value="第 40 週">第 40 週</option>
                 </select>
             </div>
 
@@ -178,11 +177,30 @@
 <script>
     let submitted = false;
 
-    // 🔒 100% 純淨安全初始化（不包含任何可能報錯的非標準全域變數）
+    // 🔒 100% 安全初始化箱子：確保所有按鈕點擊與核心解碼，只在網頁 DOM 完全蓋好後才對接綁定
     window.addEventListener('DOMContentLoaded', () => {
         setupBadges('riskContainer', true);  
         setupBadges('weatherContainer', false); 
         setupBadges('supplyContainer', false);  
+
+        // 🟢 重新接通 .FIT 檔案點擊與讀取事件通道
+        const fitTrigger = document.getElementById('fitTrigger');
+        const fitFile = document.getElementById('fitFile');
+        if (fitTrigger && fitFile) {
+            fitTrigger.addEventListener('click', () => fitFile.click());
+            fitFile.addEventListener('change', handleFitFileAnalysis);
+        }
+        
+        // 🟢 重新接通圖片點擊事件通道
+        const imgTrigger = document.getElementById('imgTrigger');
+        const imgFile = document.getElementById('imgFile');
+        if (imgTrigger && imgFile) {
+            imgTrigger.addEventListener('click', () => imgFile.click());
+            imgFile.addEventListener('change', function() {
+                if (this.files.length > 0) { alert('📸 數據截圖讀取成功！請核對指標。'); }
+                this.value = '';
+            });
+        }
 
         const hiddenIframe = document.getElementById('hidden_submit_target');
         if (hiddenIframe) {
@@ -205,116 +223,113 @@
         }
     });
 
-    // 📡 獨立二進位解析沙盒
-    const fitFileInput = document.getElementById('fitFile');
-    if (fitFileInput) {
-        fitFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+    // 📡 封閉式動態數據解析核心（僅相容 Garmin, Suunto, Apple Watch，出錯平滑重設欄位）
+    function handleFitFileAnalysis(e) {
+        const file = e.target.files[0];
+        if (!file) return;
 
-            const inputElement = this;
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                try {
-                    const buffer = event.target.result;
-                    const view = new DataView(buffer);
-                    
-                    if (buffer.byteLength < 100) { throw new Error("Format error"); }
+        const inputElement = this;
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+            try {
+                const buffer = event.target.result;
+                const view = new DataView(buffer);
+                
+                if (buffer.byteLength < 100) { throw new Error("Parse Fail"); }
 
-                    let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
-                    let isParsed = false;
+                let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
+                let isParsed = false;
 
-                    // 🛰️ Garmin / Suunto 摘要掃描
-                    for (let i = 14; i < buffer.byteLength - 60; i++) {
-                        if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
-                            let fieldCount = view.getUint8(i + 2);
-                            if (fieldCount > 5 && fieldCount < 50) {
-                                let scanPointer = i + 3;
-                                let distOffset = -1, climbOffset = -1, timeOffset = -1, hrOffset = -1, cadOffset = -1;
-                                let currentDataPos = 0;
+                // 🛰️ 【模式 A】加明、頌拓摘要定位 Message ID 18
+                for (let i = 14; i < buffer.byteLength - 60; i++) {
+                    if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
+                        let fieldCount = view.getUint8(i + 2);
+                        if (fieldCount > 5 && fieldCount < 50) {
+                            let scanPointer = i + 3;
+                            let distOffset = -1, climbOffset = -1, timeOffset = -1, hrOffset = -1, cadOffset = -1;
+                            let currentDataPos = 0;
 
-                                for (let f = 0; f < fieldCount; f++) {
-                                    if (scanPointer + 2 >= buffer.byteLength) break;
-                                    let fDefNum = view.getUint8(scanPointer);
-                                    let fSize = view.getUint8(scanPointer + 1);
-                                    
-                                    if (fDefNum === 5)  distOffset = currentDataPos;   
-                                    if (fDefNum === 25) climbOffset = currentDataPos;  
-                                    if (fDefNum === 7)  timeOffset = currentDataPos;   
-                                    if (fDefNum === 16) hrOffset = currentDataPos;     
-                                    if (fDefNum === 18) cadOffset = currentDataPos;    
-                                    
-                                    currentDataPos += fSize;
-                                    scanPointer += 3;
-                                }
+                            for (let f = 0; f < fieldCount; f++) {
+                                if (scanPointer + 2 >= buffer.byteLength) break;
+                                let fDefNum = view.getUint8(scanPointer);
+                                let fSize = view.getUint8(scanPointer + 1);
+                                
+                                if (fDefNum === 5)  distOffset = currentDataPos;   
+                                if (fDefNum === 25) climbOffset = currentDataPos;  
+                                if (fDefNum === 7)  timeOffset = currentDataPos;   
+                                if (fDefNum === 16) hrOffset = currentDataPos;     
+                                if (fDefNum === 18) cadOffset = currentDataPos;    
+                                
+                                currentDataPos += fSize;
+                                scanPointer += 3;
+                            }
 
-                                if (distOffset !== -1 && timeOffset !== -1 && scanPointer + currentDataPos < buffer.byteLength) {
-                                    let dataStart = scanPointer;
-                                    let rawDist = view.getUint32(dataStart + distOffset, true);
-                                    let rawTime = view.getUint32(dataStart + timeOffset, true);
-                                    
-                                    let tempDist = rawDist / 100;
-                                    if (tempDist > 100000) tempDist = rawDist / 100000; 
+                            if (distOffset !== -1 && timeOffset !== -1 && scanPointer + currentDataPos < buffer.byteLength) {
+                                let dataStart = scanPointer;
+                                let rawDist = view.getUint32(dataStart + distOffset, true);
+                                let rawTime = view.getUint32(dataStart + timeOffset, true);
+                                
+                                let tempDist = rawDist / 100;
+                                if (tempDist > 100000) tempDist = rawDist / 100000; 
 
-                                    if (tempDist > 0.1 && tempDist < 250) {
-                                        resDist = tempDist;
-                                        resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
+                                if (tempDist > 0.1 && tempDist < 250) {
+                                    resDist = tempDist;
+                                    resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
 
-                                        if (climbOffset !== -1) {
-                                            let rawClimb = view.getUint16(dataStart + climbOffset, true);
-                                            if (rawClimb > 8000) {
-                                                let bigClimb = view.getUint32(dataStart + climbOffset, true);
-                                                if (bigClimb < 500000) rawClimb = bigClimb;
-                                            }
-                                            if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       
-                                            else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    
-                                            resClimb = rawClimb;
+                                    if (climbOffset !== -1) {
+                                        let rawClimb = view.getUint16(dataStart + climbOffset, true);
+                                        if (rawClimb > 8000) {
+                                            let bigClimb = view.getUint32(dataStart + climbOffset, true);
+                                            if (bigClimb < 500000) rawClimb = bigClimb;
                                         }
-                                        if (hrOffset !== -1) resHr = view.getUint8(dataStart + hrOffset);
-                                        if (cadOffset !== -1) resCadence = view.getUint8(dataStart + cadOffset);
-                                        isParsed = true;
-                                        break;
+                                        if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       
+                                        else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    
+                                        resClimb = rawClimb;
                                     }
+                                    if (hrOffset !== -1) resHr = view.getUint8(dataStart + hrOffset);
+                                    if (cadOffset !== -1) resCadence = view.getUint8(dataStart + cadOffset);
+                                    isParsed = true;
+                                    break;
                                 }
                             }
                         }
                     }
+                }
 
-                    // 🛰️ Apple Watch 軌跡點加總
-                    if (!isParsed) {
-                        let maxDistRecord = 0;
-                        let hrList = [], cadList = [];
-                        let minTime = Infinity, maxTime = -Infinity;
+                // 🛰️ 【模式 B】蘋果軌跡點累加
+                if (!isParsed) {
+                    let maxDistRecord = 0;
+                    let hrList = [], cadList = [];
+                    let minTime = Infinity, maxTime = -Infinity;
 
-                        for (let i = 14; i < buffer.byteLength - 8; i += 2) {
-                            let tag = view.getUint16(i, true);
-                            if (tag === 0x0504) { 
-                                let dVal = view.getUint32(i + 2, true) / 100;
-                                if (dVal > maxDistRecord && dVal < 250000) maxDistRecord = dVal;
-                            }
-                            if (tag === 0x0304) hrList.push(view.getUint8(i + 2));
-                            if (tag === 0x0403) cadList.push(view.getUint8(i + 2) * 2);
-                            if (tag === 0xFD04) { 
-                                let tVal = view.getUint32(i + 2, true);
-                                minTime = Math.min(minTime, tVal); maxTime = Math.max(maxTime, tVal);
-                            }
+                    for (let i = 14; i < buffer.byteLength - 8; i += 2) {
+                        let tag = view.getUint16(i, true);
+                        if (tag === 0x0504) { 
+                            let dVal = view.getUint32(i + 2, true) / 100;
+                            if (dVal > maxDistRecord && dVal < 250000) maxDistRecord = dVal;
                         }
-
-                        if (maxDistRecord > 100) {
-                            resDist = maxDistRecord / 1000; 
-                            resClimb = 0; 
-                            if (maxTime > minTime) resTime = maxTime - minTime;
-                            if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
-                            if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
-                            isParsed = true;
+                        if (tag === 0x0304) hrList.push(view.getUint8(i + 2));
+                        if (tag === 0x0403) cadList.push(view.getUint8(i + 2) * 2);
+                        if (tag === 0xFD04) { 
+                            let tVal = view.getUint32(i + 2, true);
+                            minTime = Math.min(minTime, tVal); maxTime = Math.max(maxTime, tVal);
                         }
                     }
 
-                    if (isParsed && resDist > 0.1) {
-                        const finalDistance = resDist.toFixed(2);
-                        const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
+                    if (maxDistRecord > 100) {
+                        resDist = maxDistRecord / 1000; 
+                        resClimb = 0; 
+                        if (maxTime > minTime) resTime = maxTime - minTime;
+                        if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
+                        if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
+                        isParsed = true;
+                    }
+                }
 
-                        const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
-                        const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
-                        const secs = String(Math.round(resTime % 60)).padStart(2, '
+                // 🎯 實時回填跳變
+                if (isParsed && resDist > 0.1) {
+                    const finalDistance = resDist.toFixed(2);
+                    const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
+
+          
