@@ -8,7 +8,6 @@
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
         
-        /* v36 頂部專屬粉紅色 Banner */
         .header { background: #ff3366; padding: 20px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
@@ -16,14 +15,12 @@
         
         .dashboard-container { padding: 20px; }
         
-        /* 篩選控制項樣式 */
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
         .select-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
         .grid-2 { display: flex; gap: 12px; }
         .grid-2 .select-ctrl { flex: 1; }
 
-        /* 📊 v36 經典數據大卡片樣式 */
         .data-card { background: #1e1e24; border-radius: 12px; padding: 20px; border: 1px solid #2d2d35; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .card-header { font-size: 14px; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; justify-content: space-between; }
         
@@ -35,7 +32,6 @@
         .stat-label { font-size: 12px; color: #aaa; margin-bottom: 4px; }
         .stat-value { font-size: 18px; font-weight: bold; color: #ffffff; }
         
-        /* 🟢 v36 體感數據專屬 Badge 排版 */
         .badge-zone { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); }
         .info-badge { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: #ccc; }
         .info-badge.danger { background: rgba(255, 51, 102, 0.1); border-color: #ff3366; color: #ff3366; }
@@ -51,7 +47,7 @@
     <div class="header">
         <div>
             <h1>智慧特訓數據看板</h1>
-            <p>慢慢跑團 遠程核心指標 analysis platform</p>
+            <p>慢慢跑團 遠程核心指標 platform v36.0</p>
         </div>
         <a href="submit.html" class="btn-entry">填報功課 ➔</a>
     </div>
@@ -103,15 +99,13 @@
                     <div class="stat-value" id="statHR" style="color: #ff3366;">0 bpm</div>
                 </div>
 
-                <div class="badge-zone" id="statBadges">
-                    </div>
+                <div class="badge-zone" id="statBadges"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 🎯 100% 精準對齊新表單回應5的雲端試算表公開端點
     const SPREADSHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/1JYWkUsbs9rmfZdwxBuWZSOJGHXFknmM35gR6usdoY/gviz/tq?tqx=out:json&sheet=表單回應5";
     let allRecords = [];
 
@@ -121,7 +115,6 @@
     });
 
     function initFilters() {
-        // 🎯 名字拼寫精準對齊試算表的 "Nein" 
         const runners = [
             "Kit", "Nein", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
             "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
@@ -141,7 +134,7 @@
         const weekFilter = document.getElementById('weekFilter');
         weekFilter.innerHTML = '<option value="">選擇週數...</option>';
         for(let i = 1; i <= 40; i++) {
-            let val = "第 " + i + " 週"; // 🎯 精準對齊帶有空格的「第 1 週」格式
+            let val = "第 " + i + " 週";
             let opt = document.createElement('option');
             opt.value = val; opt.textContent = val;
             weekFilter.appendChild(opt);
@@ -160,7 +153,6 @@
             
             allRecords = rows.map(r => {
                 const row = r.c.map(cell => cell ? (cell.v !== null ? cell.v : "") : "");
-                // 🎯 100% 精準對齊新表單回應5的真實欄位 Index 結構
                 return {
                     name: String(row[1]).trim(),      // B 欄：學員姓名
                     week: String(row[2]).trim(),      // C 欄：特訓週數
@@ -172,10 +164,9 @@
                     risk: String(row[8] || "良好"),    // I 欄：身體風險
                     weather: String(row[9] || "舒適常溫"), // J 欄：環境天氣
                     supply: String(row[10] || "補給正常"), // K 欄：補給問題
-                    elevation: row[11] || "0"         // L 欄：爬升海拔 (精準鎖定在新表的第 11 索引)
+                    elevation: row[11] || "0"         // L 欄：爬升海拔 (對齊第 11 索引)
                 };
             });
-
             document.getElementById('statusMessage').innerText = "💡 數據加載完成，請選擇跑手與特訓週數解讀指標。";
         })
         .catch(err => {
@@ -208,7 +199,6 @@
             document.getElementById('statStride').innerText = `${match.stride} 米`;
             document.getElementById('statHR').innerText = `${match.hr} bpm`;
 
-            // 🎯 渲染 v36 經典體感色彩 Badge 面板
             const badgeZone = document.getElementById('statBadges');
             badgeZone.innerHTML = "";
 
@@ -228,6 +218,5 @@
         }
     }
 </script>
-
 </body>
 </html>
