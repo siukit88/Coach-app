@@ -55,7 +55,7 @@
                 <div class="upload-box fit" id="fitTrigger">
                     <span class="icon">⚡</span>
                     <div class="title">投放 .FIT 原始檔</div>
-                    <div class="desc">支援 Garmin, Suunto, Apple Watch (HealthFit)</div>
+                    <div class="desc">支援 Garmin, Suunto, Apple Watch</div>
                     <input type="file" id="fitFile" class="hidden-file" accept=".fit">
                 </div>
                 <div class="upload-box img" id="imgTrigger">
@@ -162,7 +162,7 @@
 </div>
 
 <script>
-    // 🛠️ 第一優先隔離線：網頁基礎 UI 生成（100% 避免因二進位出錯而卡死「正在載入跑手」）
+    // 🛠️ 第一優先隔離線：基礎 UI（名冊、週數選單）直接載入，確保網頁絕不死機
     window.addEventListener('DOMContentLoaded', () => {
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
@@ -189,7 +189,7 @@
             weekSelect.appendChild(opt);
         }
 
-        // 穩定綁定點擊事件
+        // 綁定點擊事件
         document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
         document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
         
@@ -198,7 +198,7 @@
         setupBadges('supplyContainer', false);  
     });
 
-    // 📡 核心解析器：高精確特徵偏移定位狀態機
+    // 📡 精確特徵偏移定位狀態機（僅針對 Garmin, Suunto, Apple Watch）
     document.getElementById('fitFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -212,17 +212,17 @@
 
         window.activeReader = new FileReader();
         window.activeReader.onload = function(event) {
-            // 🔒 建立安全沙盒，內部出錯直接跳出警示並清空輸入框，絕不影響網頁運行！
+            // 🔒 封閉式防護網：出錯時清空並警告，絕不殘留上一檔的鎖死舊數據
             try {
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                if (buffer.byteLength < 100) { throw new Error("Invalid Length"); }
+                if (buffer.byteLength < 100) { throw new Error("Invalid FIT Length"); }
 
                 let resDist = null, resClimb = null, resTime = null, resHr = null, resCadence = null;
                 let isParsed = false;
 
-                // 🛰️ 【模式 A】摘要解構：精準匹配各品牌 Message ID 18 (Session 區塊)
+                // 🛰️ 【模式一】針對 Garmin 與 Suunto 摘要區塊：定位 Message ID 18 (Session)
                 for (let i = 14; i < buffer.byteLength - 60; i++) {
                     if ((view.getUint8(i) === 0x40 || view.getUint8(i) === 0x00) && view.getUint8(i+1) === 0x00) {
                         let fieldCount = view.getUint8(i + 2);
@@ -237,11 +237,11 @@
                                 let fDefNum = view.getUint8(scanPointer);
                                 let fSize = view.getUint8(scanPointer + 1);
                                 
-                                if (fDefNum === 5)  distOffset = currentDataPos;   // 總距離 標籤
-                                if (fDefNum === 25) climbOffset = currentDataPos;  // 總爬升 標籤
-                                if (fDefNum === 7)  timeOffset = currentDataPos;   // 總時間 標籤
-                                if (fDefNum === 16) hrOffset = currentDataPos;     // 平均心率 標籤
-                                if (fDefNum === 18) cadOffset = currentDataPos;    // 平均步頻 標籤
+                                if (fDefNum === 5)  distOffset = currentDataPos;   
+                                if (fDefNum === 25) climbOffset = currentDataPos;  
+                                if (fDefNum === 7)  timeOffset = currentDataPos;   
+                                if (fDefNum === 16) hrOffset = currentDataPos;     
+                                if (fDefNum === 18) cadOffset = currentDataPos;    
                                 
                                 currentDataPos += fSize;
                                 scanPointer += 3;
@@ -253,21 +253,21 @@
                                 let rawTime = view.getUint32(dataStart + timeOffset, true);
                                 
                                 let tempDist = rawDist / 100;
-                                if (tempDist > 100000) tempDist = rawDist / 100000; // 應對大字節轉換
+                                if (tempDist > 100000) tempDist = rawDist / 100000; 
 
-                                if (tempDist > 0.1 && tempDist < 200) {
+                                if (tempDist > 0.1 && tempDist < 250) {
                                     resDist = tempDist;
                                     resTime = rawTime > 100000 ? rawTime / 1000 : rawTime;
 
-                                    // 🚀 關鍵解鎖：Suunto 爬升多重寬度與計量降維修復
+                                    // ⛰️ 頌拓超大爬升欄位與計量位移修正
                                     if (climbOffset !== -1) {
                                         let rawClimb = view.getUint16(dataStart + climbOffset, true);
                                         if (rawClimb > 8000) {
                                             let bigClimb = view.getUint32(dataStart + climbOffset, true);
                                             if (bigClimb < 500000) rawClimb = bigClimb;
                                         }
-                                        if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       // 厘米轉米
-                                        else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    // 分米轉米
+                                        if (rawClimb > 12000) rawClimb = Math.round(rawClimb / 100);       
+                                        else if (rawClimb > 4000) rawClimb = Math.round(rawClimb / 10);    
                                         resClimb = rawClimb;
                                     }
 
@@ -281,7 +281,7 @@
                     }
                 }
 
-                // 🛰️ 【模式 B】累加解構：針對 Apple Watch 的高密度每秒軌跡點（Record）進行尾端累加
+                // 🛰️ 【模式二】針對 Apple Watch 逐秒軌跡點（Record）：尾端多軌累加
                 if (!isParsed) {
                     let maxDistRecord = 0;
                     let hrList = [], cadList = [];
@@ -289,21 +289,21 @@
 
                     for (let i = 14; i < buffer.byteLength - 8; i += 2) {
                         let tag = view.getUint16(i, true);
-                        if (tag === 0x0504) { // 累計距離標籤
+                        if (tag === 0x0504) { 
                             let dVal = view.getUint32(i + 2, true) / 100;
-                            if (dVal > maxDistRecord && dVal < 200000) maxDistRecord = dVal;
+                            if (dVal > maxDistRecord && dVal < 250000) maxDistRecord = dVal;
                         }
                         if (tag === 0x0304) hrList.push(view.getUint8(i + 2));
                         if (tag === 0x0403) cadList.push(view.getUint8(i + 2) * 2);
-                        if (tag === 0xFD04) { // 時間戳記標籤
+                        if (tag === 0xFD04) { 
                             let tVal = view.getUint32(i + 2, true);
                             minTime = Math.min(minTime, tVal); maxTime = Math.max(maxTime, tVal);
                         }
                     }
 
                     if (maxDistRecord > 100) {
-                        resDist = maxDistRecord / 1000; // 米轉公里
-                        resClimb = Math.floor(Math.random() * 80) + 40; // 蘋果軌跡基礎爬升估值
+                        resDist = maxDistRecord / 1000; 
+                        resClimb = 0; 
                         if (maxTime > minTime) resTime = maxTime - minTime;
                         if (hrList.length > 0) resHr = Math.round(hrList.reduce((a,b)=>a+b,0) / hrList.length);
                         if (cadList.length > 0) resCadence = Math.round(cadList.reduce((a,b)=>a+b,0) / cadList.length);
@@ -311,12 +311,11 @@
                     }
                 }
 
-                // 🎯 3. 即時刷新回填
+                // 🎯 數據即時動態渲染（純動態，絕無任何隨機數或 14.11 等死數據）
                 if (isParsed && resDist && resDist > 0.1) {
                     const finalDistance = resDist.toFixed(2);
                     const finalElevation = (resClimb && resClimb >= 0 && resClimb < 6000) ? resClimb : "0";
 
-                    // 時間轉換格式 HH:MM:SS
                     const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
                     const secs = String(Math.round(resTime % 60)).padStart(2, '0');
@@ -324,10 +323,10 @@
 
                     const finalHR = (resHr && resHr > 40 && resHr < 220) ? resHr : "";
                     
-                    let finalCad = 173;
+                    let finalCad = "";
                     if (resCadence && resCadence > 0) {
-                        if (resCadence > 130 && resCadence < 240) finalCad = resCadence;
-                        else if (resCadence <= 130) finalCad = resCadence * 2;
+                        if (resCadence > 120 && resCadence < 240) finalCad = resCadence;
+                        else if (resCadence <= 120) finalCad = resCadence * 2;
                     }
 
                     const totalMinutes = resTime / 60;
@@ -337,7 +336,7 @@
                         if (parseFloat(finalStride) < 0.3 || parseFloat(finalStride) > 2.3) finalStride = "";
                     }
 
-                    // 動態回填真實數據
+                    // 完全依照此檔案的解析數值注入畫面
                     document.getElementById('distance').value = finalDistance;
                     document.getElementById('elevation').value = finalElevation;
                     document.getElementById('duration').value = finalDurationStr;
@@ -352,11 +351,11 @@
 
             } catch (err) {
                 console.error(err);
-                // ❌ 嚴格遵循承諾：解析失敗直接清空欄位並彈出警告，絕不硬塞任何死數據！
+                // ❌ 實踐承諾：解析失敗一律清空表格，杜絕死數據偽裝
                 clearAllFields();
-                alert('❌ 無法識別此 FIT 檔案的特訓里程。\n請確認檔案為 Garmin, Suunto 或 Apple Watch 的原始匯出檔，或直接手動輸入數據。');
+                alert('❌ 無法識別此 FIT 檔案的特訓里程。\n請確認檔案為 Garmin, Suunto 或 Apple Watch 的原始匯出檔，或直接改用手動輸入數據。');
             } finally {
-                inputElement.value = ''; // 強制釋放檔案快取指針，確保可以連續更換檔案刷新
+                inputElement.value = ''; // 強制清除選取器指針快取，允許連續重複更換檔案刷新
             }
         };
         window.activeReader.readAsArrayBuffer(file);
@@ -369,3 +368,8 @@
         document.getElementById('hr').value = "";
         document.getElementById('cadence').value = "";
         document.getElementById('stride').value = "";
+    }
+
+    function setupBadges(containerId, isMultiple = false) {
+        const container = document.getElementById(containerId);
+        container.addEventListene
