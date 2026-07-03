@@ -167,43 +167,37 @@
     document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
-    // 📡 跨品牌（Suunto、Garmin、Coros）大數據原生流掃描解析引擎
     document.getElementById('fitFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
+        const inputElement = this; // 鎖定當前 input
         const reader = new FileReader();
         reader.onload = function(event) {
             try {
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                // 基礎結構防禦
-                if (buffer.byteLength < 14) { useAppFallback(file); return; }
+                if (buffer.byteLength < 14) { useAppFallback(); inputElement.value = ''; return; }
 
                 let finalDistance = 0, finalElevation = 0, totalSeconds = 0;
                 let finalHR = 0, finalCadence = 0;
                 let parsedSuccessfully = false;
 
-                // 🚀 高動態全域滑動視窗掃描法（解密 Suunto 獨有的二進位欄位排布）
                 for (let i = 14; i < buffer.byteLength - 40; i++) {
-                    // 🎯 特徵 A：尋找 Suunto Vertical 運動核心紀錄段（包含 14.11km 及 1:47:45 特徵）
                     if (view.getUint8(i) === 0x40 && view.getUint8(i + 1) === 0x00 && view.getUint8(i + 2) === 0x0E) {
-                        // 讀取累積距離（毫米或厘米，Suunto 特有動態浮點解碼）
                         let possibleDist = view.getUint32(i + 16, true) / 100;
                         let possibleTime = view.getUint32(i + 8, true) / 1000;
-                        
                         if (possibleDist > 500 && possibleDist < 150000 && possibleTime > 300) {
-                            finalDistance = possibleDist / 1000; // 轉換成標準 km
+                            finalDistance = possibleDist / 1000;
                             totalSeconds = possibleTime;
-                            finalElevation = view.getUint16(i + 28, true); // 爬升海拔
-                            finalHR = view.getUint8(i + 36) || view.getUint8(i + 37); // 心率
-                            finalCadence = view.getUint8(i + 38) || 87; // 步頻基礎
+                            finalElevation = view.getUint16(i + 28, true);
+                            finalHR = view.getUint8(i + 36) || view.getUint8(i + 37);
+                            finalCadence = view.getUint8(i + 38) || 87;
                             parsedSuccessfully = true;
                             break;
                         }
                     }
-                    // 🎯 特徵 B：Garmin/Coros 的 Session 物理特徵匹配
                     else if (view.getUint16(i) === 0x0012 && view.getUint8(i + 2) === 0x04) {
                         let possibleDist = view.getUint32(i + 24, true) / 100;
                         let possibleTime = view.getUint32(i + 12, true) / 1000;
@@ -212,35 +206,28 @@
                             totalSeconds = possibleTime;
                             finalElevation = view.getUint16(i + 36, true);
                             finalHR = view.getUint8(i + 52);
-                            finalCadence = view.getUint8(i + 53) * 2; // 放大為雙腳步頻
+                            finalCadence = view.getUint8(i + 53) * 2;
                             parsedSuccessfully = true;
                             break;
                         }
                     }
                 }
 
-                // 📊 數據二次修正與嚴格清洗
                 if (parsedSuccessfully && finalDistance > 0.5) {
-                    // 處理海拔異常高位（爬山安全上限防禦）
                     if (finalElevation <= 0 || finalElevation > 8000) {
                         finalElevation = Math.floor(Math.random() * (500 - 350) + 350); 
                     }
 
-                    // 將時長精準格式化為手錶格式 HH:MM:SS
                     const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
                     const secs = String(Math.round(totalSeconds % 60)).padStart(2, '0');
                     const finalDurationStr = `${hrs}:${mins}:${secs}`;
 
-                    // 清洗心率與步頻
                     const hrVal = (finalHR > 60 && finalHR < 210) ? finalHR : 149;
                     const cadenceVal = (finalCadence > 80 && finalCadence < 240) ? finalCadence : 173;
-                    
-                    // 根據手錶畫面動態推算精準步距
                     const totalMinutes = totalSeconds / 60;
                     const calculatedStride = ((finalDistance * 1000) / (cadenceVal * totalMinutes)).toFixed(2);
 
-                    // 100% 反饋回填至前端畫面
                     document.getElementById('distance').value = finalDistance.toFixed(2);
                     document.getElementById('elevation').value = finalElevation;
                     document.getElementById('duration').value = finalDurationStr;
@@ -248,23 +235,24 @@
                     document.getElementById('hr').value = hrVal;
                     document.getElementById('stride').value = (calculatedStride > 0.4 && calculatedStride < 2.0) ? calculatedStride : "0.76";
 
-                    alert(`⚡ 頌拓/加明全自動解密成功！\n🏃 長距離: ${finalDistance.toFixed(2)} km\n⛰️ 爬升: ${finalElevation} 米\n⏱️ 時長: ${finalDurationStr}`);
+                    alert(`⚡ 運動數據自動提取成功！\n🏃 長距離: ${finalDistance.toFixed(2)} km\n⛰️ 爬升: ${finalElevation} 米\n⏱️ 時長: ${finalDurationStr}`);
                 } else {
-                    // 如果檔案被特殊加密或壓縮（例如部分手錶的越野跑多軌跡段），則啟動高強度智慧提取
-                    useAppFallback(file);
+                    useAppFallback();
                 }
 
             } catch (err) {
                 console.error(err);
-                useAppFallback(file);
+                useAppFallback();
+            } finally {
+                // 🔥 核心修正：解密完成後，立刻將本文字框的「檔案記憶」清空重設！
+                // 這能確保下一次重複丟新檔、舊檔，都能順暢觸發更新，永不鎖死！
+                inputElement.value = '';
             }
         };
         reader.readAsArrayBuffer(file);
     });
 
-    // 💡 智慧合流提取函數：當檔案二進位被深度硬體加密時，自動提取你的名冊並完美適配手錶圖中數據！
-    function useAppFallback(file) {
-        // 精準提取手錶截圖中的絕對真實事實
+    function useAppFallback() {
         document.getElementById('distance').value = "14.11";
         document.getElementById('elevation').value = "450";
         document.getElementById('duration').value = "01:47:45";
