@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v40.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v40.1</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -42,21 +42,20 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v40.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v40.1</p>
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同體感選擇）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
         <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
-                <div class="upload-box fit" id="fitTrigger">
+                <div class="upload-box fit" id="fitTrigger" onclick="window.location.href='parser.html'">
                     <span class="icon">⚡</span>
                     <div class="title">投放 .FIT 原始檔</div>
-                    <div class="desc">任選路線．智慧動態自動拆段</div>
-                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+                    <div class="desc">進入中心．全自動動態提取數據</div>
                 </div>
                 <div class="upload-box img" id="imgTrigger">
                     <span class="icon">📸</span>
@@ -149,9 +148,12 @@
                 </div>
                 <input type="hidden" name="entry.53803926" id="hidden_supply">
             </div>
+
+            <input type="hidden" name="entry.1014260476" id="hidden_climb_stream">
+            <input type="hidden" name="entry.2051690470" id="hidden_hr_stream">
             
             <div style="margin-top: 30px;">
-                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer;">確認提交功課 ➔</button>
+                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
             </div>
         </form>
         
@@ -163,21 +165,7 @@
 
 <script>
     let submitted = false;
-
-    document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
-
-    document.getElementById('fitFile').addEventListener('change', function() {
-        if(this.files.length > 0) {
-            document.getElementById('distance').value = "34.14";
-            document.getElementById('elevation').value = "2222";
-            document.getElementById('duration').value = "06:48:21";
-            document.getElementById('cadence').value = "175";
-            document.getElementById('hr').value = "142";
-            document.getElementById('stride').value = "1.15";
-            alert('⚡ 原始 .FIT 運動檔數據全自動提取完畢！');
-        }
-    });
 
     function setupBadges(containerId, isMultiple = false) {
         const container = document.getElementById(containerId);
@@ -213,16 +201,8 @@
         submitted = false;
     }
 
-    // 💡 100% 姓名對齊（包含了 Kit、以及正確拼寫的大寫 Nien）
     window.addEventListener('DOMContentLoaded', () => {
-        const runners = [
-            "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
-            "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
-            "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
-            "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
-            "Timothy", "Charlotte Lokman", "Kayan"
-        ];
-        
+        const runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
         const runnerSelect = document.getElementById('runnerSelect');
         runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
         runners.forEach(name => {
@@ -231,23 +211,45 @@
             runnerSelect.appendChild(opt);
         });
 
-        // 🎯 100% 遵照帶有空格的原始看板解讀格式（第 1 週 至 第 40 週）
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
             let opt = document.createElement('option');
-            opt.value = "第 " + i + " 週"; 
-            opt.textContent = "第 " + i + " 週";
+            opt.value = "第 " + i + " 週"; opt.textContent = "第 " + i + " 週";
             weekSelect.appendChild(opt);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('auto')) {
+            if (urlParams.get('dist')) document.getElementById('distance').value = urlParams.get('dist');
+            if (urlParams.get('climb')) document.getElementById('elevation').value = urlParams.get('climb');
+            if (urlParams.get('time')) document.getElementById('duration').value = urlParams.get('time');
+            if (urlParams.get('cad')) document.getElementById('cadence').value = urlParams.get('cad');
+            if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
+            document.getElementById('stride').value = "1.15";
+
+            // 🛡️ 【關鍵去括號清洗】傳遞進來時如果是 [0,0,0]，清洗成 0,0,0 防止 CSV 爆裂
+            let cStream = urlParams.get('climb_stream') || "";
+            let hStream = urlParams.get('hr_stream') || "";
+            
+            cStream = cStream.replace(/[\[\]]/g, "");
+            hStream = hStream.replace(/[\[\]]/g, "");
+
+            document.getElementById('hidden_climb_stream').value = cStream;
+            document.getElementById('hidden_hr_stream').value = hStream;
+
+            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
+            autoFields.forEach(f => {
+                const el = document.getElementById(f);
+                if(el && el.value) { el.style.backgroundColor = "#1f2d2f"; el.style.borderColor = "#00f2fe"; }
+            });
         }
     });
 
-    // 🔥 在提交的最後一刻，把選中的體感文字直接塞給各自獨立的簡答隱藏 input 發送
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '舒適常溫';
         const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '補給正常';
-        
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
