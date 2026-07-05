@@ -155,17 +155,17 @@
 
             <div class="input-group">
                 <label>實際分段海拔數據 (10% ➡️ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="hidden_climb_stream">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="hidden_climb_stream">
             </div>
 
             <div class="input-group">
                 <label>實際分段心率數據 (10% ➡️ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="hidden_hr_stream">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="hidden_hr_stream">
             </div>
 
             <div class="input-group">
                 <label>功率時序流 Power Stream (10% ➡️ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.585827917" id="hidden_power_stream">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.585827917" id="hidden_power_stream">
             </div>
             
             <div style="margin-top: 30px;">
@@ -245,7 +245,7 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 洗清與注入
+            // 🛡️ 洗清與唯一注入
             let cStream = urlParams.get('climb_stream') || "";
             let hStream = urlParams.get('hr_stream') || "";
             let pStream = urlParams.get('power_stream') || "";
@@ -254,7 +254,7 @@
             hStream = hStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
             pStream = pStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
 
-            // 🚀 ID 完美咬死！數據 100% 裝填進你看得見的發送框中！
+            // 🚀 直接填充到唯一文字輸入框中
             document.getElementById('hidden_climb_stream').value = cStream;
             document.getElementById('hidden_hr_stream').value = hStream;
             document.getElementById('hidden_power_stream').value = pStream;
