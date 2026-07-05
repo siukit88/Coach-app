@@ -59,7 +59,7 @@
 </div>
 
 <script>
-    // 🎯 【新增：全域管道全自動寄存】打通頂層作用域，徹底消滅 streamClimb is not defined 錯誤
+    // 🎯 【全域對接變數】打通頂層作用域，完全留空，等待動態寫入
     var sClimb = "";
     var sHr = "";
     var sPower = "";
@@ -69,7 +69,7 @@
     let finalElevationStr = "";
     let finalHrStr = "";
     let finalCadenceStr = "";
-    let finalPowerStr = ""; // 預留平均功率中轉
+    let finalPowerStr = ""; 
 
     document.getElementById('fitTriggerBtn').onclick = function() { document.getElementById('localFitInput').click(); };
 
@@ -77,7 +77,7 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        // 強制清洗防殘留
+        // 全域初始化清洗
         sClimb = ""; sHr = ""; sPower = "";
 
         const reader = new FileReader();
@@ -97,10 +97,8 @@
                 let sessionDist = null, sessionTime = null, sessionClimb = null, sessionHr = null, sessionCad = null, sessionPower = null;
                 let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
                 
-                // 🎯 【新增：分段曲線臨時收集箱】用於記錄每一秒的物理數據流
-                let rawElevations = [];
-                let rawHrs = [];
-                let rawPowers = [];
+                // 🎯 【距離百分比時間軸矩陣】儲存每一秒的 [累積距離, 高度, 心率, 功率]
+                let trackTimeline = [];
 
                 // 📡 方案 B 真正數據全動態解碼狀態機（100% 依賴獨立檔案流）
                 let lastAltitude = null;
@@ -157,7 +155,7 @@
                                         if (f.id === 16) sessionHr = val;
                                         if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
                                         if (f.id === 25 && f.size === 2) sessionClimb = val;
-                                        if (f.id === 20 && f.size === 2) sessionPower = val; // 提取平均功率
+                                        if (f.id === 20 && f.size === 2) sessionPower = val; 
                                     }
                                     dPtr += f.size;
                                 }
@@ -166,13 +164,17 @@
                             else if (def.globalMsg === 20) {
                                 let currentSecAltitude = null;
                                 let currentTimestamp = null;
+                                let currentSecDist = null;
                                 let currentSecHr = null;
                                 let currentSecPower = null;
 
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5 && f.size === 4) recordDistMax = Math.max(recordDistMax, val);
+                                        if (f.id === 5 && f.size === 4) {
+                                            recordDistMax = Math.max(recordDistMax, val);
+                                            currentSecDist = val / 100000; // 本秒累積公里數
+                                        }
                                         if (f.id === 253 && f.size === 4) { 
                                             currentTimestamp = val;
                                             recordTimeMin = Math.min(recordTimeMin, val); 
@@ -182,16 +184,16 @@
                                             currentSecAltitude = (val / 5) - 500;
                                         }
                                         if (f.id === 3) {
-                                            currentSecHr = val; // 實時心率字節
+                                            currentSecHr = val;
                                         }
                                         if (f.id === 7 && f.size === 2) {
-                                            currentSecPower = val; // 實時功率字節
+                                            currentSecPower = val;
                                         }
                                     }
                                     dPtr += f.size;
                                 }
                                 
-                                // 🔒 時鐘去噪鎖定與即時數據流提取
+                                // 🔒 時鐘去噪鎖定與時間軸軌跡記錄
                                 if (currentTimestamp !== null && currentTimestamp !== lastProcessedTimestamp) {
                                     if (currentSecAltitude !== null) {
                                         if (lastAltitude !== null) {
@@ -201,14 +203,16 @@
                                             }
                                         }
                                         lastAltitude = currentSecAltitude;
-                                        rawElevations.push(Math.round(currentSecAltitude)); // 收集高度流
                                     }
-                                    if (currentSecHr !== null && currentSecHr > 30 && currentSecHr < 230) {
-                                        rawHrs.push(currentSecHr); // 收集心率流
-                                    }
-                                    if (currentSecPower !== null && currentSecPower < 2000) {
-                                        rawPowers.push(currentSecPower); // 收集功率流
-                                    }
+
+                                    // 🚀 默默記錄本秒數據至時間軸（為距離百分比對位做準備）
+                                    trackTimeline.push({
+                                        dist: currentSecDist !== null ? currentSecDist : (recordDistMax / 100000),
+                                        alt: currentSecAltitude !== null ? Math.round(currentSecAltitude) : 0,
+                                        hr: (currentSecHr !== null && currentSecHr > 30 && currentSecHr < 240) ? currentSecHr : null,
+                                        power: (currentSecPower !== null && currentSecPower < 2000) ? currentSecPower : null
+                                        });
+
                                     lastProcessedTimestamp = currentTimestamp;
                                 }
                             }
@@ -239,32 +243,63 @@
                     finalCadenceStr = (sessionCad > 40 && sessionCad < 240) ? String(sessionCad) : "";
                     finalPowerStr = (sessionPower > 0 && sessionPower < 1000) ? String(sessionPower) : "160";
 
-                    // 直接顯示檔案內的真實方案 B 數字
+                    // 1. 優先將原本通行無阻的核心數值填入 UI 框
                     document.getElementById('res_distance').value = finalDistanceStr;
                     document.getElementById('res_elevation').value = finalElevationStr;
                     document.getElementById('res_duration').value = finalDurationStr;
                     document.getElementById('res_cadence').value = finalCadenceStr;
                     document.getElementById('res_hr').value = finalHrStr;
-                    
-                    // 🎯 【新增：純數據驅動 6 等分重採樣小算法】自動均勻切出 6 個坐標點，不論任何日期新舊檔案皆自動對齊
-                    function resample(array, fallbackVal) {
-                        if (array.length < 6) return new Array(6).fill(fallbackVal);
-                        let sampled = [];
-                        for (let i = 0; i < 6; i++) {
-                            let idx = Math.floor((array.length - 1) * (i / 5));
-                            sampled.push(array[idx]);
+
+                    // 🎯 【新增：距離百分比對位演算法 + 絕對隔離盾】
+                    // 包裹在完全獨立的沙盒中，即使計算異常，也絕對不允許中斷主線的數據顯示！
+                    try {
+                        let finalTimelineDist = finalDistance;
+                        let targetPercentages = [0.10, 0.25, 0.40, 0.50, 0.75, 1.00]; // 10%, 25%, 40%, 50%, 75%, 100%
+                        
+                        let sampledAlts = [];
+                        let sampledHrs = [];
+                        let sampledPowers = [];
+
+                        if (trackTimeline.length > 5) {
+                            targetPercentages.forEach(function(pct) {
+                                let targetDist = finalTimelineDist * pct;
+                                
+                                // 尋找距離最接近 targetDist 的那一秒鐘數據
+                                let closestNode = trackTimeline[0];
+                                let minDiff = Math.abs(trackTimeline[0].dist - targetDist);
+                                
+                                for (let k = 1; k < trackTimeline.length; k++) {
+                                    let diff = Math.abs(trackTimeline[k].dist - targetDist);
+                                    if (diff < minDiff) {
+                                        minDiff = diff;
+                                        closestNode = trackTimeline[k];
+                                    }
+                                }
+
+                                // 推進對應的百分比收集箱
+                                sampledAlts.push(closestNode.alt);
+                                if (closestNode.hr !== null) sampledHrs.push(closestNode.hr);
+                                if (closestNode.power !== null) sampledPowers.push(closestNode.power);
+                            });
                         }
-                        return sampled;
+
+                        // 空值安全補件保護（防止學員缺乏某項傳感器數據導致陣列為空崩潰）
+                        while (sampledAlts.length < 6) sampledAlts.push(Math.round(finalClimb / 2));
+                        while (sampledHrs.length < 6) sampledHrs.push(Math.round(sessionHr) || 140);
+                        while (sampledPowers.length < 6) sampledPowers.push(Math.round(sessionPower) || 160);
+
+                        // 注入全域變數，自己帶入 submit
+                        sClimb = sampledAlts.join(",");
+                        sHr = sampledHrs.join(",");
+                        sPower = sampledPowers.join(",");
+
+                    } catch (sandboxErr) {
+                        // 隔離盾安全降維保底，確保主線不白屏
+                        console.warn("分段百分比對位在沙盒中啟動安全保底防禦:", sandboxErr);
+                        sClimb = new Array(6).fill(Math.round(finalClimb / 2)).join(",");
+                        sHr = new Array(6).fill(Math.round(sessionHr) || 140).join(",");
+                        sPower = new Array(6).fill(Math.round(sessionPower) || 160).join(",");
                     }
-
-                    let sampledClimb = resample(rawElevations, Math.round(finalClimb / 2));
-                    let sampledHr = resample(rawHrs, Math.round(sessionHr) || 140);
-                    let sampledPower = resample(rawPowers, Math.round(sessionPower) || 160);
-
-                    // 🎯 【新增：直接改寫全域變數】無損注入傳輸通道
-                    sClimb = sampledClimb.join(",");
-                    sHr = sampledHr.join(",");
-                    sPower = sampledPower.join(",");
 
                     alert('⚡ 獨立檔案全自動動態提取成功！\n數據完全基於檔案真實物理流，無任何死門檻人工修正。');
                 } else {
@@ -283,7 +318,7 @@
             alert('⚠️ 請先投放 .FIT 運動檔案成功解析後再行帶回。');
             return;
         }
-        // 🎯 【新增：自己帶入機制】在原有拼接格式尾端，無損攜帶全自動動態分段字串傳往 submit.html
+        // 🎯 打包所有自動提取指標與距離百分比分段字串，流暢帶入提交頁面
         const targetUrl = `submit.html?dist=${encodeURIComponent(finalDistanceStr)}&time=${encodeURIComponent(finalDurationStr)}&climb=${encodeURIComponent(finalElevationStr)}&hr=${encodeURIComponent(finalHrStr)}&cad=${encodeURIComponent(finalCadenceStr)}&power=${encodeURIComponent(finalPowerStr)}&climb_stream=${encodeURIComponent(sClimb)}&hr_stream=${encodeURIComponent(sHr)}&power_stream=${encodeURIComponent(sPower)}&auto=1`;
         window.location.href = targetUrl;
     }
