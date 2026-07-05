@@ -155,22 +155,18 @@
 
             <div class="input-group">
                 <label>實際分段海拔數據 (10% ➡️ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" readonly placeholder="等待 FIT 注入..." id="view_climb_stream">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="hidden_climb_stream">
             </div>
 
             <div class="input-group">
                 <label>實際分段心率數據 (10% ➡️ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" readonly placeholder="等待 FIT 注入..." id="view_hr_stream">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="hidden_hr_stream">
             </div>
 
             <div class="input-group">
                 <label>功率時序流 Power Stream (10% ➡️ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" readonly placeholder="等待 FIT 注入..." id="view_power_stream">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.585827917" id="hidden_power_stream">
             </div>
-
-            <input type="hidden" name="entry.1014260476" id="hidden_climb_stream">
-            <input type="hidden" name="entry.2051690470" id="hidden_hr_stream">
-            <input type="hidden" name="entry.585827917" id="hidden_power_stream">
             
             <div style="margin-top: 30px;">
                 <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
@@ -258,16 +254,12 @@
             hStream = hStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
             pStream = pStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
 
-            // 🚀 雙管注入：同時塞滿「肉眼觀測框」與「隱藏傳送項目」！
-            document.getElementById('view_climb_stream').value = cStream;
-            document.getElementById('view_hr_stream').value = hStream;
-            document.getElementById('view_power_stream').value = pStream;
-
+            // 🚀 ID 完美咬死！數據 100% 裝填進你看得見的發送框中！
             document.getElementById('hidden_climb_stream').value = cStream;
             document.getElementById('hidden_hr_stream').value = hStream;
             document.getElementById('hidden_power_stream').value = pStream;
 
-            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
+            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride', 'hidden_climb_stream', 'hidden_hr_stream', 'hidden_power_stream'];
             autoFields.forEach(f => {
                 const el = document.getElementById(f);
                 if(el && el.value) { el.style.backgroundColor = "#1f2d2f"; el.style.borderColor = "#00f2fe"; }
