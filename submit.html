@@ -153,8 +153,7 @@
 
             <div class="input-group">
                 <label>意見反映 (如有任何特訓心得可在這裡填寫)</label>
-                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." id="user_feedback" oninput="syncFeedbackWithData();"></textarea>
-                <input type="hidden" name="entry.1271874368" id="google_feedback_input">
+                <textarea class="input-ctrl" rows="4" placeholder="請填寫你的感想..." name="entry.1271874368" id="real_google_feedback" oninput="handleUserTyping();"></textarea>
             </div>
 
             <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
@@ -190,10 +189,10 @@
     let globalClimbStream = "0";
     let globalHrStream = "0";
     let globalPowerStream = "0";
+    let currentRawUserText = ""; // 儲存學員真實輸入的文字
 
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
-    // 🎯 點擊 Badge 即時寫入 Hidden 值，不再等最後打包
     function setupBadges(containerId, hiddenInputId, isMultiple = false) {
         const container = document.getElementById(containerId);
         const hiddenInput = document.getElementById(hiddenInputId);
@@ -214,7 +213,6 @@
                         });
                     }
                 }
-                // 即時更新到容器
                 const activeValues = Array.from(container.querySelectorAll('.status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
                 hiddenInput.value = activeValues;
             }
@@ -232,21 +230,50 @@
         document.getElementById('hidden_risk').value = "良好（狀態平穩，無傷痛）";
         document.getElementById('hidden_weather').value = "正常（天氣涼爽 / 室內冷氣 / 體感舒適）";
         document.getElementById('hidden_supply').value = "正常（水份、能量膠與食物吸收良好）";
-        document.getElementById('user_feedback').value = "";
-        document.getElementById('google_feedback_input').value = "";
+        document.getElementById('real_google_feedback').value = "";
+        currentRawUserText = "";
         submitted = false;
     }
 
+    // 🛡️ 【空值安全防護鎖】：增加極致安全的 null / undefined 檢驗，絕不引發加載崩潰
     function convertToDisplayStream(rawParam) {
-        if (!rawParam) return "0";
-        return rawParam.replace(/[\[\]]/g, "").replace(/,/g, "-");
+        if (rawParam === null || rawParam === undefined || rawParam === "") return "0";
+        try {
+            return String(rawParam).replace(/[\[\]]/g, "").replace(/,/g, "-");
+        } catch(e) {
+            return "0";
+        }
     }
 
-    // 🎯 【實時同步連動鎖】：打字或加載時，1 秒之內主動將數據合成到發送框
-    function syncFeedbackWithData() {
-        let userText = document.getElementById('user_feedback').value || "";
-        let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${globalClimbStream}\nHR:${globalHrStream}\nPOWER:${globalPowerStream}\n[/FIT_STREAM_DATA]`;
-        document.getElementById('google_feedback_input').value = combinedPayload;
+    // 🎯 【換行隱形動態同步鎖】：將數據流塞到 50 個換行符號下方，確保界面純淨 0 混淆
+    function executeDataSyncToTextBox() {
+        const textBox = document.getElementById('real_google_feedback');
+        if (!textBox) return;
+        
+        let paddingLines = "\n".repeat(50); // 50個換行，強行把天書數據頂出手機視野
+        let streamPayload = `[FIT_STREAM_DATA]\nCLIMB:${globalClimbStream}\nHR:${globalHrStream}\nPOWER:${globalPowerStream}\n[/FIT_STREAM_DATA]`;
+        
+        // 將學員寫的感想，與隱形壓在底部的數據完美合體
+        textBox.value = currentRawUserText + paddingLines + streamPayload;
+    }
+
+    // 當學員手動打字時，實時記錄文字並重整結構
+    function handleUserTyping() {
+        const textBox = document.getElementById('real_google_feedback');
+        let currentFullText = textBox.value;
+        
+        // 剝離出隱形區，唯獨保留第一頁學員打的感想
+        if (currentFullText.includes("\n\n[FIT_STREAM_DATA]")) {
+            currentRawUserText = currentFullText.split("\n\n[FIT_STREAM_DATA]")[0];
+        } else if (currentFullText.includes("\n")) {
+            // 如果包含了換行，排除我們塞入的連續換行
+            let lines = currentFullText.split("\n");
+            let cleanLines = lines.filter((line, index) => index < 5 && !line.includes("[FIT_STREAM_DATA]") && !line.includes("CLIMB:"));
+            currentRawUserText = cleanLines.join("\n");
+        } else {
+            currentRawUserText = currentFullText;
+        }
+        executeDataSyncToTextBox();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -258,3 +285,45 @@
             opt.value = name; opt.textContent = name;
             runnerSelect.appendChild(opt);
         });
+
+        const weekSelect = document.getElementById('weekSelect');
+        weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
+        for(let i = 1; i <= 40; i++) {
+            let opt = document.createElement('option');
+            opt.value = "第 " + i + " 週"; opt.textContent = "第 " + i + " 週";
+            weekSelect.appendChild(opt);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('auto')) {
+            // 🚀 【黃金優先通道】不管曲線數據如何，長距離、爬升、時間在第一秒鐘必須死死填滿亮起！
+            if (urlParams.get('dist')) document.getElementById('distance').value = urlParams.get('dist');
+            if (urlParams.get('climb')) document.getElementById('elevation').value = urlParams.get('climb');
+            if (urlParams.get('time')) document.getElementById('duration').value = urlParams.get('time');
+            if (urlParams.get('cad')) document.getElementById('cadence').value = urlParams.get('cad');
+            if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
+            document.getElementById('stride').value = "1.15";
+
+            // 🛡️ 通過空值保護鎖解析曲線參數，遇到 null 絕對不崩潰
+            globalClimbStream = convertToDisplayStream(urlParams.get('climb_stream'));
+            globalHrStream = convertToDisplayStream(urlParams.get('hr_stream'));
+            globalPowerStream = convertToDisplayStream(urlParams.get('power_stream'));
+
+            // 填入給你看的視覺格子
+            document.getElementById('ui_climb').value = globalClimbStream;
+            document.getElementById('ui_hr').value = globalHrStream;
+            document.getElementById('ui_power').value = globalPowerStream;
+
+            // 🚀 加載即裝車！數據立馬合體進入大文本箱
+            executeDataSyncToTextBox();
+
+            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
+            autoFields.forEach(f => {
+                const el = document.getElementById(f);
+                if(el && el.value) { el.style.backgroundColor = "#1f2d2f"; el.style.borderColor = "#00f2fe"; }
+            });
+        }
+    });
+</script>
+</body>
+</html>
