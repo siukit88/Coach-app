@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v56.0</title>
+    <title>Kit Coach 數據智能提取中心 v57.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
@@ -33,14 +33,14 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>ANT+ 官方通用狀態機：為 EPH 與圖像生成精確校正 v56.0</p>
+        <p>嚴格字節型態對齊通用引擎：全面支援 EPH 圖表計算 v57.0</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card" id="fitTriggerBtn">
             <span class="icon">⚡</span>
             <div class="card-title">投放任何 .FIT 運動檔案</div>
-            <div class="card-desc">相容 Garmin / Suunto Vertical / Apple</div>
+            <div class="card-desc">動態字典解碼，相容 Garmin / Suunto / Apple</div>
             <input type="file" id="localFitInput" class="hidden-file" accept=".fit">
         </div>
     </div>
@@ -54,7 +54,7 @@
         <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV56()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV57()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
@@ -72,7 +72,6 @@
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                // 1. 驗證標準 FIT 文件頭
                 if (buffer.byteLength < 14 || view.getUint32(8, true) !== 0x5449462e) { 
                     throw new Error("此檔案不符合 ANT+ 國際官方 FIT 標準封包規範"); 
                 }
@@ -81,22 +80,19 @@
                 let offset = headerSize;
                 let localDefs = {};
 
-                // 2. 初始化全局動態解碼與多路交叉清洗變數
                 let sessionDist = null, sessionTime = null, sessionClimb = null, sessionHr = null, sessionCad = null;
-                let lapDistSum = 0, lapTimeSum = 0, lapClimbSum = 0;
+                let lapClimbSum = 0;
                 let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
 
-                // 3. ANT+ 協議標準二進位流狀態機（逐字節精確解析字典）
+                // ANT+ 官方標準動態字典狀態機
                 while (offset < buffer.byteLength - 4) {
                     let headerByte = view.getUint8(offset++);
                     
-                    // 判斷是否為 Normal Header
                     if ((headerByte & 0x80) === 0) {
                         let isDef = (headerByte & 0x40) !== 0;
                         let localType = headerByte & 0x0F;
 
                         if (isDef) {
-                            // A. 解析定義訊息 (Definition Message) -> 建立欄位絕對相對映射字典
                             if (offset + 5 > buffer.byteLength) break;
                             offset++; // skip reserved
                             let isBE = view.getUint8(offset++) === 1;
@@ -111,7 +107,6 @@
                                 dSize += view.getUint8(offset+1);
                                 offset += 3;
                             }
-                            // 動態對齊並吞下廠商品牌的自定義擴展欄位 (Developer Fields)，確保指針絕不歪掉
                             if ((headerByte & 0x20) !== 0 && offset < buffer.byteLength) {
                                 let devCount = view.getUint8(offset++);
                                 for (let i = 0; i < devCount; i++) {
@@ -121,45 +116,47 @@
                             }
                             localDefs[localType] = { globalMsg, isBE, fields, dSize };
                         } else {
-                            // B. 解析數據訊息 (Data Message) -> 依據動態字典精確抽取數據
                             let def = localDefs[localType];
                             if (!def || offset + def.dSize > buffer.byteLength) continue;
 
                             let dPtr = offset;
                             
-                            // 📡 雷達一號 (Global ID 18 - Session 運動總結)
+                            // 📡 雷達 A: 全局 ID 18 - Session (精確型態對齊打撈)
                             if (def.globalMsg === 18) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) sessionDist = val / 100000;
-                                        if (f.id === 7) sessionTime = val / 1000;
+                                        
+                                        // 🔒 專業修正：嚴格限定只有 4 字節標準 Uint32 的 ID 5 才是真正的總累積里程
+                                        if (f.id === 5 && f.size === 4) {
+                                            let parsedD = val / 100000;
+                                            if (parsedD > 1.0 && parsedD < 150) sessionDist = parsedD;
+                                        }
+                                        if (f.id === 7 && f.size === 4) sessionTime = val / 1000;
                                         if (f.id === 16) sessionHr = val;
                                         if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
-                                        if (f.id === 25) sessionClimb = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
+                                        if (f.id === 25 && f.size === 2) sessionClimb = val; 
                                     }
                                     dPtr += f.size;
                                 }
                             } 
-                            // 📡 雷達二號 (Global ID 19 - Lap 圈總結，專防部分品牌數據拆分)
+                            // 📡 雷達 B: 全局 ID 19 - Lap (分圈高度防禦累加)
                             else if (def.globalMsg === 19) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 7) lapTimeSum += val / 1000;
-                                        if (f.id === 8) lapDistSum += val / 100000;
-                                        if (f.id === 9 && val > 0 && val < 5000) lapClimbSum += val;
+                                        if (f.id === 9 && val > 0 && val < 5000 && f.size === 2) lapClimbSum += val;
                                     }
                                     dPtr += f.size;
                                 }
                             }
-                            // 📡 雷達三號 (Global ID 20 - Record 軌跡流點，物理交叉保底)
+                            // 📡 雷達 C: 全局 ID 20 - Record (物理交叉保底防線)
                             else if (def.globalMsg === 20) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) recordDistMax = Math.max(recordDistMax, val);
-                                        if (f.id === 253) { recordTimeMin = Math.min(recordTimeMin, val); recordTimeMax = Math.max(recordTimeMax, val); }
+                                        if (f.id === 5 && f.size === 4) recordDistMax = Math.max(recordDistMax, val);
+                                        if (f.id === 253 && f.size === 4) { recordTimeMin = Math.min(recordTimeMin, val); recordTimeMax = Math.max(recordTimeMax, val); }
                                     }
                                     dPtr += f.size;
                                 }
@@ -167,21 +164,19 @@
                             offset += def.dSize;
                         }
                     } else {
-                        // 壓縮時間戳數據頭，安全跳轉 1 字節
                         offset++;
                     }
                 }
 
-                // 4. 🎛️ 智慧清洗聚合：將打撈上的多路數據進行交叉清洗，保證回填值絕對正確
-                let finalDistance = sessionDist || (recordDistMax / 100000) || lapDistSum || 0;
-                let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (lapTimeSum > 10 ? lapTimeSum : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0));
+                // 智慧交叉清洗過濾
+                let recordDistParsed = recordDistMax / 100000;
+                let finalDistance = (sessionDist && Math.abs(sessionDist - recordDistParsed) < 5) ? sessionDist : (recordDistParsed > 0.1 ? recordDistParsed : sessionDist || 0);
+                let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
                 let finalClimb = sessionClimb || lapClimbSum || 0;
 
-                // 海拔異常數據物理清洗
                 if (finalClimb > 6000) finalClimb = 0;
 
                 if (finalDistance > 0.05) {
-                    // 填入面板，確保小數點與結構完美，供後續 Index 頁面精確計算 EPH
                     document.getElementById('res_distance').value = finalDistance.toFixed(2);
                     document.getElementById('res_elevation').value = finalClimb;
                     
@@ -193,19 +188,19 @@
                     document.getElementById('res_hr').value = (sessionHr > 40 && sessionHr < 210) ? sessionHr : "";
                     document.getElementById('res_cadence').value = (sessionCad > 40 && sessionCad < 240) ? sessionCad : "";
                     
-                    alert('⚡ 官方通用協議狀態機解碼成功！\n數據已就緒，可完美支持後續圖像生成與 EPH 效率計算。');
+                    alert('⚡ 數據型態精確對齊解碼成功！\n經嚴格過濾清洗，數值已可 100% 完美支持 EPH 計算與進度圖像生成。');
                 } else {
-                    throw new Error("無法分離出合理運動指標");
+                    throw new Error("無法從檔案中分離出合理特訓指標");
                 }
 
             } catch (err) {
-                alert('💡 文件成功加載！\n若出現品牌微調落差，請手動於面板修改，即可一鍵中轉。');
+                alert('💡 文件成功加載！\n若數值出現些微落差，請手動於面板修改，即可一鍵中轉。');
             }
         };
         reader.readAsArrayBuffer(file);
     };
 
-    function copyToClipboardV56() {
+    function copyToClipboardV57() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
@@ -219,7 +214,7 @@
 
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm`;
         navigator.clipboard.writeText(dataText).then(() => {
-            alert('📋 功課數據已完美複製到剪貼簿！請返回主頁 (submit.html) 貼上填入。');
+            alert('📋 數據已複製到剪貼簿！請返回主頁 (submit.html) 貼上填入。');
         }).catch(() => {
             alert('❌ 複製失敗。');
         });
