@@ -146,26 +146,32 @@
                 <div class="badge-container" id="supplyContainer">
                     <div class="status-badge active" data-value="正常（水份、能量膠與食物吸收良好）">正常（水份、能量膠與食物吸收良好）</div>
                     <div class="status-badge" data-value="補水不足（出現明顯口渴、心率偏高）">補水不足（出現明顯口渴、心率偏高）</div>
-                    <div class="status-badge" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反反胃）">胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）</div>
+                    <div class="status-badge" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）">胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）</div>
                 </div>
                 <input type="hidden" name="entry.53803926" id="hidden_supply">
+            </div>
+
+            <div class="input-group">
+                <label>意見反映 (如有任何特訓心得可在這裡填寫)</label>
+                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." id="user_feedback"></textarea>
+                <input type="hidden" name="entry.1271874368" id="google_feedback_input">
             </div>
 
             <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
 
             <div class="input-group">
-                <label>實際分段海拔數據 (10% ➡️ 100% 純數字加密串)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="hidden_climb_stream">
+                <label>實際分段海拔數據 (10% ➔ 100%)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_climb">
             </div>
 
             <div class="input-group">
-                <label>實際分段心率數據 (10% ➡️ 100% 純數字加密串)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="hidden_hr_stream">
+                <label>實際分段心率數據 (10% ➔ 100%)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_hr">
             </div>
 
             <div class="input-group">
-                <label>功率時序流 Power Stream (10% ➡️ 100% 純數字加密串)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.585827917" id="hidden_power_stream">
+                <label>功率時序流 Power Stream (10% ➔ 100%)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_power">
             </div>
             
             <div style="margin-top: 30px;">
@@ -215,24 +221,14 @@
         document.querySelector('#riskContainer [data-value^="良好"]').classList.add('active');
         document.querySelector('#weatherContainer [data-value^="正常"]').classList.add('active');
         document.querySelector('#supplyContainer [data-value^="正常"]').classList.add('active');
+        document.getElementById('user_feedback').value = "";
         submitted = false;
     }
 
-    // 🎯 【黃金補零密碼化函數】：將數值拆開並強行補足 4 位數，拼裝成純數字串
-    function convertToPureNumericStream(rawParam) {
+    // 將數值轉為標準劃分字串方便前端顯示
+    function convertToDisplayStream(rawParam) {
         if (!rawParam) return "";
-        // 清洗掉中括號，並用逗號切開
-        let cleanStr = rawParam.replace(/[\[\]]/g, "");
-        if (!cleanStr) return "";
-        let items = cleanStr.split(",");
-        
-        // 將每個數字轉為整數，並在前面補零到固定 4 位數長度
-        let numericStream = items.map(item => {
-            let num = parseInt(item.trim()) || 0;
-            return String(num).padStart(4, '0');
-        }).join("");
-        
-        return numericStream;
+        return rawParam.replace(/[\[\]]/g, "").replace(/,/g, "-");
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -262,16 +258,12 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🚀 【黃金數字加密注入】徹底拋棄任何分隔符號，100% 純數字串安全裝車
-            let cStreamPure = convertToPureNumericStream(urlParams.get('climb_stream'));
-            let hStreamPure = convertToPureNumericStream(urlParams.get('hr_stream'));
-            let pStreamPure = convertToPureNumericStream(urlParams.get('power_stream'));
+            // 🚀 【雙向裝車】前端視覺格子直接塞入帶減號格式
+            document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
+            document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
+            document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
 
-            document.getElementById('hidden_climb_stream').value = cStreamPure;
-            document.getElementById('hidden_hr_stream').value = hStreamPure;
-            document.getElementById('hidden_power_stream').value = pStreamPure;
-
-            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride', 'hidden_climb_stream', 'hidden_hr_stream', 'hidden_power_stream'];
+            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
                 const el = document.getElementById(f);
                 if(el && el.value) { el.style.backgroundColor = "#1f2d2f"; el.style.borderColor = "#00f2fe"; }
@@ -279,6 +271,7 @@
         }
     });
 
+    // 🎯 【合流打包核心】：點擊提交時，將大數據流隱形拼接到「意見反映」欄位中發送
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
@@ -286,6 +279,20 @@
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
+
+        // 🛡️ 提取當前的數據流
+        let cData = document.getElementById('ui_climb').value || "0";
+        let hData = document.getElementById('ui_hr').value || "0";
+        let pData = document.getElementById('ui_power').value || "0";
+        
+        // 取得用戶手寫的意見文字
+        let userText = document.getElementById('user_feedback').value || "";
+        
+        // 🛠️ 用最安全的特製高密度標籤封裝起來，合併進入大文字箱
+        let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${cData}\nHR:${hData}\nPOWER:${pData}\n[/FIT_STREAM_DATA]`;
+        
+        // 100% 裝車直達 1271874368
+        document.getElementById('google_feedback_input').value = combinedPayload;
     }
 </script>
 </body>
