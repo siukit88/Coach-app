@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v1.0</title>
+    <title>Kit Coach 數據智能提取中心 v40.2</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
         .header { background: #00f2fe; padding: 20px; margin: -20px -20px 20px -20px; text-align: left; color: #121212; }
-        .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; font-weight: bold; opacity: 0.8; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: bold; }
+        .header p { margin: 5px 0 0 0; font-size: 12px; opacity: 0.8; font-weight: bold; }
         .upload-zone { display: flex; gap: 12px; margin-bottom: 25px; }
-        .upload-card { flex: 1; background: #1e1e24; border-radius: 8px; padding: 20px 10px; text-align: center; cursor: pointer; border: 2px dashed #444; box-sizing: border-box; transition: all 0.3s; }
+        .upload-card { flex: 1; background: #1e1e24; border-radius: 8px; padding: 20px 10px; text-align: center; cursor: pointer; border: 2px dashed #444; box-sizing: border-box; }
         .upload-card.fit { border-color: #00f2fe; }
         .upload-card.img { border-color: #ff3366; }
-        .upload-card:active { transform: scale(0.95); background: #25252d; }
-        .icon { font-size: 28px; display: block; margin-bottom: 8px; }
+        .upload-card:active { background: #25252d; }
+        .icon { font-size: 26px; display: block; margin-bottom: 8px; }
         .card-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
         .upload-card.fit .card-title { color: #00f2fe; }
         .upload-card.img .card-title { color: #ff3366; }
         .card-desc { font-size: 11px; color: #888; line-height: 1.3; }
         .result-box { background: #1e1e24; border-radius: 8px; padding: 15px; margin-bottom: 25px; border: 1px solid #333; }
-        .result-box h3 { margin: 0 0 15px 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; color: #00f2fe; }
+        .result-box h3 { margin: 0 0 15px 0; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 8px; color: #00f2fe; }
         .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #2a2a35; font-size: 15px; }
         .data-row:last-child { border: none; }
         .data-label { color: #aaa; }
         .data-value { font-weight: bold; color: #fff; }
-        .btn-action { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        .btn-action { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-action:active { background: #d62250; }
         .hidden-file { display: none !important; }
         .nav-link { display: inline-block; color: #aaa; font-size: 14px; text-decoration: none; margin-top: 20px; width: 100%; text-align: center; }
@@ -37,27 +37,27 @@
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 數據提取中心</h1>
-        <p>專為 Garmin / Apple / Suunto 檔案與截圖而設</p>
+        <h1>Kit Coach 數據智能提取中心</h1>
+        <p>獨立測試沙盒：支援 Garmin / Apple / Suunto 原始檔</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card fit" onclick="document.getElementById('fitFile').click()">
             <span class="icon">⚡</span>
-            <div class="card-title">解析 .FIT 檔案</div>
-            <div class="card-desc">相容三大手錶品牌直接導出檔</div>
+            <div class="card-title">投放 .FIT 運動檔</div>
+            <div class="card-desc">支援 Suunto, Garmin 原始導出檔案</div>
             <input type="file" id="fitFile" class="hidden-file" accept=".fit">
         </div>
         <div class="upload-card img" onclick="document.getElementById('imgFile').click()">
             <span class="icon">📸</span>
-            <div class="card-title">識別截圖圖片</div>
-            <div class="card-desc">辨識手錶 App 截圖中關鍵數據</div>
+            <div class="card-title">投放數據截圖</div>
+            <div class="card-desc">智慧 AI 抄錄跑錶 App 畫面數據</div>
             <input type="file" id="imgFile" class="hidden-file" accept="image/*">
         </div>
     </div>
 
     <div class="result-box">
-        <h3>📊 提取結果核對面板</h3>
+        <h3>📊 數據智能提取結果核對</h3>
         <div class="data-row"><span class="data-label">長距離 (km)：</span><span class="data-value" id="res_distance">--</span></div>
         <div class="data-row"><span class="data-label">爬升海拔 (米)：</span><span class="data-value" id="res_elevation">--</span></div>
         <div class="data-row"><span class="data-label">長跑時間：</span><span class="data-value" id="res_duration">--</span></div>
@@ -66,13 +66,13 @@
         <div class="data-row"><span class="data-label">平均步距 (m)：</span><span class="data-value" id="res_stride">--</span></div>
     </div>
 
-    <button class="btn-action" id="copyBtn" onclick="copyDataToClipboard()">📋 一鍵複製數據，準備貼上</button>
+    <button class="btn-action" onclick="copyExtractedResults()">📋 一鍵複製數據 (準備貼上)</button>
     
-    <a href="submit.html" class="nav-link">➔ 前往功課手動回報頁面 (submit.html)</a>
+    <a href="submit.html" class="nav-link">⬅ 返回你的功課回報主頁 (submit.html)</a>
 </div>
 
 <script>
-    // 1. 📡 深度優化版手錶協議解碼器（相容 Garmin 欄位、Suunto 壓縮區塊與 Apple Watch 點陣 record 流）
+    // 📡 特製版 ANT+ 位移狀態機（專攻各大品牌混合型數據區塊）
     document.getElementById('fitFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -83,27 +83,26 @@
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                if (buffer.byteLength < 14 || view.getUint32(8, true) !== 0x5449462e) { 
-                    throw new Error("此檔案不是合規的原始 .FIT 數據包"); 
+                if (buffer.byteLength < 20 || view.getUint32(8, true) !== 0x5449462e) { 
+                    throw new Error("本格式不符合 ANT+ 國際標準手錶原始碼規範。"); 
                 }
 
                 let headerSize = view.getUint8(0);
                 let offset = headerSize;
                 let localDefs = {};
 
-                let sessionDist = null, sessionClimb = null, sessionTime = null, sessionHr = null, sessionCad = null;
-                let fallbackDistMax = 0, fallbackTimeMin = Infinity, fallbackTimeMax = -Infinity;
+                let extractedDist = null, extractedClimb = null, extractedTime = null, extractedHr = null, extractedCad = null;
+                let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
 
-                // 狀態機按字節步進，嚴格設置邊界安全檢查
                 while (offset < buffer.byteLength - 4) {
                     let headerByte = view.getUint8(offset++);
                     
-                    if ((headerByte & 0x80) === 0) { // 正常定義或數據記錄
+                    if ((headerByte & 0x80) === 0) {
                         let isDef = (headerByte & 0x40) !== 0;
                         let localType = headerByte & 0x0F;
 
                         if (isDef) {
-                            offset++; // 略過保留字節
+                            offset++; // skip reserved
                             let isBE = view.getUint8(offset++) === 1;
                             let globalMsg = view.getUint16(offset, !isBE); offset += 2;
                             let fCount = view.getUint8(offset++);
@@ -112,18 +111,12 @@
                             let dSize = 0;
                             for (let i = 0; i < fCount; i++) {
                                 if (offset + 3 > buffer.byteLength) break;
-                                let fId = view.getUint8(offset);
-                                let fSize = view.getUint8(offset+1);
-                                fields.push({id: fId, size: fSize});
-                                dSize += fSize;
-                                offset += 3;
+                                fields.push({id: view.getUint8(offset), size: view.getUint8(offset+1)});
+                                dSize += view.getUint8(offset+1); offset += 3;
                             }
-                            if ((headerByte & 0x20) !== 0) { // 處理開發者擴展定義
+                            if ((headerByte & 0x20) !== 0) { // 剔除 Suunto/Garmin 開發者擴展欄位干擾
                                 let devCount = view.getUint8(offset++);
-                                for (let i = 0; i < devCount; i++) {
-                                    if (offset + 3 > buffer.byteLength) break;
-                                    dSize += view.getUint8(offset+1); offset += 3;
-                                }
+                                for (let i = 0; i < devCount; i++) { if (offset + 3 > buffer.byteLength) break; dSize += view.getUint8(offset+1); offset += 3; }
                             }
                             localDefs[localType] = { globalMsg, isBE, fields, dSize };
                         } else {
@@ -131,120 +124,105 @@
                             if (!def || offset + def.dSize > buffer.byteLength) continue;
 
                             let dPtr = offset;
-                            if (def.globalMsg === 18) { // 🎯 解碼 Session 總結（Garmin / Suunto 主力欄位）
+                            if (def.globalMsg === 18) { // 總結層
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) sessionDist = val / 100000;
-                                        if (f.id === 7) sessionTime = val / 1000;
-                                        if (f.id === 16) sessionHr = val;
-                                        if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
-                                        if (f.id === 25) sessionClimb = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
+                                        if (f.id === 5) extractedDist = val / 100000;
+                                        if (f.id === 7) extractedTime = val / 1000;
+                                        if (f.id === 16) extractedHr = val;
+                                        if (f.id === 18) extractedCad = val < 120 ? val * 2 : val;
+                                        if (f.id === 25) extractedClimb = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
                                     }
                                     dPtr += f.size;
                                 }
-                            } else if (def.globalMsg === 20) { // 🎯 解碼 Record 逐秒流（Apple Watch 備用欄位）
+                            } else if (def.globalMsg === 20) { // 軌跡層 (Apple Watch / Suunto 高頻點流)
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) fallbackDistMax = Math.max(fallbackDistMax, val);
-                                        if (f.id === 253) { fallbackTimeMin = Math.min(fallbackTimeMin, val); fallbackTimeMax = Math.max(fallbackTimeMax, val); }
+                                        if (f.id === 5) recordDistMax = Math.max(recordDistMax, val);
+                                        if (f.id === 253) { recordTimeMin = Math.min(recordTimeMin, tVal => tVal); recordTimeMax = Math.max(recordTimeMax, val); }
                                     }
                                     dPtr += f.size;
                                 }
                             }
                             offset += def.dSize;
                         }
-                    } else { // 壓縮時間戳
+                    } else {
                         offset++;
                     }
                 }
 
-                // 數據聚合交叉渲染
-                let finalDist = sessionDist || (fallbackDistMax / 100000) || 0;
-                let finalTime = sessionTime || (fallbackTimeMax > fallbackTimeMin ? (fallbackTimeMax - fallbackTimeMin) : 0) || 0;
-                let finalClimb = sessionClimb || 0;
+                let finalDist = extractedDist || (recordDistMax / 100000) || 0;
+                let finalTime = extractedTime || (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0) || 0;
 
-                if (finalDist > 0.01) {
+                if (finalDist > 0.05) {
                     document.getElementById('res_distance').innerText = finalDist.toFixed(2);
-                    document.getElementById('res_elevation').innerText = (finalClimb >= 0 && finalClimb < 6000) ? finalClimb : "0";
+                    document.getElementById('res_elevation').innerText = extractedClimb || "0";
                     
                     const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
                     const secs = String(Math.round(finalTime % 60)).padStart(2, '0');
                     document.getElementById('res_duration').innerText = `${hrs}:${mins}:${secs}`;
+                    document.getElementById('res_hr').innerText = extractedHr || "--";
+                    document.getElementById('res_cadence').innerText = extractedCad || "--";
                     
-                    document.getElementById('res_hr').innerText = sessionHr || "--";
-                    document.getElementById('res_cadence').innerText = sessionCad || "--";
-                    
-                    if (sessionCad > 0 && finalTime > 0) {
-                        document.getElementById('res_stride').innerText = ((finalDist * 1000) / (sessionCad * (finalTime / 60))).toFixed(2);
-                    } else {
-                        document.getElementById('res_stride').innerText = "--";
+                    if (extractedCad > 0 && finalTime > 0) {
+                        document.getElementById('res_stride').innerText = ((finalDist * 1000) / (extractedCad * (finalTime / 60))).toFixed(2);
                     }
-                    alert('⚡ .FIT 運動檔案跨平台解碼成功！數據已填入下方核對面板。');
+                    alert('⚡ .FIT 運動手錶原始檔動態提取成功！請於下方面板確認。');
                 } else {
-                    throw new Error("檔案解析成功但未包含可用的運動里程摘要區段");
+                    throw new Error("檔案中未包含有效的運動長距離摘要記錄。");
                 }
             } catch (err) {
-                alert(`❌ FIT 抄取失敗: ${err.message}\n請確認檔案為三大品牌官方 App 直接匯出，或改用旁邊的圖片識別。`);
+                alert(`❌ 抄取失敗: ${err.message}\n提示：請確保為跑錶官方匯出的標準原始檔，或改用右側「投放數據截圖」辨識。`);
             }
         };
         reader.readAsArrayBuffer(file);
     });
 
-    // 2. 📸 輕量 OCR 局部文字智能掃描提取器
+    // 📸 圖片 OCR 文字局部比對引擎
     document.getElementById('imgFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        alert('📸 正在啟動雲端圖像識別引擎，請稍候 3-5 秒...');
-        
-        Tesseract.recognize(file, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
-            console.log("OCR Raw Text:", text);
-            
-            // 專利正則表達式：精確捕獲跑步常用數據格式 (公里數、時間、步頻)
+        alert('📸 正在啟動網頁智能圖像辨識，請耐心等候 3-5 秒...');
+        Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+            console.log("OCR Raw:", text);
+            // 比對常見的數字指標
             const distMatch = text.match(/(\d+\.\d{2})\s*(km|公里)/i) || text.match(/\b(\d{2}\.\d{2})\b/);
             const timeMatch = text.match(/(\d{2}:\d{2}:\d{2})/);
-            const hrMatch = text.match(/(\d{2,3})\s*(bpm|心率)/i);
-            const cadMatch = text.match(/(\d{2,3})\s*(spm|步頻)/i);
-
-            let found = false;
-            if (distMatch) { document.getElementById('res_distance').innerText = distMatch[1]; found = true; }
-            if (timeMatch) { document.getElementById('res_duration').innerText = timeMatch[1]; found = true; }
-            if (hrMatch) { document.getElementById('res_hr').innerText = hrMatch[1]; found = true; }
-            if (cadMatch) { document.getElementById('res_cadence').innerText = cadMatch[1]; found = true; }
             
-            if (found) {
-                alert('⚡ 截圖智慧數據提取完畢！請在下方核對面板確認。');
+            let matched = false;
+            if (distMatch) { document.getElementById('res_distance').innerText = distMatch[1]; matched = true; }
+            if (timeMatch) { document.getElementById('res_duration').innerText = timeMatch[1]; matched = true; }
+            
+            if (matched) {
+                alert('⚡ 截圖數據抄錄成功！已自動提取出長距離/時間指標。');
             } else {
-                alert('⚠️ 已讀取圖片，但未能精確匹配格式。請確認截圖中字體清晰，或改用 .FIT 檔上傳。');
+                alert('⚠️ 已成功讀取截圖，但未能在畫面上匹配到跑錶專用的標準格式（例如 10.25 km 或 01:22:15），請手動核對面板。');
             }
-        }).catch(err => {
-            alert('❌ 圖片解析出錯，可能是網絡超時，請嘗試手動輸入。');
+        }).catch(() => {
+            alert('❌ 圖片解析超時。請改用投放 .FIT 檔或直接手動輸入數據。');
         });
     });
 
-    // 3. 📋 數據一鍵暫存剪貼簿（解決跨頁傳輸與 CORS 問題最可靠的物理橋樑）
-    function copyDataToClipboard() {
+    // 📋 數據物理中轉站
+    function copyExtractedResults() {
         const dist = document.getElementById('res_distance').innerText;
         const climb = document.getElementById('res_elevation').innerText;
-        const dur = document.getElementById('res_duration').innerText;
-        const cad = document.getElementById('res_cadence').innerText;
-        const hr = document.getElementById('res_hr').innerText;
-        const stride = document.getElementById('res_stride').innerText;
+        const time = document.getElementById('res_duration').innerText;
 
-        if (dist === '--' && dur === '--') {
-            alert('⚠️ 面板上尚無有效數據，請先投放檔案或圖片。');
+        if (dist === '--' && time === '--') {
+            alert('⚠️ 當前面板尚無任何提取到的功課數據。');
             return;
         }
 
-        const dataStr = `里程:${dist}|爬升:${climb}|時間:${dur}|步頻:${cad}|心率:${hr}|步距:${stride}`;
-        
-        navigator.clipboard.writeText(dataStr).then(() => {
-            alert('📋 數據已成功複製到剪貼簿！\n請切換到回報頁面 (submit.html)，在任何欄位直接「貼上」或手動對照填入。');
+        const dataText = `【特訓里程】 ${dist} km \n【爬升海拔】 ${climb} 米 \n【長跑時間】 ${time}`;
+        navigator.clipboard.writeText(dataText).then(() => {
+            alert('📋 功課數據已完美複製到你嘅手機剪貼簿！\n請返回 submit.html 回報頁面，直接對照填入或貼上即可。');
         }).catch(() => {
-            alert('❌ 瀏覽器暫時拒絕了剪貼簿權限，請手動對照面板數據輸入。');
+            alert('❌ 瀏覽器暫時拒絕了權限。請手動對照上方面板數值填報。');
         });
     }
 </script>
