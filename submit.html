@@ -120,10 +120,14 @@
             <div class="input-group">
                 <label>身體風險 (可複選)</label>
                 <div class="badge-container" id="riskContainer">
-                    <div class="status-badge active" data-value="良好">良好 (無傷痛)</div>
-                    <div class="status-badge danger" data-value="膝蓋不適">膝蓋不適</div>
-                    <div class="status-badge danger" data-value="足底痛楚">足底痛楚</div>
-                    <div class="status-badge danger" data-value="肌肉拉傷">肌肉拉傷</div>
+                    <div class="status-badge active" data-value="良好（狀態平穩，無傷痛）">良好（狀態平穩，無傷痛）</div>
+                    <div class="status-badge danger" data-value="過度疲勞（靜止心率偏高、體感重）">過度疲勞（靜止心率偏高、體感重）</div>
+                    <div class="status-badge danger" data-value="睡眠不足（通宵、返工 OT 嚴重缺眠）">睡眠不足（通宵、返工 OT 嚴重缺眠）</div>
+                    <div class="status-badge danger" data-value="上山肌力不足（大腿提早力竭、抽筋）">上山肌力不足（大腿提早力竭、抽筋）</div>
+                    <div class="status-badge danger" data-value="落山習慣拗柴（腳腕穩定度不足）">落山習慣拗柴（腳腕穩定度不足）</div>
+                    <div class="status-badge danger" data-value="ITB（膝蓋外側髂脛束發炎刺痛）">ITB（膝蓋外側髂脛束發炎刺痛）</div>
+                    <div class="status-badge danger" data-value="Achilles（阿基里斯腱發炎緊繃）">Achilles（阿基里斯腱發炎緊繃）</div>
+                    <div class="status-badge danger" data-value="心理焦慮（進度落後、賽前焦慮）">心理焦慮（進度落後、賽前焦慮）</div>
                 </div>
                 <input type="hidden" name="entry.1920350515" id="hidden_risk">
             </div>
@@ -131,10 +135,8 @@
             <div class="input-group">
                 <label>環境天氣 (環境體感)</label>
                 <div class="badge-container" id="weatherContainer">
-                    <div class="status-badge active" data-value="舒適常溫">舒適常溫</div>
-                    <div class="status-badge" data-value="炎熱高溫">炎熱高溫</div>
-                    <div class="status-badge" data-value="大雨/濕滑">大雨/濕滑</div>
-                    <div class="status-badge" data-value="強風逆風">強風逆風</div>
+                    <div class="status-badge active" data-value="正常（天氣涼爽 / 室內冷氣 / 體感舒適）">正常（天氣涼爽 / 室內冷氣 / 體感舒適）</div>
+                    <div class="status-badge" data-value="香港高濕脫水（盛夏暴汗、後半程抽筋掉速）">香港高濕脫水（盛夏暴汗、後半程抽筋掉速）</div>
                 </div>
                 <input type="hidden" name="entry.1919206278" id="hidden_weather">
             </div>
@@ -142,15 +144,16 @@
             <div class="input-group">
                 <label>補給問題</label>
                 <div class="badge-container" id="supplyContainer">
-                    <div class="status-badge active" data-value="補給正常">補給正常</div>
-                    <div class="status-badge" data-value="後半段抽筋/缺水">後半段抽筋/缺水</div>
-                    <div class="status-badge" data-value="能量不足/撞牆">能量不足/撞牆</div>
+                    <div class="status-badge active" data-value="正常（水份、能量膠與食物吸收良好）">正常（水份、能量膠與食物吸收良好）</div>
+                    <div class="status-badge" data-value="補水不足（出現明顯口渴、心率偏高）">補水不足（出現明顯口渴、心率偏高）</div>
+                    <div class="status-badge" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）">胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）</div>
                 </div>
                 <input type="hidden" name="entry.53803926" id="hidden_supply">
             </div>
 
             <input type="hidden" name="entry.1014260476" id="hidden_climb_stream">
             <input type="hidden" name="entry.2051690470" id="hidden_hr_stream">
+            <input type="hidden" name="entry.585827917" id="hidden_power_stream">
             
             <div style="margin-top: 30px;">
                 <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
@@ -195,9 +198,9 @@
 
     function resetBadges() {
         document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
-        document.querySelector('#riskContainer [data-value="良好"]').classList.add('active');
-        document.querySelector('#weatherContainer [data-value="舒適常溫"]').classList.add('active');
-        document.querySelector('#supplyContainer [data-value="補給正常"]').classList.add('active');
+        document.querySelector('#riskContainer [data-value^="良好"]').classList.add('active');
+        document.querySelector('#weatherContainer [data-value^="正常"]').classList.add('active');
+        document.querySelector('#supplyContainer [data-value^="正常"]').classList.add('active');
         submitted = false;
     }
 
@@ -228,15 +231,18 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 【關鍵去括號清洗】傳遞進來時如果是 [0,0,0]，清洗成 0,0,0 防止 CSV 爆裂
+            // 🛡️ 【關鍵清洗】抓取三串分段流，徹底拔除中括號，無損存入隱藏管道
             let cStream = urlParams.get('climb_stream') || "";
             let hStream = urlParams.get('hr_stream') || "";
+            let pStream = urlParams.get('power_stream') || "";
             
             cStream = cStream.replace(/[\[\]]/g, "");
             hStream = hStream.replace(/[\[\]]/g, "");
+            pStream = pStream.replace(/[\[\]]/g, "");
 
             document.getElementById('hidden_climb_stream').value = cStream;
             document.getElementById('hidden_hr_stream').value = hStream;
+            document.getElementById('hidden_power_stream').value = pStream;
 
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
@@ -248,8 +254,8 @@
 
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
-        const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '舒適常溫';
-        const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '補給正常';
+        const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
+        const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常（水份、能量膠與食物吸收良好）';
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
