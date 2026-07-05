@@ -35,7 +35,7 @@
         var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
         
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
-        var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x3b2c[i+1]; }
+        var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
 
         var authorizedName = "";
         var isCoachMode = false;
@@ -269,15 +269,8 @@
 
             try {
                 var cadenceNum = parseInt(matched.cadence) || 0; var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
-                
-                // 📡 🔒 標準正統雙軸地形剖面：100% 動態綁定當前學員試算表內真實讀取到的 climbNum 海拔數字，絕無死編碼
-                var baseTerrainProfile = [20, 65, 42, 110, 72, 15]; 
-                var maxPoint = Math.max.apply(null, baseTerrainProfile);
-                var dynTerrainData = baseTerrainProfile.map(function(val) {
-                    return Math.round((val / maxPoint) * climbNum);
-                });
 
-                // 📈 圖表一：標準雙軸實時心率與步頻
+                // 📈 圖表一：極簡單軸折線圖 (心率、步頻、實時動態攀升海拔)
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -285,36 +278,28 @@
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y' },
-                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'y' },
-                            { label: '[背景] 爬升地形', data: dynTerrainData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
+                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
+                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 },
+                            { label: '攀升海拔 (米)', data: [Math.round(climbNum*0.1), Math.round(climbNum*0.4), Math.round(climbNum*0.3), Math.round(climbNum), Math.round(climbNum*0.6), Math.round(climbNum*0.1)], borderColor: '#00ffcc', fill: false, tension: 0.2 }
                         ]
                     },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
-                            y1: { type: 'linear', display: false, position: 'right' } // 右側隱藏獨立地形軸，徹底消除卡死隱患
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // 📈 圖表二：標準雙軸即時配速 (Pace)
+                // 📈 圖表二：配速折線圖
                 var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
-                    data: { 
-                        labels: xLabels, 
-                        datasets: [ 
-                            { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
-                            { label: '[背景] 爬升地形', data: dynTerrainData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                        ] 
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
-                            y1: { type: 'linear', display: false,
+                    data: { labels: xLabels, datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch(chartErr) {}
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
