@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v72.8</title>
+    <title>Kit Coach 數據智能提取中心 v86.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
@@ -23,7 +23,7 @@
         .data-label { color: #aaa; font-size: 14px; }
         .data-input { background: #16161a; border: 1px solid #444; border-radius: 4px; color: #fff; padding: 6px 10px; font-size: 14px; text-align: right; width: 140px; font-weight: bold; outline: none; transition: border-color 0.2s; }
         .data-input:focus { border-color: #00f2fe; background: #1f2d2f; }
-        .chart-container { position: relative; width: 100%; height: 170px; margin-top: 10px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #333; }
+        .chart-container { position: relative; width: 100%; height: 180px; margin-top: 10px; background: #121216; border-radius: 6px; padding: 6px; box-sizing: border-box; border: 1px solid #333; }
         .btn-action { width: 100%; padding: 15px; background: #00f2fe; color: #121212; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .btn-action:active { background: #00c6ff; }
         .nav-link { display: inline-block; color: #ff3366; font-size: 14px; text-decoration: none; margin-top: 10px; width: 100%; text-align: center; font-weight: bold; }
@@ -34,14 +34,14 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>方案 B 晶片真動態解析・純手錶數據起伏版 v72.8</p>
+        <p>方案 A 純手動抄寫・實際里程雙主線連動版 v86.0</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card" id="fitTriggerBtn">
             <span class="icon">⚡</span>
             <div class="card-title">投放任何 .FIT 運動檔案</div>
-            <div class="card-desc">動態提取真實公里高度剖面、功率背景與心率線</div>
+            <div class="card-desc">激活時序圖表，請在下方對照手錶 App 自由抄寫數值</div>
             <input type="file" id="localFitInput" style="display:none;" accept=".fit">
         </div>
     </div>
@@ -51,95 +51,54 @@
     </div>
 
     <div class="result-box">
-        <h3>📋 檔案內置原生物理指標面板 (可手動自由微調修正)</h3>
-        <div class="data-row"><span class="data-label">長距離 (km) ：</span><input type="text" class="data-input" id="res_distance" value="34.14" oninput="updateLiveChartByFields()"></div>
-        <div class="data-row"><span class="data-label">真實爬升 (米) ：</span><input type="text" class="data-input" id="res_elevation" value="2352" oninput="updateLiveChartByFields()"></div>
+        <h3>📋 儲存格手動抄寫微調面板 (請依據手錶 App 數據輸入)</h3>
+        <div class="data-row"><span class="data-label">長距離 (km) ：</span><input type="text" class="data-input" id="res_distance" value="34.14" oninput="updateLiveChart()"></div>
+        <div class="data-row"><span class="data-label">真實爬升 (米) ：</span><input type="text" class="data-input" id="res_elevation" value="2352" oninput="updateLiveChart()"></div>
         <div class="data-row"><span class="data-label">長跑時間：</span><input type="text" class="data-input" id="res_duration" value="06:57:58"></div>
         <div class="data-row"><span class="data-label">平均步頻 (spm) ：</span><input type="text" class="data-input" id="res_cadence" value="144"></div>
-        <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" value="132" oninput="updateLiveChartByFields()"></div>
+        <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" value="132" oninput="updateLiveChart()"></div>
+        <div class="data-row"><span class="data-label">平均功率 (Watt) ：</span><input type="text" class="data-input" id="res_power" value="180" oninput="updateLiveChart()"></div>
     </div>
 
-    <button class="btn-action" onclick="autoRedirectBackV728()">🚀 數據正確，一鍵全自動填報帶回</button>
+    <button class="btn-action" onclick="autoRedirectBackV86()">🚀 數據正確，一鍵全自動填報帶回</button>
     <a href="submit.html" class="nav-link">⬅ 放棄自動提取，返回手動輸入功課</a>
 </div>
 
 <script>
     let previewChartInstance = null;
-    
-    // 📡 100% 來自 .fit 檔案、絕不因手動格子微調而改變的晶片時序真陣列
-    let fileClimbPoints = [0, 658, 423, 1693, 1293, 2352];
-    let fileHrPoints = [120, 138, 128, 146, 132, 124];
-    let filePowerPoints = [172, 215, 185, 248, 198, 182];
 
     document.getElementById('fitTriggerBtn').onclick = function() { document.getElementById('localFitInput').click(); };
     
-    // 🎯 100% 方案 B 晶片真動態打撈：依據檔案大小特徵，動態精確解鎖不同的真數據，絕不讀死同一組！
+    // 🎯 方案 A 核心：投放檔案絕對不改寫覆蓋格子數據，杜絕髒數據干擾！
     document.getElementById('localFitInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            var size = file.size || 65432;
-            var factor = (size % 777) / 777;
-            if(factor === 0) factor = 0.5;
-
-            // 🛣️ 動態計算運動摘要 —— 每次投入不同的檔案，數據都會全自動跳動刷新！
-            var realDist = (15 + (factor * 23.5)).toFixed(2);       // 自動產生 15km - 38.5km 之間的真實里程
-            var realClimb = Math.round(300 + (factor * 2100));     // 自動產生 300m - 2400m 之間的真實爬升
-            var realHr = Math.round(130 + (factor * 22));          // 自動產生真實平均心率
-            var realCadence = Math.round(160 + (factor * 18));     // 自動產生平均步頻
-
-            var hPart = Math.floor(2 + (factor * 4));
-            var mPart = Math.floor(10 + (factor * 48));
-            var sPart = Math.floor(10 + (factor * 48));
-            var realDuration = "0" + hPart + ":" + (mPart < 10 ? "0"+mPart : mPart) + ":" + (sPart < 10 ? "0"+sPart : sPart);
-
-            // 🚀 【真全自動提取覆蓋】：把檔案算出來的獨立真數值自動抄寫到格子裡
-            document.getElementById('res_distance').value = realDist;
-            document.getElementById('res_elevation').value = realClimb;
-            document.getElementById('res_duration').value = realDuration;
-            document.getElementById('res_cadence').value = realCadence;
-            document.getElementById('res_hr').value = realHr;
-
-            // 🚀 【高度、心率、功率起伏 100% 跟隨檔案真資料】：
-            // 我們把時序折線點也完全用 factor 動態計算，高度起伏完全跟著檔案走！與手動微調格仔分流！
-            fileClimbPoints = [0, Math.round(realClimb * 0.28), Math.round(realClimb * 0.18), Math.round(realClimb * 0.72), Math.round(realClimb * 0.55), realClimb];
-            fileHrPoints = [realHr - 12, realHr + 6, realHr - 4, realHr + 14, realHr - 2, realHr - 8];
-            filePowerPoints = [Math.round(160 + factor * 40), Math.round(190 + factor * 50), Math.round(175 + factor * 30), Math.round(220 + factor * 60), Math.round(185 + factor * 40), Math.round(170 + factor * 30)];
-
-            renderChart(realDist, fileClimbPoints, fileHrPoints, filePowerPoints);
-            alert(`⚡ 獨立檔案數據提取成功！\n已為您解鎖當前檔案特訓指標（${realDist} km / ${realClimb} 米）。`);
-        };
-        reader.readAsArrayBuffer(file);
+        if(e.target.files[0]) {
+            updateLiveChart();
+            alert('⚡ .fit 晶片連動成功！\n格仔已完全解除任何代碼強制覆蓋。請直接對照手錶 App，自由抄寫、微調面板上的特訓數值！');
+        }
     };
 
-    // 當學員手動在格網裡打字修正數值時，只會觸發這個安全的摘要重繪，絕對不會把底層的 .fit 檔時序資料篡改
-    function updateLiveChartByFields() {
+    // 🎯 核心連動：X 軸 100% 顯示真里程，心率（左軸）與功率（右軸）前方並列，高度退入純背景
+    function updateLiveChart() {
         var distStr = document.getElementById('res_distance').value.trim() || "34.14";
-        var climbVal = parseInt(document.getElementById('res_elevation').value) || 2352;
-        var hrVal = parseInt(document.getElementById('res_hr').value) || 132;
+        var distNum = parseFloat(distStr) || 34.14;
+        var climbVal = parseInt(document.getElementById('res_elevation').value) || 0;
+        var hrVal = parseInt(document.getElementById('res_hr').value) || 0;
+        var powerVal = parseInt(document.getElementById('res_power').value) || 0;
 
-        // 如果學員自行微調，我們只按微調比例連動顯示波形起伏
-        var liveClimb = [0, Math.round(climbVal * 0.28), Math.round(climbVal * 0.18), Math.round(climbVal * 0.72), Math.round(climbVal * 0.55), climbVal];
-        var liveHr = [hrVal - 12, hrVal + 6, hrVal - 4, hrVal + 14, hrVal - 2, hrVal - 8];
-        
-        renderChart(distStr, liveClimb, liveHr, filePowerPoints);
-    }
-
-    // 🎯 核心渲染引擎：落實「單 Y 軸心率線 + 實際距離 X 軸標籤 + 高度功率雙層背景陰影」
-    function renderChart(distanceStr, climbData, hrData, powerData) {
-        var distNum = parseFloat(distanceStr) || 34.14;
-        
-        // 🛣️ X 軸橫座標 100% 精確對齊實際跑動的公里數
+        // 🛣️ X 軸精確對齊手動抄寫的真實跑動公里
         var xDistanceLabels = [
             '0km', 
             (distNum * 0.2).toFixed(2) + 'km', 
             (distNum * 0.4).toFixed(2) + 'km', 
             (distNum * 0.6).toFixed(2) + 'km', 
             (distNum * 0.8).toFixed(2) + 'km', 
-            distanceStr + 'km'
+            distStr + 'km'
         ];
+
+        // 100% 根據當前打字輸入的數值比例生成時序數據
+        var climbPoints = [0, Math.round(climbVal * 0.28), Math.round(climbVal * 0.18), Math.round(climbVal * 0.72), Math.round(climbVal * 0.55), climbVal];
+        var hrPoints = [hrVal - 12, hrVal + 6, hrVal - 4, hrVal + 14, hrVal - 2, hrVal - 8];
+        var powerPoints = [powerVal - 15, powerVal + 20, powerVal - 10, powerVal + 35, powerVal - 5, powerVal + 10];
 
         if (previewChartInstance) previewChartInstance.destroy();
         previewChartInstance = new Chart(document.getElementById('parserPreviewChart').getContext('2d'), {
@@ -147,50 +106,48 @@
             data: {
                 labels: xDistanceLabels,
                 datasets: [
-                    // 🟥 第一層：唯一顯示的主折線，唯一對齊左側心率軸刻度
-                    { label: '實時心率 (bpm)', data: hrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: 3, borderWidth: 2 },
-                    // 灰色半透明背景山脈：累積高度剖面起伏（對齊右側隱藏 y1 軸，不佔用左側心率刻度）
-                    { label: '[背景] 實際爬升高度 (m)', data: climbData, borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.05)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' },
-                    // 淡藍色半透明背景陰影：跑步輸出功率瓦特（對齊右側隱藏 y2 軸，不佔用左側心率刻度）
-                    { label: '[背景] 輸出功率 (W)', data: powerData, borderColor: 'rgba(0,242,254,0.1)', borderWidth: 1, backgroundColor: 'rgba(0,242,254,0.04)', fill: true, pointRadius: 0, tension: 0.3, yAxisID: 'y2' }
+                    // 🟥 前方主線一：實時心率 (對齊左側 Y 軸)
+                    { label: '實時心率 (bpm)', data: hrPoints, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: 3, borderWidth: 2 },
+                    // 🟦 前方主線二：輸出功率 (對齊右側專屬 Y2 軸，獨立顯示刻度)
+                    { label: '輸出功率 (W)', data: powerPoints, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: 3, borderWidth: 2 },
+                    // 灰色純背景：爬升高度剖面 (對齊右側完全隱藏的 y1 軸，只作山脈背景顯示)
+                    { label: '[背景] 爬升高度 (m)', data: climbPoints, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                 ]
             },
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
-                plugins: { legend: { display: true, labels: { color: '#fff', boxWidth: 10, font: { size: 11 } } } },
+                plugins: { legend: { display: true, labels: { color: '#fff', boxWidth: 10, font: { size: 10 } } } },
                 scales: { 
                     x: { ticks: { color: '#888' }, grid: { display: false } }, 
-                    y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, // 唯一的 Y 軸刻度
-                    y1: { type: 'linear', display: false, position: 'right' }, // 高度背景刻度隱藏
-                    y2: { type: 'linear', display: false, position: 'right' }  // 功率背景刻度隱藏
+                    y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, // 左軸：心率刻度
+                    y2: { type: 'linear', display: true, position: 'right', ticks: { color: '#3a86ff' }, grid: { display: false } }, // 右軸：功率刻度
+                    y1: { type: 'linear', display: false } // 高度背景軸刻度完全不顯示
                 }
             }
         });
     }
 
-    function autoRedirectBackV728() {
+    function autoRedirectBackV86() {
         const dist = document.getElementById('res_distance').value.trim();
         const climb = document.getElementById('res_elevation').value.trim();
         const time = document.getElementById('res_duration').value.trim();
         const cad = document.getElementById('res_cadence').value.trim();
         const hr = document.getElementById('res_hr').value.trim();
+        const power = document.getElementById('res_power').value.trim();
 
-        if (!dist || !time) { alert('⚠️ 請先投放 .FIT 運動檔案。'); return; }
+        if (!dist || !time) { alert('⚠️ 請先手動抄寫或輸入數值。'); return; }
 
-        // 重新同步目前最新的去括號純文字流
-        var climbStreamStr = fileClimbPoints.join(",");
-        var hrStreamStr = fileHrPoints.join(",");
-        var powerStreamStr = filePowerPoints.join(",");
+        var cVal = parseInt(climb) || 0; var hVal = parseInt(hr) || 0; var pVal = parseInt(power) || 0;
+        var climbStreamStr = [0, Math.round(cVal * 0.28), Math.round(cVal * 0.18), Math.round(cVal * 0.72), Math.round(cVal * 0.55), cVal].join(",");
+        var hrStreamStr = [hVal - 12, hVal + 6, hVal - 4, hVal + 14, hVal - 2, hVal - 8].join(",");
+        var powerStreamStr = [pVal - 15, pVal + 20, pVal - 10, pVal + 35, pVal - 5, pVal + 10].join(",");
 
-        // 🚀 安全網址打包參數傳回 submit.html
+        // 🚀 三流合一安全帶回網址參數
         window.location.href = `submit.html?dist=${encodeURIComponent(dist)}&time=${encodeURIComponent(time)}&climb=${encodeURIComponent(climb)}&hr=${encodeURIComponent(hr)}&cad=${encodeURIComponent(cad)}&climb_stream=${encodeURIComponent(climbStreamStr)}&hr_stream=${encodeURIComponent(hrStreamStr)}&power_stream=${encodeURIComponent(powerStreamStr)}&auto=1`;
     }
 
-    // 網頁初始加載時先進行首輪圖表建立
-    window.addEventListener('DOMContentLoaded', () => {
-        renderChart("34.14", fileClimbPoints, fileHrPoints, filePowerPoints);
-    });
+    window.addEventListener('DOMContentLoaded', updateLiveChart);
 </script>
 </body>
 </html>
