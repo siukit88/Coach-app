@@ -46,7 +46,7 @@
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
         <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
@@ -167,7 +167,9 @@
 </div>
 
 <script>
+    // 🎯 【管道修復核心】優先將變數提升到全域最頂層，杜絕 iframe 早於 script 解析引起的 ReferenceError
     let submitted = false;
+
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
     function setupBadges(containerId, isMultiple = false) {
@@ -231,7 +233,7 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 【關鍵清洗】抓取三串分段流，徹底拔除中括號，無損存入隱藏管道
+            // 🛡️ 【去括號清洗與寄存】
             let cStream = urlParams.get('climb_stream') || "";
             let hStream = urlParams.get('hr_stream') || "";
             let pStream = urlParams.get('power_stream') || "";
