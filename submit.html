@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v45.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v46.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -31,7 +31,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v45.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v46.0</p>
     </div>
 
     <div class="form-container">
@@ -77,25 +77,24 @@
 </div>
 
 <script>
-    let submitted = false;
-    window.addEventListener('DOMContentLoaded', () => {
-        const runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
-        const runnerSelect = document.getElementById('runnerSelect');
+    var submitted = false;
+    window.addEventListener('DOMContentLoaded', function() {
+        var runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
+        var runnerSelect = document.getElementById('runnerSelect');
         runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
-        runners.forEach(name => { runnerSelect.innerHTML += `<option value="${name}">${name}</option>`; });
+        runners.forEach(function(name) { runnerSelect.innerHTML += '<option value="' + name + '">' + name + '</option>'; });
 
-        const weekSelect = document.getElementById('weekSelect');
+        var weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
-        for(let i = 1; i <= 40; i++) { weekSelect.innerHTML += `<option value="第 ${i} 週">第 ${i} 週</option>`; }
+        for(var i = 1; i <= 40; i++) { weekSelect.innerHTML += '<option value="第 ' + i + ' 週">第 ' + i + ' 週</option>'; }
 
-        const urlParams = new URLSearchParams(window.location.search);
+        var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('auto')) {
             document.getElementById('distance').value = urlParams.get('dist') || "";
             document.getElementById('elevation').value = urlParams.get('climb') || "";
             document.getElementById('duration').value = urlParams.get('time') || "";
             document.getElementById('cadence').value = urlParams.get('cad') || "";
             document.getElementById('hr').value = urlParams.get('hr') || "";
-            document.getElementById('stride').value = "1.15";
 
             document.getElementById('hidden_climb_stream').value = urlParams.get('climb_stream') || "";
             document.getElementById('hidden_hr_stream').value = urlParams.get('hr_stream') || "";
