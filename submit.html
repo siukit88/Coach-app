@@ -46,7 +46,7 @@
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據已同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
         <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
@@ -152,25 +152,26 @@
             </div>
 
             <div class="input-group">
-                <label>意見反映</label>
-                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." name="entry.1271874368" id="user_feedback"></textarea>
+                <label>意見反映 (如有任何特訓心得可在這裡填寫)</label>
+                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." id="user_feedback"></textarea>
+                <input type="hidden" name="entry.1271874368" id="google_feedback_input">
             </div>
 
-            <div class="section-title">📊 🚀 步驟二：科學分段資料核對線</div>
+            <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
 
             <div class="input-group">
-                <label>實際分段海拔數據 (10% ➡️ 100% 純數字加密串)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="hidden_climb_stream">
-            </div>
-
-            <div class="input-group">
-                <label>實際分段心率數據 (10% ➡️ 100% 純數字加密串)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="hidden_hr_stream">
+                <label>實際分段海拔數據 (10% ➔ 100%)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_climb">
             </div>
 
             <div class="input-group">
-                <label>功率時序流 Power Stream (10% ➡️ 100% 純數字加密串)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." name="entry.585827917" id="hidden_power_stream">
+                <label>實際分段心率數據 (10% ➔ 100%)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_hr">
+            </div>
+
+            <div class="input-group">
+                <label>功率時序流 Power Stream (10% ➔ 100%)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_power">
             </div>
             
             <div style="margin-top: 30px;">
@@ -220,27 +221,17 @@
         document.querySelector('#riskContainer [data-value^="良好"]').classList.add('active');
         document.querySelector('#weatherContainer [data-value^="正常"]').classList.add('active');
         document.querySelector('#supplyContainer [data-value^="正常"]').classList.add('active');
+        document.getElementById('user_feedback').value = "";
         submitted = false;
     }
 
-    // 🛡️ 最安全的純數字轉碼，加入嚴格的防崩潰安全鎖
-    function convertToPureNumericStream(rawParam) {
+    // 將數值轉為標準劃分字串方便前端顯示
+    function convertToDisplayStream(rawParam) {
         if (!rawParam) return "";
-        try {
-            let cleanStr = String(rawParam).replace(/[\[\]]/g, "");
-            if (!cleanStr) return "";
-            let items = cleanStr.split(",");
-            return items.map(item => {
-                let num = parseInt(item.trim()) || 0;
-                return String(num).padStart(4, '0');
-            }).join("");
-        } catch(e) {
-            return "";
-        }
+        return rawParam.replace(/[\[\]]/g, "").replace(/,/g, "-");
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        // 🟢 人名載入核心數據（100% 原封不動復原）
         const runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
         const runnerSelect = document.getElementById('runnerSelect');
         runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
@@ -260,7 +251,6 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('auto')) {
-            // 🟢 自動填報核心復原（確保第一時間填滿距離、時間、爬升）
             if (urlParams.get('dist')) document.getElementById('distance').value = urlParams.get('dist');
             if (urlParams.get('climb')) document.getElementById('elevation').value = urlParams.get('climb');
             if (urlParams.get('time')) document.getElementById('duration').value = urlParams.get('time');
@@ -268,12 +258,12 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🚀 數據安全注入這三個唯一的發送格子中
-            document.getElementById('hidden_climb_stream').value = convertToPureNumericStream(urlParams.get('climb_stream'));
-            document.getElementById('hidden_hr_stream').value = convertToPureNumericStream(urlParams.get('hr_stream'));
-            document.getElementById('hidden_power_stream').value = convertToPureNumericStream(urlParams.get('power_stream'));
+            // 🚀 【雙向裝車】前端視覺格子直接塞入帶減號格式
+            document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
+            document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
+            document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
 
-            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride', 'hidden_climb_stream', 'hidden_hr_stream', 'hidden_power_stream'];
+            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
                 const el = document.getElementById(f);
                 if(el && el.value) { el.style.backgroundColor = "#1f2d2f"; el.style.borderColor = "#00f2fe"; }
@@ -281,6 +271,7 @@
         }
     });
 
+    // 🎯 【合流打包核心】：點擊提交時，將大數據流隱形拼接到「意見反映」欄位中發送
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
@@ -288,6 +279,20 @@
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
+
+        // 🛡️ 提取當前的數據流
+        let cData = document.getElementById('ui_climb').value || "0";
+        let hData = document.getElementById('ui_hr').value || "0";
+        let pData = document.getElementById('ui_power').value || "0";
+        
+        // 取得用戶手寫的意見文字
+        let userText = document.getElementById('user_feedback').value || "";
+        
+        // 🛠️ 用最安全的特製高密度標籤封裝起來，合併進入大文字箱
+        let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${cData}\nHR:${hData}\nPOWER:${pData}\n[/FIT_STREAM_DATA]`;
+        
+        // 100% 裝車直達 1271874368
+        document.getElementById('google_feedback_input').value = combinedPayload;
     }
 </script>
 </body>
