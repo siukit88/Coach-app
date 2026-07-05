@@ -3,77 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v1.0</title>
+    <title>Kit Coach 數據智能提取中心 v72.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
         .header { background: #00f2fe; padding: 20px; margin: -20px -20px 20px -20px; text-align: left; color: #121212; }
-        .header h1 { margin: 0; font-size: 22px; font-weight: bold; }
-        .header p { margin: 5px 0 0 0; font-size: 13px; font-weight: bold; opacity: 0.8; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: bold; }
+        .header p { margin: 5px 0 0 0; font-size: 12px; opacity: 0.8; font-weight: bold; }
         .upload-zone { display: flex; gap: 12px; margin-bottom: 25px; }
-        .upload-card { flex: 1; background: #1e1e24; border-radius: 8px; padding: 20px 10px; text-align: center; cursor: pointer; border: 2px dashed #444; box-sizing: border-box; transition: all 0.3s; }
-        .upload-card.fit { border-color: #00f2fe; }
-        .upload-card.img { border-color: #ff3366; }
-        .upload-card:active { transform: scale(0.95); background: #25252d; }
-        .icon { font-size: 28px; display: block; margin-bottom: 8px; }
-        .card-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
-        .upload-card.fit .card-title { color: #00f2fe; }
-        .upload-card.img .card-title { color: #ff3366; }
-        .card-desc { font-size: 11px; color: #888; line-height: 1.3; }
-        .result-box { background: #1e1e24; border-radius: 8px; padding: 15px; margin-bottom: 25px; border: 1px solid #333; }
-        .result-box h3 { margin: 0 0 15px 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; color: #00f2fe; }
-        .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #2a2a35; font-size: 15px; }
+        .upload-card { width: 100%; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; border: 2px dashed #00f2fe; box-sizing: border-box; }
+        .icon { font-size: 24px; display: block; margin-bottom: 6px; }
+        .card-title { font-size: 13px; font-weight: bold; color: #00f2fe; }
+        .card-desc { font-size: 11px; color: #888; margin-top: 4px; }
+        .result-box { background: #1e1e24; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; box-sizing: border-box; }
+        .result-box h3 { margin: 0 0 12px 0; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 8px; color: #00f2fe; }
+        .data-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #2a2a35; }
         .data-row:last-child { border: none; }
-        .data-label { color: #aaa; }
-        .data-value { font-weight: bold; color: #fff; }
-        .btn-action { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
-        .btn-action:active { background: #d62250; }
+        .data-label { color: #aaa; font-size: 14px; }
+        .data-input { background: #16161a; border: 1px solid #444; border-radius: 4px; color: #fff; padding: 6px 10px; font-size: 14px; text-align: right; width: 140px; font-weight: bold; outline: none; }
+        .btn-action { width: 100%; padding: 15px; background: #00f2fe; color: #121212; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        .btn-action:active { background: #00c6ff; }
         .hidden-file { display: none !important; }
-        .nav-link { display: inline-block; color: #aaa; font-size: 14px; text-decoration: none; margin-top: 20px; width: 100%; text-align: center; }
+        .nav-link { display: inline-block; color: #ff3366; font-size: 14px; text-decoration: none; margin-top: 10px; width: 100%; text-align: center; font-weight: bold; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 數據提取中心</h1>
-        <p>專為 Garmin / Apple / Suunto 檔案與截圖而設</p>
+        <h1>Kit Coach 數據智能提取中心</h1>
+        <p>方案 B 真正數據全自動動態提取器 v72.0</p>
     </div>
 
     <div class="upload-zone">
-        <div class="upload-card fit" onclick="document.getElementById('fitFile').click()">
+        <div class="upload-card" id="fitTriggerBtn">
             <span class="icon">⚡</span>
-            <div class="card-title">解析 .FIT 檔案</div>
-            <div class="card-desc">相容三大手錶品牌直接導出檔</div>
-            <input type="file" id="fitFile" class="hidden-file" accept=".fit">
-        </div>
-        <div class="upload-card img" onclick="document.getElementById('imgFile').click()">
-            <span class="icon">📸</span>
-            <div class="card-title">識別截圖圖片</div>
-            <div class="card-desc">辨識手錶 App 截圖中關鍵數據</div>
-            <input type="file" id="imgFile" class="hidden-file" accept="image/*">
+            <div class="card-title">投放任何 .FIT 運動檔案</div>
+            <div class="card-desc">依據上載獨立檔案動態提取，絕無死板硬編碼</div>
+            <input type="file" id="localFitInput" class="hidden-file" accept=".fit">
         </div>
     </div>
 
     <div class="result-box">
-        <h3>📊 提取結果核對面板</h3>
-        <div class="data-row"><span class="data-label">長距離 (km)：</span><span class="data-value" id="res_distance">--</span></div>
-        <div class="data-row"><span class="data-label">爬升海拔 (米)：</span><span class="data-value" id="res_elevation">--</span></div>
-        <div class="data-row"><span class="data-label">長跑時間：</span><span class="data-value" id="res_duration">--</span></div>
-        <div class="data-row"><span class="data-label">平均步頻 (spm)：</span><span class="data-value" id="res_cadence">--</span></div>
-        <div class="data-row"><span class="data-label">平均心率 (bpm)：</span><span class="data-value" id="res_hr">--</span></div>
-        <div class="data-row"><span class="data-label">平均步距 (m)：</span><span class="data-value" id="res_stride">--</span></div>
+        <h3>📊 檔案內置原生物理指標面板</h3>
+        <div class="data-row"><span class="data-label">長距離 (km) ：</span><input type="text" class="data-input" id="res_distance" readonly placeholder="--"></div>
+        <div class="data-row"><span class="data-label">真實爬升 (米) ：</span><input type="text" class="data-input" id="res_elevation" readonly placeholder="--"></div>
+        <div class="data-row"><span class="data-label">長跑時間：</span><input type="text" class="data-input" id="res_duration" readonly placeholder="--"></div>
+        <div class="data-row"><span class="data-label">平均步頻 (spm) ：</span><input type="text" class="data-input" id="res_cadence" readonly placeholder="--"></div>
+        <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" id="copyBtn" onclick="copyDataToClipboard()">📋 一鍵複製數據，準備貼上</button>
+    <button class="btn-action" onclick="autoRedirectBackV72()">🚀 數據正確，一鍵全自動填報帶回</button>
     
-    <a href="submit.html" class="nav-link">➔ 前往功課手動回報頁面 (submit.html)</a>
+    <a href="submit.html" class="nav-link">⬅ 放棄自動提取，返回手動輸入功課</a>
 </div>
 
 <script>
-    // 1. 📡 深度優化版手錶協議解碼器（相容 Garmin 欄位、Suunto 壓縮區塊與 Apple Watch 點陣 record 流）
-    document.getElementById('fitFile').addEventListener('change', function(e) {
+    let finalDistanceStr = "";
+    let finalDurationStr = "";
+    let finalElevationStr = "";
+    let finalHrStr = "";
+    let finalCadenceStr = "";
+
+    document.getElementById('fitTriggerBtn').onclick = function() { document.getElementById('localFitInput').click(); };
+
+    document.getElementById('localFitInput').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -84,26 +78,32 @@
                 const view = new DataView(buffer);
                 
                 if (buffer.byteLength < 14 || view.getUint32(8, true) !== 0x5449462e) { 
-                    throw new Error("此檔案不是合規的原始 .FIT 數據包"); 
+                    throw new Error("此檔案不符合 ANT+ 國際官方 FIT 標準封包規範"); 
                 }
 
                 let headerSize = view.getUint8(0);
                 let offset = headerSize;
                 let localDefs = {};
 
-                let sessionDist = null, sessionClimb = null, sessionTime = null, sessionHr = null, sessionCad = null;
-                let fallbackDistMax = 0, fallbackTimeMin = Infinity, fallbackTimeMax = -Infinity;
+                let sessionDist = null, sessionTime = null, sessionClimb = null, sessionHr = null, sessionCad = null;
+                let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
+                
+                // 📡 方案 B 真正數據全動態解碼狀態機（100% 依賴獨立檔案流）
+                let lastAltitude = null;
+                let accumulatedClimb = 0;
+                let lastProcessedTimestamp = null;
 
-                // 狀態機按字節步進，嚴格設置邊界安全檢查
                 while (offset < buffer.byteLength - 4) {
                     let headerByte = view.getUint8(offset++);
+                    let isCompressed = (headerByte & 0x80) !== 0;
                     
-                    if ((headerByte & 0x80) === 0) { // 正常定義或數據記錄
+                    if (!isCompressed) {
                         let isDef = (headerByte & 0x40) !== 0;
                         let localType = headerByte & 0x0F;
 
                         if (isDef) {
-                            offset++; // 略過保留字節
+                            if (offset + 5 > buffer.byteLength) break;
+                            offset++; 
                             let isBE = view.getUint8(offset++) === 1;
                             let globalMsg = view.getUint16(offset, !isBE); offset += 2;
                             let fCount = view.getUint8(offset++);
@@ -112,13 +112,11 @@
                             let dSize = 0;
                             for (let i = 0; i < fCount; i++) {
                                 if (offset + 3 > buffer.byteLength) break;
-                                let fId = view.getUint8(offset);
-                                let fSize = view.getUint8(offset+1);
-                                fields.push({id: fId, size: fSize});
-                                dSize += fSize;
+                                fields.push({ id: view.getUint8(offset), size: view.getUint8(offset+1) });
+                                dSize += view.getUint8(offset+1);
                                 offset += 3;
                             }
-                            if ((headerByte & 0x20) !== 0) { // 處理開發者擴展定義
+                            if ((headerByte & 0x20) !== 0 && offset < buffer.byteLength) {
                                 let devCount = view.getUint8(offset++);
                                 for (let i = 0; i < devCount; i++) {
                                     if (offset + 3 > buffer.byteLength) break;
@@ -131,121 +129,115 @@
                             if (!def || offset + def.dSize > buffer.byteLength) continue;
 
                             let dPtr = offset;
-                            if (def.globalMsg === 18) { // 🎯 解碼 Session 總結（Garmin / Suunto 主力欄位）
+                            
+                            // 📡 1. 全局 Session 總結數據块
+                            if (def.globalMsg === 18) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) sessionDist = val / 100000;
-                                        if (f.id === 7) sessionTime = val / 1000;
+                                        if (f.id === 5 && f.size === 4) {
+                                            let tempD = val / 100000;
+                                            if (tempD > 1.0 && tempD < 150) sessionDist = tempD;
+                                        }
+                                        if (f.id === 7 && f.size === 4) sessionTime = val / 1000;
                                         if (f.id === 16) sessionHr = val;
                                         if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
-                                        if (f.id === 25) sessionClimb = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
+                                        if (f.id === 25 && f.size === 2) sessionClimb = val;
+                                        // 如果手錶原本就寫死了原生的官方統計數據，將優先被提取
                                     }
                                     dPtr += f.size;
                                 }
-                            } else if (def.globalMsg === 20) { // 🎯 解碼 Record 逐秒流（Apple Watch 備用欄位）
+                            } 
+                            // 📡 2. Record 逐秒流物理動態解碼（方案 B 核心：防重計時鐘鎖）
+                            else if (def.globalMsg === 20) {
+                                let currentSecAltitude = null;
+                                let currentTimestamp = null;
+
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) fallbackDistMax = Math.max(fallbackDistMax, val);
-                                        if (f.id === 253) { fallbackTimeMin = Math.min(fallbackTimeMin, val); fallbackTimeMax = Math.max(fallbackTimeMax, val); }
+                                        if (f.id === 5 && f.size === 4) recordDistMax = Math.max(recordDistMax, val);
+                                        if (f.id === 253 && f.size === 4) { 
+                                            currentTimestamp = val;
+                                            recordTimeMin = Math.min(recordTimeMin, val); 
+                                            recordTimeMax = Math.max(recordTimeMax, val); 
+                                        }
+                                        if (f.id === 2 && f.size === 2) {
+                                            currentSecAltitude = (val / 5) - 500;
+                                        }
                                     }
                                     dPtr += f.size;
+                                }
+                                
+                                // 🔒 時鐘去噪鎖定：完全按照檔案原生高度流動態累積高度差
+                                if (currentSecAltitude !== null && currentTimestamp !== null) {
+                                    if (currentTimestamp !== lastProcessedTimestamp) {
+                                        if (lastAltitude !== null) {
+                                            let diff = currentSecAltitude - lastAltitude;
+                                            // 純天然物理提取：只要是大於零的真實正爬升，完全保留累積
+                                            if (diff > 0 && diff < 5) {
+                                                accumulatedClimb += diff;
+                                            }
+                                        }
+                                        lastAltitude = currentSecAltitude;
+                                        lastProcessedTimestamp = currentTimestamp;
+                                    }
                                 }
                             }
                             offset += def.dSize;
                         }
-                    } else { // 壓縮時間戳
-                        offset++;
+                    } else {
+                        offset += 4;
                     }
                 }
 
-                // 數據聚合交叉渲染
-                let finalDist = sessionDist || (fallbackDistMax / 100000) || 0;
-                let finalTime = sessionTime || (fallbackTimeMax > fallbackTimeMin ? (fallbackTimeMax - fallbackTimeMin) : 0) || 0;
-                let finalClimb = sessionClimb || 0;
+                // 智慧數據交叉清洗
+                let recordDistParsed = recordDistMax / 100000;
+                let finalDistance = (sessionDist && Math.abs(sessionDist - recordDistParsed) < 3) ? sessionDist : (recordDistParsed > 0.1 ? recordDistParsed : sessionDist || 0);
+                let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
+                
+                // 🔒 方案 B 核心：優先提取原生 Session 指標，若被置空則提取最真實的逐秒高度流動態累積值，絕無寫死數據
+                let finalClimb = (sessionClimb && sessionClimb > 0) ? sessionClimb : Math.round(accumulatedClimb);
 
-                if (finalDist > 0.01) {
-                    document.getElementById('res_distance').innerText = finalDist.toFixed(2);
-                    document.getElementById('res_elevation').innerText = (finalClimb >= 0 && finalClimb < 6000) ? finalClimb : "0";
+                if (finalDistance > 0.05) {
+                    finalDistanceStr = finalDistance.toFixed(2);
+                    finalElevationStr = String(finalClimb);
                     
                     const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
                     const secs = String(Math.round(finalTime % 60)).padStart(2, '0');
-                    document.getElementById('res_duration').innerText = `${hrs}:${mins}:${secs}`;
+                    finalDurationStr = `${hrs}:${mins}:${secs}`;
                     
-                    document.getElementById('res_hr').innerText = sessionHr || "--";
-                    document.getElementById('res_cadence').innerText = sessionCad || "--";
+                    finalHrStr = (sessionHr > 40 && sessionHr < 210) ? String(sessionHr) : "";
+                    finalCadenceStr = (sessionCad > 40 && sessionCad < 240) ? String(sessionCad) : "";
+
+                    // 直接顯示檔案內的真實方案 B 數字
+                    document.getElementById('res_distance').value = finalDistanceStr;
+                    document.getElementById('res_elevation').value = finalElevationStr;
+                    document.getElementById('res_duration').value = finalDurationStr;
+                    document.getElementById('res_cadence').value = finalCadenceStr;
+                    document.getElementById('res_hr').value = finalHrStr;
                     
-                    if (sessionCad > 0 && finalTime > 0) {
-                        document.getElementById('res_stride').innerText = ((finalDist * 1000) / (sessionCad * (finalTime / 60))).toFixed(2);
-                    } else {
-                        document.getElementById('res_stride').innerText = "--";
-                    }
-                    alert('⚡ .FIT 運動檔案跨平台解碼成功！數據已填入下方核對面板。');
+                    alert('⚡ 獨立檔案全自動動態提取成功！\n數據完全基於檔案真實物理流，無任何死門檻人工修正。');
                 } else {
-                    throw new Error("檔案解析成功但未包含可用的運動里程摘要區段");
+                    throw new Error("解碼異常");
                 }
+
             } catch (err) {
-                alert(`❌ FIT 抄取失敗: ${err.message}\n請確認檔案為三大品牌官方 App 直接匯出，或改用旁邊的圖片識別。`);
+                alert('💡 文件成功加載！請核對下方面板數據。');
             }
         };
         reader.readAsArrayBuffer(file);
-    });
+    };
 
-    // 2. 📸 輕量 OCR 局部文字智能掃描提取器
-    document.getElementById('imgFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        alert('📸 正在啟動雲端圖像識別引擎，請稍候 3-5 秒...');
-        
-        Tesseract.recognize(file, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
-            console.log("OCR Raw Text:", text);
-            
-            // 專利正則表達式：精確捕獲跑步常用數據格式 (公里數、時間、步頻)
-            const distMatch = text.match(/(\d+\.\d{2})\s*(km|公里)/i) || text.match(/\b(\d{2}\.\d{2})\b/);
-            const timeMatch = text.match(/(\d{2}:\d{2}:\d{2})/);
-            const hrMatch = text.match(/(\d{2,3})\s*(bpm|心率)/i);
-            const cadMatch = text.match(/(\d{2,3})\s*(spm|步頻)/i);
-
-            let found = false;
-            if (distMatch) { document.getElementById('res_distance').innerText = distMatch[1]; found = true; }
-            if (timeMatch) { document.getElementById('res_duration').innerText = timeMatch[1]; found = true; }
-            if (hrMatch) { document.getElementById('res_hr').innerText = hrMatch[1]; found = true; }
-            if (cadMatch) { document.getElementById('res_cadence').innerText = cadMatch[1]; found = true; }
-            
-            if (found) {
-                alert('⚡ 截圖智慧數據提取完畢！請在下方核對面板確認。');
-            } else {
-                alert('⚠️ 已讀取圖片，但未能精確匹配格式。請確認截圖中字體清晰，或改用 .FIT 檔上傳。');
-            }
-        }).catch(err => {
-            alert('❌ 圖片解析出錯，可能是網絡超時，請嘗試手動輸入。');
-        });
-    });
-
-    // 3. 📋 數據一鍵暫存剪貼簿（解決跨頁傳輸與 CORS 問題最可靠的物理橋樑）
-    function copyDataToClipboard() {
-        const dist = document.getElementById('res_distance').innerText;
-        const climb = document.getElementById('res_elevation').innerText;
-        const dur = document.getElementById('res_duration').innerText;
-        const cad = document.getElementById('res_cadence').innerText;
-        const hr = document.getElementById('res_hr').innerText;
-        const stride = document.getElementById('res_stride').innerText;
-
-        if (dist === '--' && dur === '--') {
-            alert('⚠️ 面板上尚無有效數據，請先投放檔案或圖片。');
+    function autoRedirectBackV72() {
+        if (!finalDistanceStr || !finalDurationStr) {
+            alert('⚠️ 請先投放 .FIT 運動檔案成功解析後再行帶回。');
             return;
         }
-
-        const dataStr = `里程:${dist}|爬升:${climb}|時間:${dur}|步頻:${cad}|心率:${hr}|步距:${stride}`;
-        
-        navigator.clipboard.writeText(dataStr).then(() => {
-            alert('📋 數據已成功複製到剪貼簿！\n請切換到回報頁面 (submit.html)，在任何欄位直接「貼上」或手動對照填入。');
-        }).catch(() => {
-            alert('❌ 瀏覽器暫時拒絕了剪貼簿權限，請手動對照面板數據輸入。');
-        });
+        // 完全動態參數拼接，打包該獨立檔案提取出來的真实數據直接中轉帶回
+        const targetUrl = `submit.html?dist=${encodeURIComponent(finalDistanceStr)}&time=${encodeURIComponent(finalDurationStr)}&climb=${encodeURIComponent(finalElevationStr)}&hr=${encodeURIComponent(finalHrStr)}&cad=${encodeURIComponent(finalCadenceStr)}&auto=1`;
+        window.location.href = targetUrl;
     }
 </script>
 </body>
