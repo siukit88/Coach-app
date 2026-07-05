@@ -268,9 +268,10 @@
             }
 
             try {
-                var cadenceNum = parseInt(matched.cadence) || 0; var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
+                var cadenceNum = parseInt(matched.cadence) || 0; 
+                var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
 
-                // 📈 圖表一：極簡單軸折線圖 (心率、步頻、實時動態攀升海拔)
+                // 📈 圖表一：基礎特訓折線圖 (心率與步頻)
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -279,8 +280,7 @@
                         labels: xLabels,
                         datasets: [
                             { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
-                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 },
-                            { label: '攀升海拔 (米)', data: [Math.round(climbNum*0.1), Math.round(climbNum*0.4), Math.round(climbNum*0.3), Math.round(climbNum), Math.round(climbNum*0.6), Math.round(climbNum*0.1)], borderColor: '#00ffcc', fill: false, tension: 0.2 }
+                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
                         ]
                     },
                     options: { responsive: true, maintainAspectRatio: false }
@@ -291,7 +291,12 @@
                 if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
                     type: 'line',
-                    data: { labels: xLabels, datasets: [ { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } ] },
+                    data: { 
+                        labels: xLabels, 
+                        datasets: [ 
+                            { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } 
+                        ] 
+                    },
                     options: { responsive: true, maintainAspectRatio: false }
                 });
             } catch(chartErr) {}
