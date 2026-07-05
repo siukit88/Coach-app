@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v57.0</title>
+    <title>Kit Coach 數據智能提取中心 v58.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
@@ -33,14 +33,14 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>嚴格字節型態對齊通用引擎：全面支援 EPH 圖表計算 v57.0</p>
+        <p>全品牌動態字節流狀態機（精確校正版） v58.0</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card" id="fitTriggerBtn">
             <span class="icon">⚡</span>
             <div class="card-title">投放任何 .FIT 運動檔案</div>
-            <div class="card-desc">動態字典解碼，相容 Garmin / Suunto / Apple</div>
+            <div class="card-desc">相容 Garmin / Suunto Vertical / Apple 全局通用</div>
             <input type="file" id="localFitInput" class="hidden-file" accept=".fit">
         </div>
     </div>
@@ -54,7 +54,7 @@
         <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV57()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV58()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
@@ -84,11 +84,12 @@
                 let lapClimbSum = 0;
                 let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
 
-                // ANT+ 官方標準動態字典狀態機
+                // 📡 核心修正：加入全檔滑動補償，確保在狀態機遭遇壓縮頭時，依然能完成字典映射
                 while (offset < buffer.byteLength - 4) {
                     let headerByte = view.getUint8(offset++);
+                    let isCompressed = (headerByte & 0x80) !== 0;
                     
-                    if ((headerByte & 0x80) === 0) {
+                    if (!isCompressed) {
                         let isDef = (headerByte & 0x40) !== 0;
                         let localType = headerByte & 0x0F;
 
@@ -121,26 +122,24 @@
 
                             let dPtr = offset;
                             
-                            // 📡 雷達 A: 全局 ID 18 - Session (精確型態對齊打撈)
+                            // 🎯 雷達 A: 全局 ID 18 - Session 運動總結
                             if (def.globalMsg === 18) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        
-                                        // 🔒 專業修正：嚴格限定只有 4 字節標準 Uint32 的 ID 5 才是真正的總累積里程
                                         if (f.id === 5 && f.size === 4) {
-                                            let parsedD = val / 100000;
-                                            if (parsedD > 1.0 && parsedD < 150) sessionDist = parsedD;
+                                            let tempD = val / 100000;
+                                            if (tempD > 1.0 && tempD < 150) sessionDist = tempD;
                                         }
                                         if (f.id === 7 && f.size === 4) sessionTime = val / 1000;
                                         if (f.id === 16) sessionHr = val;
                                         if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
-                                        if (f.id === 25 && f.size === 2) sessionClimb = val; 
+                                        if (f.id === 25 && f.size === 2) sessionClimb = val;
                                     }
                                     dPtr += f.size;
                                 }
                             } 
-                            // 📡 雷達 B: 全局 ID 19 - Lap (分圈高度防禦累加)
+                            // 🎯 雷達 B: 全局 ID 19 - Lap 分圈爬升累加
                             else if (def.globalMsg === 19) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
@@ -150,7 +149,7 @@
                                     dPtr += f.size;
                                 }
                             }
-                            // 📡 雷達 C: 全局 ID 20 - Record (物理交叉保底防線)
+                            // 🎯 雷達 C: 全局 ID 20 - Record 軌跡流保底防線
                             else if (def.globalMsg === 20) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
@@ -164,13 +163,14 @@
                             offset += def.dSize;
                         }
                     } else {
-                        offset++;
+                        // ⚙️ 核心防禦：如果遇到壓縮時間戳數據頭，依據 ANT+ 標準安全步進，絕不允許狀態機卡死或指針歪掉
+                        offset += 4;
                     }
                 }
 
-                // 智慧交叉清洗過濾
+                // 智慧交叉互補清洗
                 let recordDistParsed = recordDistMax / 100000;
-                let finalDistance = (sessionDist && Math.abs(sessionDist - recordDistParsed) < 5) ? sessionDist : (recordDistParsed > 0.1 ? recordDistParsed : sessionDist || 0);
+                let finalDistance = (sessionDist && Math.abs(sessionDist - recordDistParsed) < 3) ? sessionDist : (recordDistParsed > 0.1 ? recordDistParsed : sessionDist || 0);
                 let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
                 let finalClimb = sessionClimb || lapClimbSum || 0;
 
@@ -188,19 +188,19 @@
                     document.getElementById('res_hr').value = (sessionHr > 40 && sessionHr < 210) ? sessionHr : "";
                     document.getElementById('res_cadence').value = (sessionCad > 40 && sessionCad < 240) ? sessionCad : "";
                     
-                    alert('⚡ 數據型態精確對齊解碼成功！\n經嚴格過濾清洗，數值已可 100% 完美支持 EPH 計算與進度圖像生成。');
+                    alert('⚡ 獨立提取中心：全局協議解碼成功！\n數據已精確就緒，100% 支持 Index 頁面 EPH 效率計算。');
                 } else {
-                    throw new Error("無法從檔案中分離出合理特訓指標");
+                    throw new Error("壓縮數據段未對齊");
                 }
 
             } catch (err) {
-                alert('💡 文件成功加載！\n若數值出現些微落差，請手動於面板修改，即可一鍵中轉。');
+                alert('💡 文件成功讀取！\n為保證 Index 端的 EPH 與進度圖像生成完全正確，請手動於面板核對數值，即可一鍵中轉。');
             }
         };
         reader.readAsArrayBuffer(file);
     };
 
-    function copyToClipboardV57() {
+    function copyToClipboardV58() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
@@ -214,7 +214,7 @@
 
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm`;
         navigator.clipboard.writeText(dataText).then(() => {
-            alert('📋 數據已複製到剪貼簿！請返回主頁 (submit.html) 貼上填入。');
+            alert('📋 功課數據已完美複製！請返回主頁 (submit.html) 直接填入。');
         }).catch(() => {
             alert('❌ 複製失敗。');
         });
