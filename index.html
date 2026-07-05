@@ -69,7 +69,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">v85 功率高度雙背景連動版</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">v86 雙主線真公里對位版</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -165,7 +165,7 @@
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                 stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
                                 weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
-                                rawRowPackage: row // 🛡️ 隔離封包防卡死
+                                rawRowPackage: row 
                             });
                             weeks[wValue] = true;
                         }
@@ -175,7 +175,7 @@
 
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
-                weekSelect.innerHTML += `<option value="${w}">第 ${w} 週</option>'; 
+                weekSelect.innerHTML += `<option value="${w}">第 ${w} 週</option>`; 
             });
             
             document.getElementById('loading-status').style.display = 'none';
@@ -201,12 +201,12 @@
             var hrNum = parseInt(matched.hr) || 0;
 
             try {
-                // 🛣️ 看板 X 軸橫座標 100% 精確對齊當前週數的「實際長跑里程標籤」
+                // 🛣️ 看板 X 軸橫座標 100% 精確對齊實際公里數標籤
                 var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', matched.distance + 'km'];
                 
                 var finalClimbData = [0, Math.round(climbNum*0.28), Math.round(climbNum*0.18), Math.round(climbNum*0.72), Math.round(climbNum*0.55), climbNum];
                 var finalHrData = [hrNum - 12, hrNum + 6, hrNum - 4, hrNum + 14, hrNum - 2, hrNum - 8];
-                var finalPowerData = [170, 210, 180, 240, 195, 180]; // 保底功率背景
+                var finalPowerData = [160, 210, 180, 240, 195, 180]; // 保底功率數據
 
                 // 🛡️ 隔離解鎖大數據流
                 var rowPack = matched.rawRowPackage;
@@ -219,7 +219,6 @@
                     }
                     if (streams[0]) finalClimbData = streams[0].split(',').map(v => parseInt(v) || 0);
                     if (streams[1]) finalHrData = streams[1].split(',').map(v => parseInt(v) || 0);
-                    // 🎯 成功打撈並對齊雲端 Excel 最右側的「真實去括號功率數據流」！
                     if (streams[2]) finalPowerData = streams[2].split(',').map(v => parseInt(v) || 0);
                 }
 
@@ -229,15 +228,23 @@
                     data: {
                         labels: xLabels,
                         datasets: [
-                            // 🟥 主線 Y 軸唯一化：只顯示心率 bpm
+                            // 🟥 前方主線一：左側心率 (唯一保留的左側軸刻度)
                             { label: '實時心率 (bpm)', data: finalHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: 3, borderWidth: 2 },
-                            // 灰色半透明背景山脈：累積高度起伏剖面（對齊右側隱藏 Y1 軸）
-                            { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.05)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' },
-                            // 淡藍色半透明背景陰影：實際跑步輸出功率瓦特（對齊右側隱藏 Y2 軸）
-                            { label: '[背景] 輸出功率 (W)', data: finalPowerData, borderColor: 'rgba(0,242,254,0.1)', borderWidth: 1, backgroundColor: 'rgba(0,242,254,0.04)', fill: true, pointRadius: 0, tension: 0.3, yAxisID: 'y2' }
+                            // 🟦 前方主線二：右側功率 (對齊獨立右側軸 Y2)
+                            { label: '輸出功率 (W)', data: finalPowerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: 3, borderWidth: 2 },
+                            // 灰色半透明背景山脈面（對齊右側隱藏 Y1 軸）
+                            { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, y1: { type: 'linear', display: false }, y2: { type: 'linear', display: false } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        scales: { 
+                            y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, 
+                            y2: { type: 'linear', display: true, position: 'right', ticks: { color: '#3a86ff' }, grid: { display: false } }, 
+                            y1: { type: 'linear', display: false } 
+                        } 
+                    }
                 });
 
                 if (paceChartInstance) paceChartInstance.destroy();
@@ -245,7 +252,7 @@
                     type: 'line',
                     data: { labels: xLabels, datasets: [ 
                         { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
-                        { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.05)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
+                        { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                     ] },
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { type: 'linear', display: true, position: 'left' }, y1: { type: 'linear', display: false } } }
                 });
