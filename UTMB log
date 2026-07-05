@@ -48,12 +48,10 @@
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err');
             var nameSelect = document.getElementById('filter-name');
-            
             if (inputPwd === "") return;
             
             if (inputPwd === _0x5a1b[_0x5a1b.length-2]) {
-                isCoachMode = true;
-                authorizedName = "Coach";
+                isCoachMode = true; authorizedName = "Coach";
                 var optionsHtml = '';
                 for(var k in _0x3b2c){ if(k!=="1208") optionsHtml += '<option value="' + _0x3b2c[k] + '">👤 學員：' + _0x3b2c[k] + '</option>'; }
                 nameSelect.innerHTML = optionsHtml;
@@ -65,17 +63,14 @@
             }
             
             if (_0x3b2c[inputPwd]) {
-                isCoachMode = false;
-                authorizedName = _0x3b2c[inputPwd];
+                isCoachMode = false; authorizedName = _0x3b2c[inputPwd];
                 nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
                 nameSelect.setAttribute('disabled', 'true');
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 startLoadingData();
             } else {
-                errField.style.display = 'block';
-                errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 門禁安全驗證失敗";
+                errField.style.display = 'block'; errField.style.color = '#ff4d4d'; errField.innerText = "❌ 門禁安全驗證失敗";
                 document.getElementById('user-pwd').value = "";
             }
         }
@@ -86,7 +81,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.0-Stable</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">去防死鎖相容版 v150.2-Stable</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -143,13 +138,11 @@
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
         var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
-        
         fetch(finalUrl)
             .then(function(res) { return res.text(); })
             .then(function(text) {
                 if(!text || text.trim() === "" || text.length < 10) {
-                    var backupUrl = csvBackupUrl + "&t=" + new Date().getTime();
-                    return fetch(backupUrl).then(function(r){return r.text();});
+                    return fetch(csvBackupUrl + "&t=" + new Date().getTime()).then(function(r){return r.text();});
                 }
                 return text;
             })
@@ -176,7 +169,6 @@
             var lines = parseStandardCSV(cachedCsvText);
             var weekSelect = document.getElementById('filter-week');
             var nameSelect = document.getElementById('filter-name');
-
             var targetName = nameSelect.value ? nameSelect.value.trim() : "";
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
             var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
@@ -184,6 +176,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
+                // 100% 保持你最成功原版 Base 的 11 個摘要欄位下標，絕不跨欄探測，保證通道綠燈
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -198,11 +191,14 @@
                         var cleanCellName = row[idxName].replace(/\s+/g, "").toLowerCase();
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
+                            
+                            // 🔒 安全打包封鎖線：將整行原始 Excel 列作為 rowPackage 直接攜帶至渲染區，主循環不執行任何容易崩潰的字串切割
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                 stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
-                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0"
+                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
+                                rawRowPackage: row 
                             });
                             weeks[wValue] = true;
                         }
@@ -271,7 +267,41 @@
                 var cadenceNum = parseInt(matched.cadence) || 0; 
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
 
-                // 📈 圖表一：基礎特訓折線圖 (心率與步頻)
+                // 100% 原始純物理平滑保底地形線與心率線
+                var finalClimbData = [0, Math.round(climbNum*0.3), Math.round(climbNum*0.2), Math.round(climbNum*0.8), Math.round(climbNum*0.5), climbNum];
+                var finalHrData = [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10];
+
+                // 🛡️ 【隔離渲染區安全去鎖】：只有當前選擇的這個週數列長度大於 12，才進行後方高頻字串流探測與 split 切割，100% 相容歷史數據
+                var rowPack = matched.rawRowPackage;
+                if (rowPack && rowPack.length > 12) {
+                    var cStreamRaw = ""; var hStreamRaw = "";
+                    
+                    // 倒序探測含有高頻特徵文字的儲存格
+                    for (var colIdx = 12; colIdx < rowPack.length; colIdx++) {
+                        if (rowPack[colIdx] && (rowPack[colIdx].indexOf(',') !== -1 || rowPack[colIdx].indexOf('[') !== -1)) {
+                            if (cStreamRaw === "") { cStreamRaw = rowPack[colIdx].toString().trim(); }
+                            else if (hStreamRaw === "") { hStreamRaw = rowPack[colIdx].toString().trim(); }
+                        }
+                    }
+
+                    // 強力清洗方括號引號，防止 CSV 邊界爆裂
+                    if (cStreamRaw !== "") {
+                        var cleanC = cStreamRaw.replace(/[\[\]"]/g, "");
+                        if (cleanC.trim() !== "") {
+                            var pts = cleanC.split(',');
+                            if (pts.length >= 3) { finalClimbData = pts.map(function(v){ return parseInt(v) || 0; }); }
+                        }
+                    }
+                    if (hStreamRaw !== "") {
+                        var cleanH = hStreamRaw.replace(/[\[\]"]/g, "");
+                        if (cleanH.trim() !== "") {
+                            var hpts = cleanH.split(',');
+                            if (hpts.length >= 3) { finalHrData = hpts.map(function(v){ return parseInt(v) || 0; }); }
+                        }
+                    }
+                }
+
+                // 📈 圖表一：雙 Y 軸標準配置（心率/步頻左軸，[背景] 地形陰影右軸隱藏）
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -279,14 +309,21 @@
                     data: {
                         labels: xLabels,
                         datasets: [
-                            { label: '實時心率', data: [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10], borderColor: '#ff3366', fill: false, tension: 0.2 },
-                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2 }
+                            { label: '實時心率', data: finalHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y' },
+                            { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'y' },
+                            { label: '[背景] 爬升地形', data: finalClimbData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
+                            y1: { type: 'linear', display: false, position: 'right' }
+                        }
+                    }
                 });
 
-                // 📈 圖表二：配速折線圖
+                // 📈 圖表二：雙 Y 軸標準配置（配速左軸，[背景] 地形陰影右軸隱藏）
                 var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
                 if (paceChartInstance) paceChartInstance.destroy();
                 paceChartInstance = new Chart(ctxPace, {
@@ -294,12 +331,19 @@
                     data: { 
                         labels: xLabels, 
                         datasets: [ 
-                            { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3 } 
+                            { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
+                            { label: '[背景] 爬升地形', data: finalClimbData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                         ] 
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
+                            y1: { type: 'linear', display: false, position: 'right' }
+                        }
+                    }
                 });
-            } catch(chartErr) {}
+            } catch(chartErr) { console.log(chartErr); }
         }
     }
 
