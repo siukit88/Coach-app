@@ -48,12 +48,10 @@
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err');
             var nameSelect = document.getElementById('filter-name');
-            
             if (inputPwd === "") return;
             
             if (inputPwd === _0x5a1b[_0x5a1b.length-2]) {
-                isCoachMode = true;
-                authorizedName = "Coach";
+                isCoachMode = true; authorizedName = "Coach";
                 var optionsHtml = '';
                 for(var k in _0x3b2c){ if(k!=="1208") optionsHtml += '<option value="' + _0x3b2c[k] + '">👤 學員：' + _0x3b2c[k] + '</option>'; }
                 nameSelect.innerHTML = optionsHtml;
@@ -65,17 +63,14 @@
             }
             
             if (_0x3b2c[inputPwd]) {
-                isCoachMode = false;
-                authorizedName = _0x3b2c[inputPwd];
+                isCoachMode = false; authorizedName = _0x3b2c[inputPwd];
                 nameSelect.innerHTML = '<option value="' + authorizedName + '">👤 學員：' + authorizedName + '</option>';
                 nameSelect.setAttribute('disabled', 'true');
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 startLoadingData();
             } else {
-                errField.style.display = 'block';
-                errField.style.color = '#ff4d4d';
-                errField.innerText = "❌ 門禁安全驗證失敗";
+                errField.style.display = 'block'; errField.style.color = '#ff4d4d'; errField.innerText = "❌ 門禁安全驗證失敗";
                 document.getElementById('user-pwd').value = "";
             }
         }
@@ -86,7 +81,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">對接表單回應5終極版 v150.0-Stable</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">終極去鎖相容版 v150.1-Stable</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -143,13 +138,11 @@
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
         var finalUrl = csvMainUrl + (csvMainUrl.indexOf('?') !== -1 ? '&' : '?') + "t=" + new Date().getTime();
-        
         fetch(finalUrl)
             .then(function(res) { return res.text(); })
             .then(function(text) {
                 if(!text || text.trim() === "" || text.length < 10) {
-                    var backupUrl = csvBackupUrl + "&t=" + new Date().getTime();
-                    return fetch(backupUrl).then(function(r){return r.text();});
+                    return fetch(csvBackupUrl + "&t=" + new Date().getTime()).then(function(r){return r.text();});
                 }
                 return text;
             })
@@ -176,7 +169,6 @@
             var lines = parseStandardCSV(cachedCsvText);
             var weekSelect = document.getElementById('filter-week');
             var nameSelect = document.getElementById('filter-name');
-
             var targetName = nameSelect.value ? nameSelect.value.trim() : "";
             if(targetName.indexOf("👤 學員：") !== -1) { targetName = targetName.replace("👤 學員：", ""); }
             var cleanTarget = targetName.replace(/\s+/g, "").toLowerCase();
@@ -184,7 +176,6 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 100% 保持你原始成功的 Base 欄位硬編碼
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -200,7 +191,6 @@
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             
-                            // 🔒 【終極安全動態探測】：絕對不硬讀第12和13列，先用 length 檢查，不夠長直接塞空字串，防止 Out of bounds 卡死
                             var cStream = (row.length > 12 && row[12]) ? row[12].toString().trim() : "";
                             var hStream = (row.length > 13 && row[13]) ? row[13].toString().trim() : "";
 
@@ -278,24 +268,26 @@
                 var cadenceNum = parseInt(matched.cadence) || 0; 
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
 
-                // 🛡️ 【相容保底防線】：如果時序數據串存在且有效，才進行切分；否則使用標準平滑線，絕不卡死
                 var finalClimbData = [0, Math.round(climbNum*0.3), Math.round(climbNum*0.2), Math.round(climbNum*0.8), Math.round(climbNum*0.5), climbNum];
-                if (matched.climbStream && matched.climbStream.trim() !== "") {
-                    var pts = matched.climbStream.split(',');
-                    if (pts.length >= 3) {
-                        finalClimbData = pts.map(function(v){ return parseInt(v) || 0; });
+                
+                // 🛡️ 【終極雙重容錯防線】：即使字串是 undefined 或帶有方括號，先轉換、移除括號、再進行切分，確保絕不崩潰
+                if (matched.climbStream && String(matched.climbStream).trim() !== "") {
+                    var cleanStr = String(matched.climbStream).replace(/[\[\]]/g, "");
+                    if(cleanStr.trim() !== "") {
+                        var pts = cleanStr.split(',');
+                        if (pts.length >= 3) { finalClimbData = pts.map(function(v){ return parseInt(v) || 0; }); }
                     }
                 }
 
                 var finalHrData = [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10];
-                if (matched.hrStream && matched.hrStream.trim() !== "") {
-                    var hpts = matched.hrStream.split(',');
-                    if (hpts.length >= 3) {
-                        finalHrData = hpts.map(function(v){ return parseInt(v) || 0; });
+                if (matched.hrStream && String(matched.hrStream).trim() !== "") {
+                    var cleanHStr = String(matched.hrStream).replace(/[\[\]]/g, "");
+                    if(cleanHStr.trim() !== "") {
+                        var hpts = cleanHStr.split(',');
+                        if (hpts.length >= 3) { finalHrData = hpts.map(function(v){ return parseInt(v) || 0; }); }
                     }
                 }
 
-                // 📈 圖表一：正統雙 Y 軸標準配置（心率/步頻左軸，背景地形右軸隱藏）
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -309,15 +301,17 @@
                         ]
                     },
                     options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         scales: {
                             y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
-                            y1: { type: 'linear', display: false, position: 'right' } // 右軸隱藏，徹底防止卡死
+                            y1: { type: 'linear', display: false, position: 'right' }
                         }
                     }
                 });
 
-                // 📈 圖表二：正統雙 Y 軸標準配置（配速左軸，背景地形右軸隱藏）
                 var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartInst
+                if (paceChartInstance) paceChartInstance.destroy();
+                paceChartInstance = new Chart(ctxPace, {
+                    type: 'line',
+                    data: { 
+                        
