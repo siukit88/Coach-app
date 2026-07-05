@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v42.0</title>
+    <title>Kit Coach 數據智能提取中心 v43.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
@@ -23,8 +23,7 @@
         .data-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #2a2a35; }
         .data-row:last-child { border: none; }
         .data-label { color: #aaa; font-size: 14px; }
-        /* 🔒 核心改動：將顯示改為可直接輸入的 input，若自動提取失敗，你可直接在此手動秒填核對，保證不白跑一趟 */
-        .data-input { background: #16161a; border: 1px solid #444; border-radius: 4px; color: #fff; padding: 6px 10px; font-size: 14px; text-align: right; width: 120px; font-weight: bold; outline: none; }
+        .data-input { background: #16161a; border: 1px solid #444; border-radius: 4px; color: #fff; padding: 6px 10px; font-size: 14px; text-align: right; width: 140px; font-weight: bold; outline: none; }
         .data-input:focus { border-color: #00f2fe; }
         .btn-action { width: 100%; padding: 15px; background: #ff3366; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-action:active { background: #d62250; }
@@ -38,7 +37,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>隔離沙盒：帶有手動校正、絕不失敗的數據中轉站</p>
+        <p>隔離沙盒：針對 Suunto 多重雷達保底優化版 v43.0</p>
     </div>
 
     <div class="upload-zone">
@@ -70,7 +69,6 @@
 </div>
 
 <script>
-    // 📡 高安全低耦合文件流監聽
     document.getElementById('fitFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -80,14 +78,17 @@
             try {
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
-                if (buffer.byteLength < 20) throw new Error("檔案太小");
+                if (buffer.byteLength < 50) throw new Error("檔案太小或已損壞");
 
                 let headerSize = view.getUint8(0);
                 let offset = headerSize;
                 let localDefs = {};
-                let extDist = null, extTime = null, extClimb = null, extHr = null, extCad = null;
+                
+                let sessionDist = null, sessionTime = null, sessionHr = null, sessionCad = null, sessionClimb = null;
+                let recordTimeMin = Infinity, recordTimeMax = -Infinity, recordDistMax = 0;
+                let lapClimbSum = 0; // 🛰️ 針對 Suunto 專門設置的單圈爬升累加器
 
-                // 🛡️ 平滑安全解析，防止超出 DataView 範圍
+                // 線性安全指針：100% 物理截斷，杜絕 DataView 超出邊界崩潰
                 while (offset < buffer.byteLength - 6) {
                     let headerByte = view.getUint8(offset++);
                     if ((headerByte & 0x80) === 0) {
@@ -115,18 +116,41 @@
                             localDefs[localType] = { globalMsg, isBE, fields, dSize };
                         } else {
                             let def = localDefs[localType];
-                            if (!def || offset + def.dSize > buffer.byteLength) { break; }
+                            if (!def || offset + def.dSize > buffer.byteLength) { offset = buffer.byteLength; break; }
 
                             let dPtr = offset;
-                            if (def.globalMsg === 18) { // Session
+                            
+                            // 🎯 盒子 A：解碼 Message ID 18 (Session 運動總結)
+                            if (def.globalMsg === 18) {
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        if (f.id === 5) extDist = val / 100000;
-                                        if (f.id === 7) extTime = val / 1000;
-                                        if (f.id === 16) extHr = val;
-                                        if (f.id === 18) extCad = val < 120 ? val * 2 : val;
-                                        if (f.id === 25) extClimb = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
+                                        if (f.id === 5) sessionDist = val / 100000;
+                                        if (f.id === 7) sessionTime = val / 1000;
+                                        if (f.id === 16) sessionHr = val;
+                                        if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
+                                        if (f.id === 25) sessionClimb = val > 15000 ? Math.round(val / 100) : (val > 4000 ? Math.round(val / 10) : val);
+                                    }
+                                    dPtr += f.size;
+                                }
+                            } 
+                            // 🎯 盒子 B：解碼 Message ID 19 (Lap 每圈總結 - 專攻 Suunto 拆分爬升)
+                            else if (def.globalMsg === 19) {
+                                for (let f of def.fields) {
+                                    if (dPtr + f.size <= buffer.byteLength) {
+                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
+                                        if (f.id === 9 && val > 0 && val < 6000) { lapClimbSum += val; } // 累加每圈爬升
+                                    }
+                                    dPtr += f.size;
+                                }
+                            }
+                            // 🎯 盒子 C：解碼 Message ID 20 (Record 逐秒點流 - 專攻精確時間差保底)
+                            else if (def.globalMsg === 20) {
+                                for (let f of def.fields) {
+                                    if (dPtr + f.size <= buffer.byteLength) {
+                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
+                                        if (f.id === 5) recordDistMax = Math.max(recordDistMax, val);
+                                        if (f.id === 253) { recordTimeMin = Math.min(recordTimeMin, val); recordTimeMax = Math.max(recordTimeMax, val); }
                                     }
                                     dPtr += f.size;
                                 }
@@ -138,51 +162,52 @@
                     }
                 }
 
-                if (extDist && extDist > 0.05) {
-                    document.getElementById('res_distance').value = extDist.toFixed(2);
-                    document.getElementById('res_elevation').value = extClimb || "0";
-                    const hrs = String(Math.floor(extTime / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((extTime % 3600) / 60)).padStart(2, '0');
-                    const secs = String(Math.round(extTime % 60)).padStart(2, '0');
+                // 多軌雷達保底互補聚合
+                let finalDistance = sessionDist || (recordDistMax / 100000) || 0;
+                let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
+                let finalClimb = sessionClimb || lapClimbSum || 0;
+
+                if (finalDistance > 0.05) {
+                    document.getElementById('res_distance').value = finalDistance.toFixed(2);
+                    document.getElementById('res_elevation').value = finalClimb;
+                    
+                    const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
+                    const secs = String(Math.round(finalTime % 60)).padStart(2, '0');
                     document.getElementById('res_duration').value = `${hrs}:${mins}:${secs}`;
-                    document.getElementById('res_hr').value = extHr || "";
-                    document.getElementById('res_cadence').value = extCad || "";
-                    if(extCad > 0) document.getElementById('res_stride').value = ((extDist * 1000) / (extCad * (extTime / 60))).toFixed(2);
-                    alert('⚡ .FIT 運動手錶原始檔解析完畢！已填入下方面板。');
+                    
+                    document.getElementById('res_hr').value = sessionHr || "";
+                    document.getElementById('res_cadence').value = sessionCad || "";
+                    if (sessionCad > 0 && finalTime > 0) {
+                        document.getElementById('res_stride').value = ((finalDistance * 1000) / (sessionCad * (finalTime / 60))).toFixed(2);
+                    }
+                    alert('⚡ .FIT 運動手錶原始檔動態提取成功！請於下方面板確認。');
                 } else {
-                    throw new Error("未能讀取摘要");
+                    throw new Error("未能讀取有效摘要");
                 }
             } catch (err) {
-                alert('⚠️ 自動抄取失敗（此手錶檔案格式含有自訂擴展塊）。\n\n💡 請直接在下方核對面板中手動輸入數據，同樣可以一鍵複製！');
+                alert('⚠️ 自動抄取失敗。\n\n💡 請直接在下方核對面板中手動修改或填報數據，同樣可以享受一鍵複製！');
             }
         };
         reader.readAsArrayBuffer(file);
     });
 
-    // 📸 輕量圖像監聽
+    // 📸 圖片 OCR 通道保持不變
     document.getElementById('imgFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-
-        alert('📸 正在啟動網頁圖像辨識，請稍候 3-5 秒...');
+        alert('📸 正在啟動網頁圖像辨識，請耐心等候 3-5 秒...');
         Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
             const distMatch = text.match(/(\d+\.\d{2})\s*(km|公里)/i) || text.match(/\b(\d{2}\.\d{2})\b/);
             const timeMatch = text.match(/(\d{2}:\d{2}:\d{2})/);
             let matched = false;
             if (distMatch) { document.getElementById('res_distance').value = distMatch[1]; matched = true; }
             if (timeMatch) { document.getElementById('res_duration').value = timeMatch[1]; matched = true; }
-            
-            if (matched) {
-                alert('⚡ 截圖數據部分自動抄錄成功！請在下方面板核對或補全數值。');
-            } else {
-                alert('⚠️ 未能自動匹配到標準截圖數字。請直接在下方核對面板中手動輸入。');
-            }
-        }).catch(() => {
-            alert('⚠️ 辨識超時，請直接在下方手動填寫數據。');
-        });
+            if (matched) alert('⚡ 截圖數據部分自動抄錄成功！');
+            else alert('⚠️ 未能自動匹配到標準截圖數字。');
+        }).catch(() => alert('⚠️ 辨識超時。'));
     });
 
-    // 📋 剪貼簿物理複製
     function copyExtractedResults() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
@@ -191,19 +216,12 @@
         const hr = document.getElementById('res_hr').value;
         const stride = document.getElementById('res_stride').value;
 
-        if (!dist && !time) {
-            alert('⚠️ 請先投放檔案、截圖，或者直接在下方輸入框中手動打字。');
-            return;
-        }
+        if (!dist && !time) { alert('⚠️ 請先投放檔案或直接在下方填報。'); return; }
 
-        // 格式化文本，供你返回 submit.html 時快速對照貼上
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm\n【平均步距】 ${stride || '--'} m`;
-        
         navigator.clipboard.writeText(dataText).then(() => {
             alert('📋 功課數據已完美複製到剪貼簿！\n請返回你的主頁 (submit.html)，直接對照填入即可。');
-        }).catch(() => {
-            alert('❌ 複製失敗，請直接對照面板數值填報。');
-        });
+        }).catch(() => alert('❌ 複製失敗。'));
     }
 </script>
 </body>
