@@ -167,7 +167,6 @@
 </div>
 
 <script>
-    // 🎯 【管道修復核心】優先將變數提升到全域最頂層，杜絕 iframe 早於 script 解析引起的 ReferenceError
     let submitted = false;
 
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
@@ -233,14 +232,14 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 【去括號清洗與寄存】
+            // 🛡️ 【格式過濾核心優化】將中括號與不安全的「逗號」完全清洗，替換為 100% 繞過 Google Form 過濾的「減號 -」
             let cStream = urlParams.get('climb_stream') || "";
             let hStream = urlParams.get('hr_stream') || "";
             let pStream = urlParams.get('power_stream') || "";
             
-            cStream = cStream.replace(/[\[\]]/g, "");
-            hStream = hStream.replace(/[\[\]]/g, "");
-            pStream = pStream.replace(/[\[\]]/g, "");
+            cStream = cStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
+            hStream = hStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
+            pStream = pStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
 
             document.getElementById('hidden_climb_stream').value = cStream;
             document.getElementById('hidden_hr_stream').value = hStream;
