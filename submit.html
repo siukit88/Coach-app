@@ -245,7 +245,7 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 【清洗並強行填入觀測容器】
+            // 🛡️ 洗清與注入
             let cStream = urlParams.get('climb_stream') || "";
             let hStream = urlParams.get('hr_stream') || "";
             let pStream = urlParams.get('power_stream') || "";
@@ -254,7 +254,7 @@
             hStream = hStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
             pStream = pStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
 
-            // 🚀 數據現場「裝車」，這三個框框在畫面上會立刻亮出減號趨勢文字！
+            // 🚀 100% 精確抓取到實體 ID，數據現場裝車！
             document.getElementById('hidden_climb_stream').value = cStream;
             document.getElementById('hidden_hr_stream').value = hStream;
             document.getElementById('hidden_power_stream').value = pStream;
