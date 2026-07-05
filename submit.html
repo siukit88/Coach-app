@@ -146,7 +146,7 @@
                 <div class="badge-container" id="supplyContainer">
                     <div class="status-badge active" data-value="正常（水份、能量膠與食物吸收良好）">正常（水份、能量膠與食物吸收良好）</div>
                     <div class="status-badge" data-value="補水不足（出現明顯口渴、心率偏高）">補水不足（出現明顯口渴、心率偏高）</div>
-                    <div class="status-badge" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）">胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）</div>
+                    <div class="status-badge" data-value="胃酸脹氣（吃高碳水膠導致胃酸倒流、反反胃）">胃酸脹氣（吃高碳水膠導致胃酸倒流、反胃）</div>
                 </div>
                 <input type="hidden" name="entry.53803926" id="hidden_supply">
             </div>
@@ -154,17 +154,17 @@
             <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
 
             <div class="input-group">
-                <label>實際分段海拔數據 (10% ➡️ 100%)</label>
+                <label>實際分段海拔數據 (10% ➡️ 100% 純數字加密串)</label>
                 <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="hidden_climb_stream">
             </div>
 
             <div class="input-group">
-                <label>實際分段心率數據 (10% ➡️ 100%)</label>
+                <label>實際分段心率數據 (10% ➡️ 100% 純數字加密串)</label>
                 <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="hidden_hr_stream">
             </div>
 
             <div class="input-group">
-                <label>功率時序流 Power Stream (10% ➡️ 100%)</label>
+                <label>功率時序流 Power Stream (10% ➡️ 100% 純數字加密串)</label>
                 <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0.85;" placeholder="等待 FIT 注入..." name="entry.585827917" id="hidden_power_stream">
             </div>
             
@@ -218,6 +218,23 @@
         submitted = false;
     }
 
+    // 🎯 【黃金補零密碼化函數】：將數值拆開並強行補足 4 位數，拼裝成純數字串
+    function convertToPureNumericStream(rawParam) {
+        if (!rawParam) return "";
+        // 清洗掉中括號，並用逗號切開
+        let cleanStr = rawParam.replace(/[\[\]]/g, "");
+        if (!cleanStr) return "";
+        let items = cleanStr.split(",");
+        
+        // 將每個數字轉為整數，並在前面補零到固定 4 位數長度
+        let numericStream = items.map(item => {
+            let num = parseInt(item.trim()) || 0;
+            return String(num).padStart(4, '0');
+        }).join("");
+        
+        return numericStream;
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         const runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
         const runnerSelect = document.getElementById('runnerSelect');
@@ -245,19 +262,14 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 洗清與唯一注入
-            let cStream = urlParams.get('climb_stream') || "";
-            let hStream = urlParams.get('hr_stream') || "";
-            let pStream = urlParams.get('power_stream') || "";
-            
-            cStream = cStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
-            hStream = hStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
-            pStream = pStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
+            // 🚀 【黃金數字加密注入】徹底拋棄任何分隔符號，100% 純數字串安全裝車
+            let cStreamPure = convertToPureNumericStream(urlParams.get('climb_stream'));
+            let hStreamPure = convertToPureNumericStream(urlParams.get('hr_stream'));
+            let pStreamPure = convertToPureNumericStream(urlParams.get('power_stream'));
 
-            // 🚀 直接填充到唯一文字輸入框中
-            document.getElementById('hidden_climb_stream').value = cStream;
-            document.getElementById('hidden_hr_stream').value = hStream;
-            document.getElementById('hidden_power_stream').value = pStream;
+            document.getElementById('hidden_climb_stream').value = cStreamPure;
+            document.getElementById('hidden_hr_stream').value = hStreamPure;
+            document.getElementById('hidden_power_stream').value = pStreamPure;
 
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride', 'hidden_climb_stream', 'hidden_hr_stream', 'hidden_power_stream'];
             autoFields.forEach(f => {
