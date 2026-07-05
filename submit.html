@@ -232,7 +232,7 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🛡️ 【格式過濾核心優化】將中括號與不安全的「逗號」完全清洗，替換為 100% 繞過 Google Form 過濾的「減號 -」
+            // 🛡️ 【精確注入實體隱藏項目】
             let cStream = urlParams.get('climb_stream') || "";
             let hStream = urlParams.get('hr_stream') || "";
             let pStream = urlParams.get('power_stream') || "";
@@ -241,6 +241,7 @@
             hStream = hStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
             pStream = pStream.replace(/[\[\]]/g, "").replace(/,/g, "-");
 
+            // 🚀 與 HTML 實體隱藏項目的 ID 精確對照、強行塞入 Value 容器！
             document.getElementById('hidden_climb_stream').value = cStream;
             document.getElementById('hidden_hr_stream').value = hStream;
             document.getElementById('hidden_power_stream').value = pStream;
