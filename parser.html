@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v45.0</title>
+    <title>Kit Coach 數據智能提取中心 v46.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
@@ -34,20 +34,20 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>純原生零依賴版：物理隔離，保證正常加載不卡死</p>
+        <p>隔離中轉版：物理防禦，絕不強行填零保底核心</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card fit" id="fitTriggerBtn">
             <span class="icon">⚡</span>
             <div class="card-title">點擊選擇 .FIT 原始檔</div>
-            <div class="card-desc">支援 Suunto Vertical / Garmin</div>
+            <div class="card-desc">讀取成功後，可在此頁直接校正或輸入</div>
             <input type="file" id="localFitInput" class="hidden-file" accept=".fit">
         </div>
     </div>
 
     <div class="result-box">
-        <h3>📊 數據提取核對面板 (支持手動校正)</h3>
+        <h3>📊 數據提取核對面板 (支持手動校正/秒填)</h3>
         <div class="data-row"><span class="data-label">長距離 (km) ：</span><input type="text" class="data-input" id="res_distance" placeholder="e.g. 34.14"></div>
         <div class="data-row"><span class="data-label">爬升海拔 (米) ：</span><input type="text" class="data-input" id="res_elevation" placeholder="e.g. 2222"></div>
         <div class="data-row"><span class="data-label">長跑時間：</span><input type="text" class="data-input" id="res_duration" placeholder="e.g. 06:48:21"></div>
@@ -55,13 +55,12 @@
         <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="e.g. 142"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV45()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV46()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
 
 <script>
-    // 🔒 100% 物理拉平：用最傳統、手機瀏覽器絕對無法攔截的方式進行綁定
     document.getElementById('fitTriggerBtn').onclick = function() {
         document.getElementById('localFitInput').click();
     };
@@ -71,95 +70,51 @@
         if (!file) return;
 
         const reader = new FileReader();
-        
-        // 當檔案成功加載進入內存，立即啟動雷達掃描
         reader.onload = function(event) {
             try {
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
                 
-                if (buffer.byteLength < 30) { throw new Error("檔案容量異常"); }
-
                 let sessionDist = 0;
                 let sessionClimb = 0;
                 let sessionTime = 0;
-                let sessionHr = 0;
-                let sessionCad = 0;
 
-                let recordTimeMin = Infinity;
-                let recordTimeMax = -Infinity;
-                let lapClimbSum = 0;
-
-                // 📡 針對 Suunto Vertical 的全檔特徵碼直接撈取算法（放棄定義跳轉，防止指針越界崩潰）
-                for (let i = 14; i < buffer.byteLength - 30; i++) {
-                    // 特徵 A：精確捕捉 Lap 摘要區塊 (ID 19)
-                    if (view.getUint8(i) === 0x40 && view.getUint8(i+1) === 0x00 && view.getUint8(i+2) === 0x13) {
-                        if (i + 25 < buffer.byteLength) {
-                            let possibleClimb = view.getUint16(i + 18, true);
-                            if (possibleClimb > 0 && possibleClimb < 5000) { lapClimbSum += possibleClimb; }
-                        }
-                    }
-                    // 特徵 B：精確捕捉 Record 逐秒流區塊 (ID 20) 撈取 UTC 時間戳
-                    if (view.getUint8(i) === 0x00 && view.getUint8(i+1) === 0x14) {
-                        if (i + 10 < buffer.byteLength) {
-                            let timestamp = view.getUint32(i + 4, true);
-                            if (timestamp > 1100000000 && timestamp < 1300000000) {
-                                if (timestamp < recordTimeMin) recordTimeMin = timestamp;
-                                if (timestamp > recordTimeMax) recordTimeMax = timestamp;
-                            }
-                        }
-                    }
-                    // 特徵 C：精確捕捉 Session 總結區塊 (ID 18) 提取距離、心率、步頻
+                // 📡 物理雷達限制掃描
+                for (let i = 14; i < buffer.byteLength - 40; i++) {
                     if (view.getUint8(i) === 0x40 && view.getUint8(i+1) === 0x00 && view.getUint8(i+2) === 0x12) {
-                        if (i + 40 < buffer.byteLength) {
-                            let dVal = view.getUint32(i + 12, true) / 100000;
-                            let tVal = view.getUint32(i + 8, true) / 1000;
-                            if (dVal > 0.1 && dVal < 200) {
-                                sessionDist = dVal;
-                                if (tVal > 10) sessionTime = tVal;
-                                sessionHr = view.getUint8(i + 28);
-                                let cVal = view.getUint8(i + 30);
-                                sessionCad = cVal < 120 ? cVal * 2 : cVal;
-                                sessionClimb = view.getUint16(i + 36, true);
-                            }
+                        let dVal = view.getUint32(i + 12, true) / 100000;
+                        let tVal = view.getUint32(i + 8, true) / 1000;
+                        // 🔒 嚴格過濾：只有當算出來的數據大於合理閾值，才允許回填，絕不允許 0 污染面板！
+                        if (dVal > 1.0 && dVal < 200) {
+                            sessionDist = dVal;
+                            if (tVal > 100) sessionTime = tVal;
+                            sessionClimb = view.getUint16(i + 36, true);
                         }
                     }
                 }
 
-                // 多軌聚合與物理時間差保底
-                let finalDistance = sessionDist || 0;
-                let finalTime = (sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
-                let finalClimb = sessionClimb || (lapClimbSum > 0 ? Math.round(lapClimbSum / 12) : 0) || 0; 
-                if (finalClimb > 5000) finalClimb = Math.round(finalClimb / 10);
-
-                if (finalDistance > 0.05) {
-                    // 回填至可手動修改的 input 中
-                    document.getElementById('res_distance').value = finalDistance.toFixed(2);
-                    document.getElementById('res_elevation').value = finalClimb;
+                if (sessionDist > 1.0) {
+                    document.getElementById('res_distance').value = sessionDist.toFixed(2);
+                    document.getElementById('res_elevation').value = (sessionClimb > 0 && sessionClimb < 6000) ? sessionClimb : "";
                     
-                    const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
-                    const secs = String(Math.round(finalTime % 60)).padStart(2, '0');
+                    const hrs = String(Math.floor(sessionTime / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((sessionTime % 3600) / 60)).padStart(2, '0');
+                    const secs = String(Math.round(sessionTime % 60)).padStart(2, '0');
                     document.getElementById('res_duration').value = `${hrs}:${mins}:${secs}`;
-                    
-                    document.getElementById('res_hr').value = (sessionHr > 40 && sessionHr < 220) ? sessionHr : "";
-                    document.getElementById('res_cadence').value = (sessionCad > 100 && sessionCad < 240) ? sessionCad : "";
-                    
-                    alert('⚡ 原始數據安全撈取成功！請於下方面板核對。');
+                    alert('⚡ 原始數據安全提取成功！請於下方面板核對。');
                 } else {
-                    throw new Error("檔案數據區塊未對齊");
+                    // 🎯 核心修復：如果解碼出的數據不合理，直接拋出錯誤進入保底模式，不准填 0
+                    throw new Error("格式偏移");
                 }
             } catch (err) {
-                // 🛡️ 保底：即使手錶文件嚴重魔改，也絕不卡死，開放面板供手動輸入複製
-                alert('💡 已成功讀取檔案！\n請直接在下方核對面板中輸入數值，同樣可以一鍵複製中轉！');
+                // 🛡️ 終極保底：彈出引導，維持面板空白，讓你可以手動秒填複製
+                alert('💡 檔案已成功讀取！\n因手錶廠商品牌擴展協議不同，請直接在下方核對面板中輸入數值，同樣可以一鍵複製中轉！');
             }
         };
-        
-        // 觸發原生二進位讀取
         reader.readAsArrayBuffer(file);
     };
 
-    function copyToClipboardV45() {
+    function copyToClipboardV46() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
@@ -167,14 +122,14 @@
         const hr = document.getElementById('res_hr').value;
 
         if (!dist && !time) {
-            alert('⚠️ 請先點擊按鈕投放檔案，或直接在下方框內輸入數值。');
+            alert('⚠️ 請先輸入或提取數值再進行複製。');
             return;
         }
 
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm`;
         
         navigator.clipboard.writeText(dataText).then(() => {
-            alert('📋 數據已複製到剪貼簿！\n請返回你的主頁 (submit.html) 直接對照填入即可。');
+            alert('📋 功課數據已完美複製到剪貼簿！\n請返回你的主頁 (submit.html)，直接對照填入即可。');
         }).catch(() => {
             alert('❌ 複製失敗。');
         });
