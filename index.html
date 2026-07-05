@@ -3,89 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 雲端歷史特訓紀錄看板 v5.2</title>
+    <title>Kit Coach 雲端歷史特訓紀錄看板 v5.8</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px; box-sizing: border-box; padding-bottom: 60px; }
-        .btn-top-nav { background: linear-gradient(135deg, #ff3366 0%, #ff5e62 100%); color: white; padding: 14px; border-radius: 8px; text-align: center; font-weight: bold; text-decoration: none; display: block; margin-bottom: 25px; font-size: 15px; box-shadow: 0 4px 12px rgba(255,51,102,0.2); }
-        .panel-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; letter-spacing: 0.5px; }
-        .panel-title::before { content: "📊"; margin-right: 8px; }
-        .filter-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .select-ctrl { flex: 1; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; font-size: 14px; font-weight: bold; outline: none; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
+        
+        /* 100% 復刻原版頂部 Header 樣式 */
+        .header { background: #ff3366; padding: 20px; text-align: left; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
+        
+        .form-container { padding: 20px; }
+        .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
+        .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
+        
+        .filter-row { display: flex; gap: 12px; margin-bottom: 20px; }
+        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
+        
+        /* 圖表外殼 */
         .chart-box { background: #1e1e24; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #2a2a35; }
         .chart-header { font-size: 13px; font-weight: bold; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 15px; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .legend-color { width: 12px; height: 12px; border-radius: 2px; }
-        .data-list { background: #1e1e24; border-radius: 8px; padding: 15px; border: 1px solid #2a2a35; }
-        .data-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2a2a35; font-size: 14px; }
-        .data-row:last-child { border: none; }
-        .data-label { color: #aaa; }
-        .data-val { font-weight: bold; text-align: right; }
-        .eph-highlight { color: #00f2fe; font-size: 16px; font-weight: bold; }
+        
+        .grid-2 { display: flex; gap: 12px; }
+        .input-group { margin-bottom: 20px; text-align: left; flex: 1; }
+        .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
+        
+        /* 100% 還原原版徽章牆樣式 */
+        .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .status-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; user-select: none; }
+        .status-badge.active { background: rgba(0, 242, 254, 0.1); border: 1px solid #00f2fe; color: #00f2fe; }
+        .status-badge.active.danger { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; }
+        
+        /* 智慧自動拆段分析表樣式 */
         .chunk-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; text-align: center; }
         .chunk-table th { color: #888; padding: 6px; border-bottom: 1px solid #333; }
         .chunk-table td { padding: 8px 6px; border-bottom: 1px dashed #222; font-weight: bold; }
+        
+        .nav-zone { text-align: center; margin-top: 30px; }
+        .nav-link { display: inline-block; color: #ff3366; font-size: 15px; text-decoration: none; font-weight: bold; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div class="phone-container">
-    <a href="submit.html" class="btn-top-nav">📝 前往上報今日特訓功課 ➔</a>
-
-    <div class="panel-title">雲端歷史特訓紀錄</div>
-
-    <div class="filter-row">
-        <select class="select-ctrl" id="runnerFilter"><option>學員: Kit</option></select>
-        <select class="select-ctrl" id="weekFilter"><option>第 3 週</option></select>
+    <div class="header">
+        <h1>Kit Coach 團隊特訓大數據平台</h1>
+        <p>慢慢跑團 遠程智慧特訓歷史看板 v40.0</p>
     </div>
 
-    <div class="chart-box">
-        <div class="chart-header">
-            <div class="legend-item"><span class="legend-color" style="background: #ff3366;"></span>實時心率</div>
-            <div class="legend-item"><span class="legend-color" style="background: #ffcc00;"></span>即時步頻</div>
-            <div class="legend-item"><span class="legend-color" style="background: rgba(255,255,255,0.12);"></span>[背景] 爬升地形</div>
-        </div>
-        <canvas id="hrCadenceChart" style="width:100%; height:160px;"></canvas>
-    </div>
-
-    <div class="chart-box">
-        <div class="chart-header">
-            <div class="legend-item"><span class="legend-color" style="background: #00fa9a;"></span>即時配速 (Pace)</div>
-            <div class="legend-item"><span class="legend-color" style="background: rgba(255,255,255,0.12);"></span>[背景] 爬升地形</div>
-        </div>
-        <canvas id="paceChart" style="width:100%; height:140px;"></canvas>
-    </div>
-
-    <div class="data-list">
-        <div class="data-row"><span class="data-label">訓練日期</span><span class="data-val" id="lbl_date">2026/7/5</span></div>
-        <div class="data-row"><span class="data-label">長跑距離</span><span class="data-val" id="lbl_distance">--</span></div>
-        <div class="data-row"><span class="data-label">爬升海拔</span><span class="data-val" id="lbl_elevation">--</span></div>
-        <div class="data-row"><span class="data-label">長跑時間</span><span class="data-val" id="lbl_duration">--</span></div>
-        <div class="data-row">
-            <span class="data-label">總平均耗力指數 (EPH)</span>
-            <span class="data-val eph-highlight" id="lbl_eph">-- EP/小時</span>
+    <div class="form-container">
+        <div class="section-title">📊 步驟二：學員雲端歷史特訓紀錄</div>
+        
+        <div class="filter-row">
+            <select class="select-ctrl" id="runnerFilter"><option>學員: Kit</option></select>
+            <select class="select-ctrl" id="weekFilter"><option>第 3 週</option></select>
         </div>
 
-        <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 12px;">
-            <div style="font-size: 13px; font-weight: bold; color: #00f2fe; margin-bottom: 8px;">⚡ 智慧自動拆段效率分析 (EPH Zone)</div>
-            <table class="chunk-table">
-                <thead>
-                    <tr>
-                        <th>分段區間</th>
-                        <th>估算坡度</th>
-                        <th>均速</th>
-                        <th>區間 EPH</th>
-                    </tr>
-                </thead>
-                <tbody id="chunk_tbody"></tbody>
-            </table>
+        <div class="chart-box">
+            <div class="chart-header">
+                <div class="legend-item"><span class="legend-color" style="background: #ff3366;"></span>實時心率 (bpm)</div>
+                <div class="legend-item"><span class="legend-color" style="background: #ffcc00;"></span>即時步頻 (spm)</div>
+                <div class="legend-item"><span class="legend-color" style="background: rgba(255,255,255,0.12);"></span>[背景] 爬升地形</div>
+            </div>
+            <canvas id="hrCadenceChart" style="width:100%; height:160px;"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <div class="chart-header">
+                <div class="legend-item"><span class="legend-color" style="background: #00fa9a;"></span>即時配速 (Pace)</div>
+                <div class="legend-item"><span class="legend-color" style="background: rgba(255,255,255,0.12);"></span>[背景] 爬升地形</div>
+            </div>
+            <canvas id="paceChart" style="width:100%; height:140px;"></canvas>
+        </div>
+
+        <div class="grid-2">
+            <div class="input-group">
+                <label>長距離 (km)</label>
+                <input type="text" class="input-ctrl" id="distance" readonly style="color: #00f2fe; font-weight: bold;">
+            </div>
+            <div class="input-group">
+                <label>爬升海拔 (米)</label>
+                <input type="text" class="input-ctrl" id="elevation" readonly style="color: #ffcc00; font-weight: bold;">
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="input-group">
+                <label>長跑時間</label>
+                <input type="text" class="input-ctrl" id="duration" readonly>
+            </div>
+            <div class="input-group">
+                <label>總平均耗力指數 (EPH)</label>
+                <input type="text" class="input-ctrl" id="eph" readonly style="color: #00fa9a; font-weight: bold;">
+            </div>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 25px;">
+            <label style="color: #00f2fe; font-weight: bold;">⚡ 智慧自動拆段效率分析 (EPH Zone)</label>
+            <div style="background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 10px;">
+                <table class="chunk-table">
+                    <thead>
+                        <tr>
+                            <th>分段區間</th>
+                            <th>估算坡度</th>
+                            <th>均速</th>
+                            <th>區間 EPH</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chunk_tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>身體風險 (歷史回報)</label>
+            <div class="badge-container" id="riskContainer">
+                <div class="status-badge active" id="badge_risk_normal">良好 (無傷痛)</div>
+                <div class="status-badge danger" id="badge_risk_knee">膝蓋不適</div>
+                <div class="status-badge danger" id="badge_risk_foot">足底痛楚</div>
+                <div class="status-badge danger" id="badge_risk_muscle">肌肉拉傷</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>環境天氣 (環境體感)</label>
+            <div class="badge-container" id="weatherContainer">
+                <div class="status-badge active" id="badge_weather_normal">舒適常溫</div>
+                <div class="status-badge" id="badge_weather_hot">炎熱高溫</div>
+                <div class="status-badge" id="badge_weather_rain">大雨/濕滑</div>
+                <div class="status-badge" id="badge_weather_wind">強風逆風</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>補給問題</label>
+            <div class="badge-container" id="supplyContainer">
+                <div class="status-badge active" id="badge_supply_normal">補給正常</div>
+                <div class="status-badge" id="badge_supply_cramp">後半段抽筋/缺水</div>
+                <div class="status-badge" id="badge_supply_wall">能量不足/撞牆</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>💡 教練核心評語與修正建議</label>
+            <textarea class="input-ctrl" rows="4" readonly style="height: auto; line-height: 1.5; color: #ddd; background: rgba(255, 51, 102, 0.05); border: 1px solid rgba(255, 51, 102, 0.2);">
+本次特訓數據非常漂亮！在背後融合地形陰影對照下，可以看到你在中段面臨陡坡爬升時，心率依舊維持在高效且穩定的耗力區間（EPH 表現優異），步頻也沒有因為坡度拉升而崩解，展現出極強的核心支撐力與下肢耐力！繼續保持！
+            </textarea>
+        </div>
+
+        <div class="nav-zone">
+            <a href="submit.html" class="nav-link">➔ 前往功課手動回報頁面</a>
         </div>
     </div>
 </div>
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
+        // 📡 1. 智慧數據存取中樞：全自動讀取 LocalStorage 內由上載產生的真實動態數據
         let distance = 34.14; 
         let elevation = 2299; 
         let durationStr = "06:48:21";
@@ -106,24 +184,26 @@
             avgCad = parseInt(storedCad) || 175;
         }
 
+        // 解析時間分母並動態計算 EPH 效率指數
         let timeParts = durationStr.split(':');
         let totalSeconds = (parseInt(timeParts[0]) * 3600) + (parseInt(timeParts[1]) * 60) + parseInt(timeParts[2]);
         let totalHours = totalSeconds / 3600;
         let totalEph = (avgHr * 0.05) + (elevation / totalHours * 0.002) + (distance / totalHours * 0.04);
         
-        document.getElementById('lbl_distance').innerText = distance.toFixed(2) + " km";
-        document.getElementById('lbl_elevation').innerText = elevation + " 米";
-        document.getElementById('lbl_duration').innerText = durationStr;
-        document.getElementById('lbl_eph').innerText = totalEph.toFixed(2) + " EP/小時";
+        // 將動態計算出的值塞進原版對應格子中
+        document.getElementById('distance').value = distance.toFixed(2) + " km";
+        document.getElementById('elevation').value = elevation + " 米";
+        document.getElementById('duration').value = durationStr;
+        document.getElementById('eph').value = totalEph.toFixed(2) + " EP/小時";
 
+        // 智慧生成動態分段標籤 (0km, 7km, 14km...)
         let labels = [];
         for (let i = 0; i <= 5; i++) {
             labels.push(Math.round((distance / 5) * i) + "km");
         }
 
-        // 📡 核心優化：根據總爬升動態拆分 6 個地貌海拔點，形成背景地形剖面數據
+        // 📊 背景地形剖面數據（隨實際總海拔數據全自動等比縮放）
         let terrainData = [200, 450, 320, 850, 510, 150]; 
-        // 依照上載總爬升等比例放縮，確保與實際海拔高度動態同步
         let maxPoint = Math.max(...terrainData);
         terrainData = terrainData.map(val => Math.round((val / maxPoint) * elevation));
 
@@ -131,7 +211,7 @@
         let cadData = [avgCad - 15, avgCad - 5, avgCad - 10, avgCad, avgCad - 7, avgCad - 11];
         let paceData = [5.6, 5.2, 5.7, 6.4, 4.9, 4.4];
 
-        // 📊 圖表一：實時心率 + 即時步頻 + 背景爬升陰影圖（雙軸對位）
+        // 📈 圖表一：心率 + 步頻 + 背景攀升地形陰影
         new Chart(document.getElementById('hrCadenceChart').getContext('2d'), {
             type: 'line',
             data: {
@@ -139,7 +219,6 @@
                 datasets: [
                     { label: '實時心率', data: hrData, borderColor: '#ff3366', borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false, yAxisID: 'y' },
                     { label: '即時步頻', data: cadData, borderColor: '#ffcc00', borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false, yAxisID: 'y' },
-                    // 🔒 背景地形層：開啟 fill 與半透明效果，綁定獨立右側 Y 軸以防壓縮數據線走勢
                     { label: '背景爬升', data: terrainData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'yTerrain' }
                 ]
             },
@@ -148,13 +227,13 @@
                 plugins: { legend: { display: false } }, 
                 scales: { 
                     y: { type: 'linear', display: true, position: 'left', grid: { color: '#222' }, ticks: { color: '#aaa' } },
-                    yTerrain: { type: 'linear', display: false, position: 'right', grid: { display: false } }, // 隱藏地形軸，維持背景潔淨
+                    yTerrain: { type: 'linear', display: false, position: 'right', grid: { display: false } }, 
                     x: { grid: { display: false }, ticks: { color: '#aaa' } } 
                 } 
             }
         });
 
-        // 📊 圖表二：即時配速 + 背景爬升陰影圖（雙軸對位）
+        // 📈 圖表二：即時配速 + 背景攀升地形陰影
         new Chart(document.getElementById('paceChart').getContext('2d'), {
             type: 'line',
             data: {
@@ -175,7 +254,7 @@
             }
         });
 
-        // 渲染智慧拆段效率分析表格
+        // 📡 2. 動態拆段表格生成引擎
         const tbody = document.getElementById('chunk_tbody');
         tbody.innerHTML = "";
         let chunkDist = distance / 5;
@@ -199,7 +278,7 @@
             tr.innerHTML = `
                 <td style="color:#fff;">${start}-${end} km</td>
                 <td style="color:#ffcc00;">${estSlope}</td>
-                <td style="color:#00fa9a;">${estPace}/公里</td>
+                <td style="color:#00fa9a;">${estPace}/km</td>
                 <td style="color:#00f2fe;">${segEph.toFixed(2)} EP</td>
             `;
             tbody.appendChild(tr);
