@@ -91,7 +91,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧看板</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v40.0</p>
+        <p>慢慢跑團 遠程智慧特訓平台</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -176,7 +176,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 100% 採用你原本完好無損的 11 個 Base 硬編碼下標
+                // 100% 保持你最成功原版 Base 的 11 個摘要欄位下標，絕不跨欄探測，保證通道綠燈
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -192,13 +192,13 @@
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             
-                            // 🔒 100% 歷史舊數據安全通道：將可能存在的大數據串流以原生 row 封包形式直接帶入，絕對不在這裏進行危險的探測切分
+                            // 🔒 安全打包封鎖線：將整行原始 Excel 列作為 rowPackage 直接攜帶至渲染區，主循環不執行任何容易崩潰的字串切割
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
                                 distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                 stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
                                 weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
-                                rawRowPackage: row // 完整保留該行原始晶片封包
+                                rawRowPackage: row 
                             });
                             weeks[wValue] = true;
                         }
@@ -267,17 +267,16 @@
                 var cadenceNum = parseInt(matched.cadence) || 0; 
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
 
-                // 預設純物理平滑保底地形線
+                // 100% 原始純物理平滑保底地形線與心率線
                 var finalClimbData = [0, Math.round(climbNum*0.3), Math.round(climbNum*0.2), Math.round(climbNum*0.8), Math.round(climbNum*0.5), climbNum];
                 var finalHrData = [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10];
 
-                // 🛡️ 【渲染端獨立隔離去鎖金鑰】：只有當行數陣列長度確實大於 12 時，才從尾部單獨打撈、清洗並解開時序數據
+                // 🛡️ 【隔離渲染區安全去鎖】：只有當前選擇的這個週數列長度大於 12，才進行後方高頻字串流探測與 split 切割，100% 相容歷史數據
                 var rowPack = matched.rawRowPackage;
                 if (rowPack && rowPack.length > 12) {
-                    var cStreamRaw = "";
-                    var hStreamRaw = "";
+                    var cStreamRaw = ""; var hStreamRaw = "";
                     
-                    // 倒序探測含有逗號或方括號的大數據串儲存格
+                    // 倒序探測含有高頻特徵文字的儲存格
                     for (var colIdx = 12; colIdx < rowPack.length; colIdx++) {
                         if (rowPack[colIdx] && (rowPack[colIdx].indexOf(',') !== -1 || rowPack[colIdx].indexOf('[') !== -1)) {
                             if (cStreamRaw === "") { cStreamRaw = rowPack[colIdx].toString().trim(); }
@@ -285,7 +284,7 @@
                         }
                     }
 
-                    // 強力清洗方括號、引號等髒數據，防止邊界爆裂
+                    // 強力清洗方括號引號，防止 CSV 邊界爆裂
                     if (cStreamRaw !== "") {
                         var cleanC = cStreamRaw.replace(/[\[\]"]/g, "");
                         if (cleanC.trim() !== "") {
@@ -302,7 +301,7 @@
                     }
                 }
 
-                // 📈 圖表一：雙 Y 軸標準配置（心率/步頻對齊左軸，背景地形陰影對齊右軸）
+                // 📈 圖表一：雙 Y 軸標準配置（心率/步頻左軸，[背景] 地形陰影右軸隱藏）
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -314,4 +313,42 @@
                             { label: '即時步頻', data: [cadenceNum - 5, cadenceNum, cadenceNum + 2, cadenceNum - 1, cadenceNum, cadenceNum + 1], borderColor: '#ffb703', fill: false, tension: 0.2, yAxisID: 'y' },
                             { label: '[背景] 爬升地形', data: finalClimbData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                         ]
-           
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
+                            y1: { type: 'linear', display: false, position: 'right' }
+                        }
+                    }
+                });
+
+                // 📈 圖表二：雙 Y 軸標準配置（配速左軸，[背景] 地形陰影右軸隱藏）
+                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
+                if (paceChartInstance) paceChartInstance.destroy();
+                paceChartInstance = new Chart(ctxPace, {
+                    type: 'line',
+                    data: { 
+                        labels: xLabels, 
+                        datasets: [ 
+                            { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
+                            { label: '[背景] 爬升地形', data: finalClimbData, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.06)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
+                        ] 
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
+                            y1: { type: 'linear', display: false, position: 'right' }
+                        }
+                    }
+                });
+            } catch(chartErr) { console.log(chartErr); }
+        }
+    }
+
+    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
+    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
+</script>
+</body>
+</html>
