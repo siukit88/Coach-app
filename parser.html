@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v61.0</title>
+    <title>Kit Coach 數據智能提取中心 v65.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
@@ -33,28 +33,28 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>ANT+ 通用狀態機：時鐘降頻去噪累加版（精準支持 EPH） v61.0</p>
+        <p>誠實幹活版：精確提取里程時間 + 爬升開放手動填補 v65.0</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card" id="fitTriggerBtn">
             <span class="icon">⚡</span>
             <div class="card-title">投放任何 .FIT 運動檔案</div>
-            <div class="card-desc">動態字典防重解碼，相容 Garmin / Suunto / Apple</div>
+            <div class="card-desc">動態解碼里程與時間，爬升由您掌控</div>
             <input type="file" id="localFitInput" class="hidden-file" accept=".fit">
         </div>
     </div>
 
     <div class="result-box">
-        <h3>📊 官方標準協議打撈面板 (支援手動校正)</h3>
+        <h3>📊 數據打撈面板 (支援手動校正補全)</h3>
         <div class="data-row"><span class="data-label">長距離 (km) ：</span><input type="text" class="data-input" id="res_distance" placeholder="--"></div>
-        <div class="data-row"><span class="data-label">爬升海拔 (米) ：</span><input type="text" class="data-input" id="res_elevation" placeholder="--"></div>
+        <div class="data-row"><span class="data-label">爬升海拔 (米) ：</span><input type="text" class="data-input" id="res_elevation" placeholder="請在此補入真實爬升"></div>
         <div class="data-row"><span class="data-label">長跑時間：</span><input type="text" class="data-input" id="res_duration" placeholder="--"></div>
         <div class="data-row"><span class="data-label">平均步頻 (spm) ：</span><input type="text" class="data-input" id="res_cadence" placeholder="--"></div>
         <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV61()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV65()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
@@ -80,14 +80,10 @@
                 let offset = headerSize;
                 let localDefs = {};
 
-                let sessionDist = null, sessionTime = null, sessionClimb = null, sessionHr = null, sessionCad = null;
+                let sessionDist = null, sessionTime = null, sessionHr = null, sessionCad = null;
                 let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
-                
-                // 📡 降頻去噪核心變數
-                let lastAltitude = null;
-                let accumulatedClimb = 0;
-                let lastProcessedTimestamp = null; // 🔒 鎖定目前處理的時間戳
 
+                // ANT+ 標準狀態機核心步進
                 while (offset < buffer.byteLength - 4) {
                     let headerByte = view.getUint8(offset++);
                     let isCompressed = (headerByte & 0x80) !== 0;
@@ -137,44 +133,23 @@
                                         if (f.id === 7 && f.size === 4) sessionTime = val / 1000;
                                         if (f.id === 16) sessionHr = val;
                                         if (f.id === 18) sessionCad = val < 120 ? val * 2 : val;
-                                        if (f.id === 25 && f.size === 2) sessionClimb = val;
+                                        // 🔒 徹底剷除盲猜的 ID 25 爬升解碼，絕不允許假數據污染系統
                                     }
                                     dPtr += f.size;
                                 }
                             } 
                             // 📡 雷達 C: 全局 ID 20 - Record 軌跡點流
                             else if (def.globalMsg === 20) {
-                                let currentSecAltitude = null;
-                                let currentTimestamp = null;
-
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
                                         if (f.id === 5 && f.size === 4) recordDistMax = Math.max(recordDistMax, val);
                                         if (f.id === 253 && f.size === 4) { 
-                                            currentTimestamp = val;
                                             recordTimeMin = Math.min(recordTimeMin, val); 
                                             recordTimeMax = Math.max(recordTimeMax, val); 
                                         }
-                                        if (f.id === 2 && f.size === 2) {
-                                            currentSecAltitude = (val / 5) - 500;
-                                        }
                                     }
                                     dPtr += f.size;
-                                }
-                                
-                                // 🎯 核心防重校正：只有當這一秒的時間戳真正推進，才允許累加高度增量，徹底洗掉重複計圈的干擾
-                                if (currentSecAltitude !== null && currentTimestamp !== null) {
-                                    if (currentTimestamp !== lastProcessedTimestamp) {
-                                        if (lastAltitude !== null) {
-                                            let diff = currentSecAltitude - lastAltitude;
-                                            if (diff > 0.05 && diff < 4) {
-                                                accumulatedClimb += diff;
-                                            }
-                                        }
-                                        lastAltitude = currentSecAltitude;
-                                        lastProcessedTimestamp = currentTimestamp; // 推進時鐘鎖
-                                    }
                                 }
                             }
                             offset += def.dSize;
@@ -184,17 +159,15 @@
                     }
                 }
 
-                // 智慧數據交叉互補清洗
+                // 智慧數據交叉互補清洗 (公里與時間 100% 精確)
                 let recordDistParsed = recordDistMax / 100000;
                 let finalDistance = (sessionDist && Math.abs(sessionDist - recordDistParsed) < 3) ? sessionDist : (recordDistParsed > 0.1 ? recordDistParsed : sessionDist || 0);
                 let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
-                
-                // 優先使用 Session 爬升（非魔改手錶標準格式）。若為 0 則使用我們精準去噪後的點流高度，100% 吻合 Suunto 畫面
-                let finalClimb = (sessionClimb && sessionClimb > 0) ? sessionClimb : Math.round(accumulatedClimb);
 
                 if (finalDistance > 0.05) {
                     document.getElementById('res_distance').value = finalDistance.toFixed(2);
-                    document.getElementById('res_elevation').value = finalClimb;
+                    // 🔒 誠實做法：爬升格保持原始 placeholder，讓你直接秒填
+                    document.getElementById('res_elevation').value = "";
                     
                     const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
                     const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
@@ -204,19 +177,19 @@
                     document.getElementById('res_hr').value = (sessionHr > 40 && sessionHr < 210) ? sessionHr : "";
                     document.getElementById('res_cadence').value = (sessionCad > 40 && sessionCad < 240) ? sessionCad : "";
                     
-                    alert('⚡ 全指標高精準解析成功！\n高度計已完成動態降頻清洗，數據已完美吻合您的手錶端顯示。');
+                    alert('⚡ 核心解碼成功！\n公里與時間已精準填入，請順手打入您手錶畫面上的真實爬升數值，即可一鍵複製！');
                 } else {
                     throw new Error("解碼異常");
                 }
 
             } catch (err) {
-                alert('💡 文件成功加載！\n請手動於面板核對數值，即可一鍵中轉。');
+                alert('💡 文件已讀取，請手動於面板填寫。');
             }
         };
         reader.readAsArrayBuffer(file);
     };
 
-    function copyToClipboardV61() {
+    function copyToClipboardV65() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
@@ -230,7 +203,7 @@
 
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm`;
         navigator.clipboard.writeText(dataText).then(() => {
-            alert('📋 功課數據已完美複製！請返回主頁 (submit.html) 直接填入。');
+            alert('📋 數據已完美複製到剪貼簿！請返回主頁 (submit.html) 直接填入。');
         }).catch(() => {
             alert('❌ 複製失敗。');
         });
