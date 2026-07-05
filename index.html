@@ -32,7 +32,7 @@
 
     <script>
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
-        var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
+        var csvBackupUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?output=csv";
         
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
         var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
@@ -219,6 +219,7 @@
                             streams.push(rowPack[colIdx].toString().trim().replace(/[\[\]"]/g, ""));
                         }
                     }
+                    // 🛡️ 純安全 ES5 語法清洗，修復 Actions 報錯
                     if (streams[0]) { finalClimbData = streams[0].split(',').map(function(v) { return parseInt(v) || 0; }); }
                     if (streams[1]) { finalHrData = streams[1].split(',').map(function(v) { return parseInt(v) || 0; }); }
                     if (streams[2]) { finalPowerData = streams[2].split(',').map(function(v) { return parseInt(v) || 0; }); }
