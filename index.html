@@ -184,7 +184,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
-                // 100% 還原你最成功的 Base 欄位硬編碼下標
+                // 100% 保持你原始成功的 Base 欄位硬編碼
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -200,7 +200,7 @@
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             
-                            // 🔒 終極安全防禦：使用無損的三元運算子強制進行存在性檢查，防止 Array Index Out of Bounds 引發整頁死鎖
+                            // 🔒 【終極安全動態探測】：絕對不硬讀第12和13列，先用 length 檢查，不夠長直接塞空字串，防止 Out of bounds 卡死
                             var cStream = (row.length > 12 && row[12]) ? row[12].toString().trim() : "";
                             var hStream = (row.length > 13 && row[13]) ? row[13].toString().trim() : "";
 
@@ -278,7 +278,7 @@
                 var cadenceNum = parseInt(matched.cadence) || 0; 
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
 
-                // 🛡️ 歷史舊數據安全回滾：如果試算表裡有大數據串則解開；無則全自動安全採用平滑保底地形，絕對不會再度卡死崩潰
+                // 🛡️ 【相容保底防線】：如果時序數據串存在且有效，才進行切分；否則使用標準平滑線，絕不卡死
                 var finalClimbData = [0, Math.round(climbNum*0.3), Math.round(climbNum*0.2), Math.round(climbNum*0.8), Math.round(climbNum*0.5), climbNum];
                 if (matched.climbStream && matched.climbStream.trim() !== "") {
                     var pts = matched.climbStream.split(',');
@@ -295,7 +295,7 @@
                     }
                 }
 
-                // 📈 圖表一：正統雙 Y 軸配置（心率/步頻對齊左軸，[背景] 爬升地形對齊右軸）
+                // 📈 圖表一：正統雙 Y 軸標準配置（心率/步頻左軸，背景地形右軸隱藏）
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -313,11 +313,11 @@
                         maintainAspectRatio: false,
                         scales: {
                             y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
-                            y1: { type: 'linear', display: false, position: 'right' }
+                            y1: { type: 'linear', display: false, position: 'right' } // 右軸隱藏，徹底防止卡死
                         }
                     }
                 });
 
-                // 📈 圖表二：正統雙 Y 軸配置（配速對齊左軸，[背景] 爬升地形對齊右軸）
+                // 📈 圖表二：正統雙 Y 軸標準配置（配速左軸，背景地形右軸隱藏）
                 var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartIns
+                if (paceChartInstance) paceChartInst
