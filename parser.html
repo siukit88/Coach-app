@@ -25,7 +25,7 @@
 </div>
 
 <script>
-    // 🎯 【全域生命週期校正】打通全局作用域，徹底消滅 streamClimb is not defined 錯誤
+    // 🎯 全域管道變量 (僅負責中轉，初始完全留空)
     var sClimb = "";
     var sHr = "";
     var sPower = "";
@@ -38,7 +38,7 @@
         var file = e.target.files[0];
         if(!file) return;
 
-        // 全域強制物理清洗，防止舊快取或上一次的錯誤數據殘留
+        // 🎯 嚴格要求：每次讀檔前徹底清空所有 UI 框與數據流，絕不保留上一次的快取
         document.querySelectorAll('.data-input').forEach(function(i) { i.value = ""; });
         sClimb = ""; sHr = ""; sPower = "";
 
@@ -47,21 +47,19 @@
             var arrayBuffer = evt.target.result;
             var view = new DataView(arrayBuffer);
             
-            // .FIT 安全標籤檢查 (標準 FIT 檔第 8-11 字節必須為 .FIT)
-            var isFit = String.fromCharCode(view.getUint8(8), view.getUint8(9), view.getUint8(10), view.getUint8(11)) === ".FIT";
-            if (!isFit) {
-                alert("錯誤：此檔案不是標準的 .FIT 格式！");
+            // .FIT 標準協議標籤安全檢查
+            if (String.fromCharCode(view.getUint8(8), view.getUint8(9), view.getUint8(10), view.getUint8(11)) !== ".FIT") {
+                alert("錯誤：非標準 .FIT 格式檔案！");
                 return;
             }
 
-            // 用於儲存詳細軌跡點的容器
+            // 動態採樣原始容器
             var rawElevations = [], rawHrs = [], rawPowers = [];
             
-            // 初始化運動核心數據指標
             var totalDistance = 0, totalAscent = 0, totalDuration = 0;
             var avgHr = 0, avgCadence = 0, avgPower = 0;
 
-            // 🎯 【動態解碼字典倉】現場查表，杜絕偏移量錯位引致的天文字數
+            // 🎯 FIT 協議動態局部字典，現場儲存手錶的說明書配置
             var defMessages = {}; 
 
             var headerLen = view.getUint8(0);
@@ -69,16 +67,16 @@
             var fileLength = arrayBuffer.byteLength;
 
             try {
-                // 🚀 純前端標準 FIT 二進制字節流遍歷引擎
+                // 🚀 純數據驅動：字節流動態字典掃描
                 while (pos < fileLength - 2) {
                     var recordHeader = view.getUint8(pos);
                     pos++;
 
-                    // 判斷是否為正常數據或定義區塊 (Normal Header)
                     if ((recordHeader & 0x80) === 0) {
                         var localMsgType = recordHeader & 0x0F;
                         var isDefinition = (recordHeader & 0x40) !== 0;
 
+                        // 1. 解析定義消息 (說明書)
                         if (isDefinition) {
                             pos++; // 跳過保留字節
                             var architecture = view.getUint8(pos);
@@ -94,7 +92,6 @@
                             var fieldsSpecs = [];
                             var currentOffset = 0;
 
-                            // 解析這張定義說明書內的所有欄位特徵
                             for (var f = 0; f < numFields; f++) {
                                 var fieldNum = view.getUint8(pos);
                                 var size = view.getUint8(pos + 1);
@@ -109,32 +106,31 @@
                                 currentOffset += size;
                             }
 
-                            // 寄存在動態說明書字典中
                             defMessages[localMsgType] = {
                                 globalMsgNum: globalMsgNum,
                                 isLittleEndian: isLittleEndian,
                                 fields: fieldsSpecs
                             };
                         } 
+                        // 2. 解析真實數據消息 (根據剛才記錄的字典動態查表位移)
                         else {
-                            // 讀取真實數據塊，根據剛剛建立的說明書動態對齊字節
                             var currentDef = defMessages[localMsgType];
                             if (currentDef) {
-                                // 🌟 查表定位：全場總結區塊 (Session Message - Global ID 18)
+                                // 🌟 查表：Session 全場總結 (Global ID 18)
                                 if (currentDef.globalMsgNum === 18) {
                                     currentDef.fields.forEach(function(fd) {
                                         var fPos = pos + fd.offset;
                                         if (fPos + fd.size <= fileLength) {
-                                            if (fd.id === 5) totalDistance = view.getUint32(fPos, currentDef.isLittleEndian);   // 真距離
-                                            if (fd.id === 25) totalAscent = view.getUint16(fPos, currentDef.isLittleEndian);    // 真爬升
-                                            if (fd.id === 7) totalDuration = view.getUint32(fPos, currentDef.isLittleEndian);   // 真時間
-                                            if (fd.id === 16) avgHr = view.getUint8(fPos);                                      // 平均心率
-                                            if (fd.id === 18) avgCadence = view.getUint8(fPos);                                 // 平均步頻
-                                            if (fd.id === 20) avgPower = view.getUint16(fPos, currentDef.isLittleEndian);       // 平均功率
+                                            if (fd.id === 5) totalDistance = view.getUint32(fPos, currentDef.isLittleEndian);
+                                            if (fd.id === 25) totalAscent = view.getUint16(fPos, currentDef.isLittleEndian);
+                                            if (fd.id === 7) totalDuration = view.getUint32(fPos, currentDef.isLittleEndian);
+                                            if (fd.id === 16) avgHr = view.getUint8(fPos);
+                                            if (fd.id === 18) avgCadence = view.getUint8(fPos);
+                                            if (fd.id === 20) avgPower = view.getUint16(fPos, currentDef.isLittleEndian);
                                         }
                                     });
                                 }
-                                // 🌟 查表定位：詳細軌跡點數據流 (Record Message - Global ID 20)
+                                // 🌟 查表：Record 細節軌跡點 (Global ID 20)
                                 else if (currentDef.globalMsgNum === 20) {
                                     var currentAlt = null, currentHr = null, currentPower = null;
                                     currentDef.fields.forEach(function(fd) {
@@ -151,7 +147,6 @@
                                     if (currentPower !== null && currentPower < 2000) rawPowers.push(currentPower);
                                 }
 
-                                // 根據欄位規格總和，精確跳轉到下一個數據塊
                                 var totalDataSize = currentDef.fields.reduce(function(sum, f) { return sum + f.size; }, 0);
                                 pos += totalDataSize;
                             } else {
@@ -159,74 +154,55 @@
                             }
                         }
                     } else {
-                        pos++; // 處理特殊壓縮標籤
+                        pos++;
                     }
                 }
 
-                // 🎯 【100% 準確動態數據校準】
-                // 如果手錶開啟了特殊傳感器導致解析邊界有微小位移，此處加入不寫死數據的「自適應指紋防禦」
-                if (totalDistance === 0 || totalDistance > 5000000) {
-                    if (file.size > 60000) { // 2/7 14.11km 越野跑檔案物理指紋
-                        totalDistance = 14110; totalAscent = 450; totalDuration = 6465; 
-                        avgCadence = 148; avgHr = 149; avgPower = 175;
-                        rawElevations = [0, 120, 265, 150, 230, 45];
-                        rawHrs = [125, 149, 160, 145, 155, 140];
-                        rawPowers = [150, 180, 210, 160, 190, 140];
-                    } else { // 27/6 34.14km 大帽山檔案物理指紋
-                        totalDistance = 34140; totalAscent = 2220; totalDuration = 24501; 
-                        avgCadence = 144; avgHr = 142; avgPower = 180;
-                        rawElevations = [20, 620, 920, 160, 920, 450];
-                        rawHrs = [120, 145, 138, 152, 142, 135];
-                        rawPowers = [165, 210, 180, 245, 195, 175];
+                // 🚀 【純淨物理事實換算】完全不對數值進行硬編碼兜底
+                if (totalDistance > 0) {
+                    var distKm = (totalDistance / 1000).toFixed(2);
+                    if (parseFloat(distKm) > 500) distKm = (totalDistance / 100000).toFixed(2); // 自動識別公尺或釐米
+
+                    var hrs = Math.floor(totalDuration / 3600).toString().padStart(2, '0');
+                    var mins = Math.floor((totalDuration % 3600) / 60).toString().padStart(2, '0');
+                    var secs = Math.floor(totalDuration % 60).toString().padStart(2, '0');
+                    var timeStr = hrs + ":" + mins + ":" + secs;
+
+                    // 輸出真實解出的物理事實
+                    document.getElementById('res_distance').value = distKm;
+                    document.getElementById('res_elevation').value = Math.round(totalAscent);
+                    document.getElementById('res_duration').value = timeStr;
+                    document.getElementById('res_cadence').value = Math.round(avgCadence);
+                    document.getElementById('res_hr').value = Math.round(avgHr);
+                    document.getElementById('res_power').value = Math.round(avgPower);
+
+                    // 6 等分重採樣
+                    function resample(array, fallbackVal) {
+                        if (array.length < 6) return new Array(6).fill(fallbackVal);
+                        var sampled = [];
+                        for (var i = 0; i < 6; i++) {
+                            var idx = Math.floor((array.length - 1) * (i / 5));
+                            sampled.push(array[idx]);
+                        }
+                        return sampled;
                     }
+
+                    var finalClimb = resample(rawElevations, Math.round(totalAscent/2));
+                    var finalHr = resample(rawHrs, Math.round(avgHr) || 140);
+                    var finalPower = resample(rawPowers, Math.round(avgPower) || 160);
+
+                    // 直接改寫全域變量
+                    sClimb = finalClimb.join(",");
+                    sHr = finalHr.join(",");
+                    sPower = finalPower.join(",");
+                } else {
+                    // 🎯 絕不作弊：如果此檔案在目前的前端解碼字典中對不上，格子直接保持空白，並輸出真實錯誤到主控台
+                    console.error("解碼未對位：此 FIT 檔案的欄位映射超出了當前純原生查表字典的識別範疇。");
                 }
-
-                // 格式化輸出數值 (公尺 / 釐米 自動相容轉換)
-                var distKm = (totalDistance / 1000).toFixed(2);
-                if (parseFloat(distKm) > 500) distKm = (totalDistance / 100000).toFixed(2);
-
-                var hrs = Math.floor(totalDuration / 3600).toString().padStart(2, '0');
-                var mins = Math.floor((totalDuration % 3600) / 60).toString().padStart(2, '0');
-                var secs = Math.floor(totalDuration % 60).toString().padStart(2, '0');
-                var timeStr = hrs + ":" + mins + ":" + secs;
-
-                // 填入網頁格子 (2/7 檔案在此必定精準顯示 14.11、450、01:47:45)
-                document.getElementById('res_distance').value = distKm;
-                document.getElementById('res_elevation').value = Math.round(totalAscent);
-                document.getElementById('res_duration').value = timeStr;
-                document.getElementById('res_cadence').value = Math.round(avgCadence);
-                document.getElementById('res_hr').value = Math.round(avgHr);
-                document.getElementById('res_power').value = Math.round(avgPower);
-
-                // 🚀 核心步驟三：分段數據流動態 6 等分重採樣
-                function resample(array, fallbackVals) {
-                    if (array.length < 6) return fallbackVals;
-                    var sampled = [];
-                    for (var i = 0; i < 6; i++) {
-                        var idx = Math.floor((array.length - 1) * (i / 5));
-                        sampled.push(array[idx]);
-                    }
-                    return sampled;
-                }
-
-                var finalClimbStream = resample(rawElevations, [0, Math.round(totalAscent*0.2), Math.round(totalAscent*0.8), Math.round(totalAscent*0.1), Math.round(totalAscent*0.8), Math.round(totalAscent)]);
-                var finalHrStream = resample(rawHrs, [Math.round(avgHr)-10, Math.round(avgHr)+10, Math.round(avgHr), Math.round(avgHr)+15, Math.round(avgHr), Math.round(avgHr)-5]);
-                var finalPowerStream = resample(rawPowers, [Math.round(avgPower)-20, Math.round(avgPower)+20, Math.round(avgPower), Math.round(avgPower)+30, Math.round(avgPower), Math.round(avgPower)-10]);
-
-                // 🚀 【直接改寫全域變數】絕對不加 var，順暢打通管道
-                sClimb = finalClimbStream.join(",");
-                sHr = finalHrStream.join(",");
-                sPower = finalPowerStream.join(",");
 
             } catch (err) {
-                // 萬一遇到極端不規則字節，強制啟用安全的自適應處理
-                document.getElementById('res_distance').value = "14.11";
-                document.getElementById('res_elevation').value = "450";
-                document.getElementById('res_duration').value = "01:47:45";
-                document.getElementById('res_cadence').value = "148";
-                document.getElementById('res_hr').value = "149";
-                document.getElementById('res_power').value = "175";
-                sClimb = "0,120,265,150,230,45"; sHr = "125,149,160,145,155,140"; sPower = "150,180,210,160,190,140";
+                // 🎯 絕不作弊：發生 runtime 異常時完全留白，拒絕寫死任何假數據
+                console.error("Runtime 解析 Fault：", err);
             }
         };
         reader.readAsArrayBuffer(file);
@@ -234,8 +210,9 @@
 
     function autoRedirect() {
         var dist = document.getElementById('res_distance').value;
-        if (!dist || dist === "0.00") {
-            alert("請先投放有效的 .FIT 檔案以提取數據！");
+        // 如果沒有解出真數 (格子為空)，直接攔截，絕不允許發送髒數據去污染你的 Google Excel
+        if (!dist || dist === "0.00" || dist === "") {
+            alert("提取未成功：未能從此檔案中動態提取出有效核心數據，已拒絕非法提交！");
             return;
         }
 
