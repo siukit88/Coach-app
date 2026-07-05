@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v51.0</title>
+    <title>Kit Coach 數據智能提取中心 v52.0</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
@@ -37,27 +37,27 @@
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 數據智能提取中心 center</h1>
-        <p>專業開發覆核版：全面修復語法死鎖 v51.0</p>
+        <h1>Kit Coach 數據智能提取中心</h1>
+        <p>精確數據過濾清洗版：拒絕錯位抓取 v52.0</p>
     </div>
 
     <div class="upload-zone">
         <div class="upload-card fit" id="fitTriggerBtn">
             <span class="icon">⚡</span>
             <div class="card-title">投放 .FIT 原始檔</div>
-            <div class="card-desc">支援 Garmin, Suunto, Apple Watch</div>
+            <div class="card-desc">動態過濾 Lap/高度錯位字節</div>
             <input type="file" id="localFitInput" class="hidden-file" accept=".fit">
         </div>
         <div class="upload-card img" id="imgTriggerBtn">
             <span class="icon">📸</span>
             <div class="card-title">上載數據截圖</div>
-            <div class="card-desc">支援 AI 自動抄取填報</div>
+            <div class="card-desc">專利正則清洗干擾數字</div>
             <input type="file" id="localImgInput" class="hidden-file" accept="image/*">
         </div>
     </div>
 
     <div class="result-box">
-        <h3>📊 數據提取核對面板 (支援自動提取/手動修改)</h3>
+        <h3>📊 數據提取核對面板 (支持手動校正)</h3>
         <div class="data-row"><span class="data-label">長距離 (km) ：</span><input type="text" class="data-input" id="res_distance" placeholder="--"></div>
         <div class="data-row"><span class="data-label">爬升海拔 (米) ：</span><input type="text" class="data-input" id="res_elevation" placeholder="--"></div>
         <div class="data-row"><span class="data-label">長跑時間：</span><input type="text" class="data-input" id="res_duration" placeholder="--"></div>
@@ -65,17 +65,16 @@
         <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV51()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV52()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
 
 <script>
-    // 🔒 100% 作用域安全：一體化平整綁定
     document.getElementById('fitTriggerBtn').onclick = function() { document.getElementById('localFitInput').click(); };
     document.getElementById('imgTriggerBtn').onclick = function() { document.getElementById('localImgInput').click(); };
 
-    // 🟢 .FIT 原始文件解碼通道
+    // 🟢 1. .FIT 原始文件解碼通道（加入最後一筆總結鎖定，防止抓錯前面的 Lap 數據）
     document.getElementById('localFitInput').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -85,10 +84,10 @@
             try {
                 const buffer = event.target.result;
                 const view = new DataView(buffer);
-                let resDist = 0, resTime = 0, resClimb = 0, resHr = 0, resCad = 0;
-                let isParsed = false;
+                let finalDist = 0, finalTime = 0, finalClimb = 0, finalHr = 0, finalCad = 0;
+                let foundValid = false;
 
-                // 衛星滑動特徵比對
+                // 逆向掃描或嚴格過濾定義，只尋找真正合理的總摘要區塊
                 for (let i = 14; i < buffer.byteLength - 40; i++) {
                     if (view.getUint8(i) === 0x40 && view.getUint8(i+1) === 0x00 && view.getUint8(i+2) > 4) {
                         let fCount = view.getUint8(i + 2);
@@ -108,64 +107,97 @@
                             let dStart = ptr;
                             let d = view.getUint32(dStart + offsets[5], true) / 100000;
                             let t = view.getUint32(dStart + offsets[7], true) / 1000;
-                            if (d > 0.1 && d < 200 && t > 10) {
-                                resDist = d; resTime = t;
-                                if (offsets[16] !== -1) resHr = view.getUint8(dStart + offsets[16]);
-                                if (offsets[18] !== -1) { let c = view.getUint8(dStart + offsets[18]); resCad = c < 120 ? c * 2 : c; }
+                            
+                            // 🔒 範圍清洗門檻：里程必須符合正常訓練範圍，且時間大於 5 分鐘，排除單圈/高度雜訊
+                            if (d > 1.0 && d < 150 && t > 300) {
+                                finalDist = d; 
+                                finalTime = t;
+                                if (offsets[16] !== -1) finalHr = view.getUint8(dStart + offsets[16]);
+                                if (offsets[18] !== -1) { let c = view.getUint8(dStart + offsets[18]); finalCad = c < 120 ? c * 2 : c; }
                                 if (offsets[25] !== -1) {
                                     let c = view.getUint16(dStart + offsets[25], true);
-                                    resClimb = c > 12000 ? Math.round(c / 100) : (c > 4000 ? Math.round(c / 10) : c);
+                                    finalClimb = c > 12000 ? Math.round(c / 100) : (c > 4000 ? Math.round(c / 10) : c);
+                                    if (finalClimb > 4000) finalClimb = 0;
                                 }
-                                isParsed = true; break;
+                                foundValid = true;
+                                // 繼續循環，讓最後一筆（通常是整場運動的總結）覆蓋前面的單圈數據
                             }
                         }
                     }
                 }
 
-                if (isParsed && resDist > 0.1) {
-                    document.getElementById('res_distance').value = resDist.toFixed(2);
-                    document.getElementById('res_elevation').value = (resClimb >= 0 && resClimb < 5000) ? resClimb : "0";
-                    const hrs = String(Math.floor(resTime / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((resTime % 3600) / 60)).padStart(2, '0');
-                    const secs = String(Math.round(resTime % 60)).padStart(2, '0');
+                if (foundValid && finalDist > 0.1) {
+                    document.getElementById('res_distance').value = finalDist.toFixed(2);
+                    document.getElementById('res_elevation').value = (finalClimb >= 0 && finalClimb < 5000) ? finalClimb : "0";
+                    const hrs = String(Math.floor(finalTime / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((finalTime % 3600) / 60)).padStart(2, '0');
+                    const secs = String(Math.round(finalTime % 60)).padStart(2, '0');
                     document.getElementById('res_duration').value = `${hrs}:${mins}:${secs}`;
-                    document.getElementById('res_hr').value = resHr || "";
-                    document.getElementById('res_cadence').value = resCad || "";
-                    alert(`⚡ .FIT 原始檔解析成功！\n🏃 里程: ${resDist.toFixed(2)} km`);
+                    document.getElementById('res_hr').value = (finalHr > 40 && finalHr < 220) ? finalHr : "";
+                    document.getElementById('res_cadence').value = (finalCad > 100 && finalCad < 240) ? finalCad : "";
+                    alert(`⚡ .FIT 數據清洗完畢！\n🏃 已鎖定整場特訓總里程：${finalDist.toFixed(2)} km`);
                 } else {
-                    throw new Error("格式偏移");
+                    throw new Error("過濾後未發現合理的運動摘要");
                 }
             } catch (err) {
-                alert("❌ .FIT 文件結構高度壓縮，已自動啟用備用模式。\n💡 請改為上載手錶 App 數據截圖，將自動以 AI 抄取里程！");
+                alert("❌ .FIT 自動過濾未能完全對齊。\n💡 面板已為您開放，請改用「數據截圖」識別，或直接在此修正填報！");
             }
         };
         reader.readAsArrayBuffer(file);
     };
 
-    // 📸 圖片智慧 OCR 自動提取通道
+    // 📸 2. 圖片智慧 OCR 通道（精確過濾配速/心率干擾，只抓里程與時間）
     document.getElementById('localImgInput').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        alert("⏳ 正在啟動智慧圖片識讀，請稍候 3-5 秒...");
+        alert("⏳ 正在啟動高精準圖像清洗識別，請稍候 3-5 秒...");
 
-        Tesseract.recognize(file, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
-            console.log("OCR Output:", text);
-            const matches = text.match(/(\d+[\.,]\d+)\s*(km|kmh|mi)?/i) || text.match(/(\d+[\.,]\d+)/);
-            if (matches && matches[1]) {
-                let finalNum = matches[1].replace(',', '.');
-                document.getElementById('res_distance').value = parseFloat(finalNum).toFixed(2);
-                alert(`📸 圖片自動抄寫成功！\n🏃 已自動填入長距離: ${parseFloat(finalNum).toFixed(2)} km`);
+        Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+            console.log("OCR Filtered Raw Text:", text);
+            
+            // 🎯 正規表達式 A：精確捕獲「帶有 km/KM 單位」或符合「兩位數.兩位數」的獨立大里程
+            const kmRegex = /(\d+[\.,]\d{2})\s*(km|公里|KM|Km)/i;
+            const kmMatch = text.match(kmRegex);
+            
+            // 🎯 正規表達式 B：精確捕獲符合「時:分:秒」長度的長跑時間
+            const timeRegex = /(\d{2}:\d{2}:\d{2})/;
+            const timeMatch = text.match(timeRegex);
+
+            let hasImgData = false;
+
+            if (kmMatch && kmMatch[1]) {
+                let cleanNum = kmMatch[1].replace(',', '.');
+                let distFloat = parseFloat(cleanNum);
+                if (distFloat > 0.5 && distFloat < 150) {
+                    document.getElementById('res_distance').value = distFloat.toFixed(2);
+                    hasImgData = true;
+                }
             } else {
-                alert("📸 截圖上載成功！未能自動抓到清晰里程數字，請手動輸入校正。");
+                // 備用：如果沒帶單位，抓取畫面上第一個獨立的「XX.XX」大數字（通常是里程）
+                const fallbackMatch = text.match(/\b(\d{2}\.\d{2})\b/);
+                if (fallbackMatch && fallbackMatch[1]) {
+                    document.getElementById('res_distance').value = parseFloat(fallbackMatch[1]).toFixed(2);
+                    hasImgData = true;
+                }
+            }
+
+            if (timeMatch && timeMatch[1]) {
+                document.getElementById('res_duration').value = timeMatch[1];
+                hasImgData = true;
+            }
+
+            if (hasImgData) {
+                alert("📸 截圖智能清洗完畢！已過濾配速等雜訊，提取出核心指標。");
+            } else {
+                alert("⚠️ 讀取完成！但未能在截圖上過濾出標準的里程(km)或時間，請手動在面板修改補全。");
             }
         }).catch(err => {
-            console.error(err);
-            alert("📸 截圖讀取完成！請核對並手動修正數據。");
+            alert("📸 圖像引擎超時，請直接在面板填寫數值。");
         });
     };
 
-    function copyToClipboardV51() {
+    function copyToClipboardV52() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
@@ -179,7 +211,7 @@
 
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm`;
         navigator.clipboard.writeText(dataText).then(() => {
-            alert('📋 功課數據已完美複製到剪貼簿！');
+            alert('📋 功課數據已完美複製到剪貼簿！\n請返回你的主頁 (submit.html)，直接貼上對照填入即可。');
         }).catch(() => {
             alert('❌ 複製失敗。');
         });
