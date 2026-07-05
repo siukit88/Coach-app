@@ -81,7 +81,7 @@
 <div id="login-screen" class="login-overlay">
     <div class="login-box">
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
-        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">終極去鎖相容版 v150.1-Stable</p>
+        <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">去防死鎖相容版 v150.2-Stable</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
         <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
@@ -176,6 +176,7 @@
             allRecords = []; var weeks = {};
             
             if(lines && lines.length > 1) {
+                // 原版 11 個標準欄位下標
                 var idxName = 1; var idxWeek = 2; var idxDist = 3; var idxTime = 4;
                 var idxCadence = 5; var idxStride = 6; var idxHr = 7; var idxRisk = 8;
                 var idxWeather = 9; var idxSupply = 10; var idxClimb = 11;
@@ -191,8 +192,17 @@
                         if(cleanCellName === cleanTarget || (cleanTarget === "nein" && cleanCellName === "nien") || (cleanTarget === "nien" && cleanCellName === "nein") || (cleanTarget === "wing_ptl" && cleanCellName === "wing") || (cleanTarget === "jason_ptl" && cleanCellName === "jason")) {
                             var wValue = row[idxWeek] ? row[idxWeek].toString().trim() : "1";
                             
-                            var cStream = (row.length > 12 && row[12]) ? row[12].toString().trim() : "";
-                            var hStream = (row.length > 13 && row[13]) ? row[13].toString().trim() : "";
+                            // 🛡️ 深度安全探測防線：先驗證欄位長度，如果是包含 JSON 陣列的儲存格則保留並傳遞，防止 Index 引發拋錯
+                            var cStream = "";
+                            var hStream = "";
+
+                            // 遍歷當前 row 的後半段，動態查找是否有時序特徵的儲存格
+                            for(var colIdx = 12; colIdx < row.length; colIdx++) {
+                                if(row[colIdx] && (row[colIdx].indexOf(',') !== -1 || row[colIdx].indexOf('[') !== -1)) {
+                                    if(cStream === "") { cStream = row[colIdx].toString().trim(); }
+                                    else if(hStream === "") { hStream = row[colIdx].toString().trim(); }
+                                }
+                            }
 
                             allRecords.push({ 
                                 timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
@@ -268,26 +278,32 @@
                 var cadenceNum = parseInt(matched.cadence) || 0; 
                 var xLabels = ['0km', '5km', '12km', '22km', '26km', '30km'];
 
+                // 保底平滑地形線數據
                 var finalClimbData = [0, Math.round(climbNum*0.3), Math.round(climbNum*0.2), Math.round(climbNum*0.8), Math.round(climbNum*0.5), climbNum];
                 
-                // 🛡️ 【終極雙重容錯防線】：即使字串是 undefined 或帶有方括號，先轉換、移除括號、再進行切分，確保絕不崩潰
-                if (matched.climbStream && String(matched.climbStream).trim() !== "") {
-                    var cleanStr = String(matched.climbStream).replace(/[\[\]]/g, "");
+                // 🛡️ 深度 Null-Safe 防護：無論時序數據是 undefined，或包含方括號 `[]`，先轉換成純字串、清洗乾淨、再呼叫 split，確保絕不中斷
+                if (matched.climbStream) {
+                    var cleanStr = String(matched.climbStream).replace(/[\[\]"]/g, "");
                     if(cleanStr.trim() !== "") {
                         var pts = cleanStr.split(',');
-                        if (pts.length >= 3) { finalClimbData = pts.map(function(v){ return parseInt(v) || 0; }); }
+                        if (pts.length >= 3) { 
+                            finalClimbData = pts.map(function(v){ return parseInt(v) || 0; }); 
+                        }
                     }
                 }
 
                 var finalHrData = [hrNum - 15, hrNum - 2, hrNum - 8, hrNum, hrNum - 5, hrNum - 10];
-                if (matched.hrStream && String(matched.hrStream).trim() !== "") {
-                    var cleanHStr = String(matched.hrStream).replace(/[\[\]]/g, "");
+                if (matched.hrStream) {
+                    var cleanHStr = String(matched.hrStream).replace(/[\[\]"]/g, "");
                     if(cleanHStr.trim() !== "") {
                         var hpts = cleanHStr.split(',');
-                        if (hpts.length >= 3) { finalHrData = hpts.map(function(v){ return parseInt(v) || 0; }); }
+                        if (hpts.length >= 3) { 
+                            finalHrData = hpts.map(function(v){ return parseInt(v) || 0; }); 
+                        }
                     }
                 }
 
+                // 📈 圖表一：雙 Y 軸標準配置（心率/步頻對齊左軸，背景地形圖對齊右軸）
                 var ctxBio = document.getElementById('bioMetricsChart').getContext('2d');
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(ctxBio, {
@@ -301,17 +317,4 @@
                         ]
                     },
                     options: { 
-                        responsive: true, maintainAspectRatio: false,
-                        scales: {
-                            y: { type: 'linear', display: true, position: 'left', grid: { color: '#2a2a35' } },
-                            y1: { type: 'linear', display: false, position: 'right' }
-                        }
-                    }
-                });
-
-                var ctxPace = document.getElementById('paceMetricsChart').getContext('2d');
-                if (paceChartInstance) paceChartInstance.destroy();
-                paceChartInstance = new Chart(ctxPace, {
-                    type: 'line',
-                    data: { 
-                        
+      
