@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v87.0</title>
+    <title>Kit Coach 數據智能提取中心 v88.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
@@ -35,7 +35,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>方案 A 純手動抄寫・實際里程雙主線連動版 v87.0</p>
+        <p>方案 A 純手動抄寫・實際里程雙主線連動版 v88.0</p>
     </div>
 
     <div class="upload-zone">
@@ -61,7 +61,7 @@
         <div class="data-row"><span class="data-label">平均功率 (Watt) ：</span><input type="text" class="data-input" id="res_power" value="180" oninput="updateLiveChart()"></div>
     </div>
 
-    <button class="btn-action" onclick="autoRedirectBackV87()">🚀 數據正確，一鍵全自動填報帶回</button>
+    <button class="btn-action" onclick="autoRedirectBackV88()">🚀 數據正確，一鍵全自動填報帶回</button>
     <a href="submit.html" class="nav-link">⬅ 放棄自動提取，返回手動輸入功課</a>
 </div>
 
@@ -70,13 +70,15 @@
 
     document.getElementById('fitTriggerBtn').onclick = function() { document.getElementById('localFitInput').click(); };
     
+    // 🎯 100% 方案 A 鐵律：投放檔案時絕對不強行覆蓋、不更改格子內的數據！
     document.getElementById('localFitInput').onchange = function(e) {
         if(e.target.files[0]) {
             updateLiveChart();
-            alert('⚡ .fit 晶片連動成功！\n格子已完全解鎖，請直接對照手錶 App，手動抄寫與修正面板上的特訓數據！');
+            alert('⚡ .fit 晶片連動成功！\n格子數據已完全排除代碼自動鎖死。請對照手錶 App，自由抄寫、修正面板上的數值！');
         }
     };
 
+    // 🎯 雙主線對位連動核心：X 軸為實際公里、心率左軸、功率右軸、高度純背景
     function updateLiveChart() {
         var distStr = document.getElementById('res_distance').value.trim() || "34.14";
         var distNum = parseFloat(distStr) || 34.14;
@@ -124,7 +126,7 @@
 
     window.addEventListener('DOMContentLoaded', function() { updateLiveChart(); });
 
-    function autoRedirectBackV87() {
+    function autoRedirectBackV88() {
         var dist = document.getElementById('res_distance').value.trim();
         var climb = document.getElementById('res_elevation').value.trim();
         var time = document.getElementById('res_duration').value.trim();
