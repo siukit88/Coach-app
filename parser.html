@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v50.0</title>
+    <title>Kit Coach 數據智能提取中心 v51.0</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
@@ -37,8 +37,8 @@
 
 <div class="phone-container">
     <div class="header">
-        <h1>Kit Coach 數據智能提取中心</h1>
-        <p>智慧 AI OCR 圖像識別 + 三大巨頭 FIT 通車版 v50.0</p>
+        <h1>Kit Coach 數據智能提取中心 center</h1>
+        <p>專業開發覆核版：全面修復語法死鎖 v51.0</p>
     </div>
 
     <div class="upload-zone">
@@ -62,20 +62,20 @@
         <div class="data-row"><span class="data-label">爬升海拔 (米) ：</span><input type="text" class="data-input" id="res_elevation" placeholder="--"></div>
         <div class="data-row"><span class="data-label">長跑時間：</span><input type="text" class="data-input" id="res_duration" placeholder="--"></div>
         <div class="data-row"><span class="data-label">平均步頻 (spm) ：</span><input type="text" class="data-input" id="res_cadence" placeholder="--"></div>
-        <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"> }</div>
+        <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV50()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV51()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
 
 <script>
-    // 🔒 100% 作用域安全：一體化綁定，絕不允許任何 ReferenceError
+    // 🔒 100% 作用域安全：一體化平整綁定
     document.getElementById('fitTriggerBtn').onclick = function() { document.getElementById('localFitInput').click(); };
     document.getElementById('imgTriggerBtn').onclick = function() { document.getElementById('localImgInput').click(); };
 
-    // 🟢 .FIT 原始文件提取通道
+    // 🟢 .FIT 原始文件解碼通道
     document.getElementById('localFitInput').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -88,7 +88,7 @@
                 let resDist = 0, resTime = 0, resClimb = 0, resHr = 0, resCad = 0;
                 let isParsed = false;
 
-                // 衛星滑動特徵比對（專拆三大巨頭 Session msg18）
+                // 衛星滑動特徵比對
                 for (let i = 14; i < buffer.byteLength - 40; i++) {
                     if (view.getUint8(i) === 0x40 && view.getUint8(i+1) === 0x00 && view.getUint8(i+2) > 4) {
                         let fCount = view.getUint8(i + 2);
@@ -142,7 +142,7 @@
         reader.readAsArrayBuffer(file);
     };
 
-    // 📸 終極優化：圖片智慧 OCR 自動提取抄寫（解決圖片抄不到數的問題）
+    // 📸 圖片智慧 OCR 自動提取通道
     document.getElementById('localImgInput').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -151,7 +151,6 @@
 
         Tesseract.recognize(file, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
             console.log("OCR Output:", text);
-            // 利用正規表達式精確抓取圖片中的「數字 + km」或獨立大數字
             const matches = text.match(/(\d+[\.,]\d+)\s*(km|kmh|mi)?/i) || text.match(/(\d+[\.,]\d+)/);
             if (matches && matches[1]) {
                 let finalNum = matches[1].replace(',', '.');
@@ -166,7 +165,7 @@
         });
     };
 
-    function copyToClipboardV50() {
+    function copyToClipboardV51() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
@@ -180,7 +179,7 @@
 
         const dataText = `【特訓里程】 ${dist || '--'} km \n【爬升海拔】 ${climb || '--'} 米 \n【長跑時間】 ${time || '--'}\n【平均步頻】 ${cad || '--'} spm\n【平均心率】 ${hr || '--'} bpm`;
         navigator.clipboard.writeText(dataText).then(() => {
-            alert('📋 數據已複製！請返回主頁 (submit.html) 填入。');
+            alert('📋 功課數據已完美複製到剪貼簿！');
         }).catch(() => {
             alert('❌ 複製失敗。');
         });
