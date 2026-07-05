@@ -175,7 +175,7 @@
 
             weekSelect.innerHTML = '<option value="">選擇週數...</option>';
             Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(w) { 
-                weekSelect.innerHTML += `<option value="${w}">第 ${w} 週</option>`; 
+                weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
             });
             
             document.getElementById('loading-status').style.display = 'none';
@@ -200,15 +200,17 @@
             var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0;
             var hrNum = parseInt(matched.hr) || 0;
 
+            var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+            document.getElementById('hr-bar').style.width = pct + "%";
+
             try {
-                // 🛣️ 看板 X 軸橫座標 100% 精確對齊實際公里數標籤
+                var cadenceNum = parseInt(matched.cadence) || 0; 
                 var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', matched.distance + 'km'];
                 
                 var finalClimbData = [0, Math.round(climbNum*0.28), Math.round(climbNum*0.18), Math.round(climbNum*0.72), Math.round(climbNum*0.55), climbNum];
                 var finalHrData = [hrNum - 12, hrNum + 6, hrNum - 4, hrNum + 14, hrNum - 2, hrNum - 8];
-                var finalPowerData = [160, 210, 180, 240, 195, 180]; // 保底功率數據
+                var finalPowerData = [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)];
 
-                // 🛡️ 隔離解鎖大數據流
                 var rowPack = matched.rawRowPackage;
                 if (rowPack && rowPack.length > 12) {
                     var streams = [];
@@ -217,9 +219,9 @@
                             streams.push(rowPack[colIdx].toString().trim().replace(/[\[\]"]/g, ""));
                         }
                     }
-                    if (streams[0]) finalClimbData = streams[0].split(',').map(v => parseInt(v) || 0);
-                    if (streams[1]) finalHrData = streams[1].split(',').map(v => parseInt(v) || 0);
-                    if (streams[2]) finalPowerData = streams[2].split(',').map(v => parseInt(v) || 0);
+                    if (streams[0]) { finalClimbData = streams[0].split(',').map(function(v) { return parseInt(v) || 0; }); }
+                    if (streams[1]) { finalHrData = streams[1].split(',').map(function(v) { return parseInt(v) || 0; }); }
+                    if (streams[2]) { finalPowerData = streams[2].split(',').map(function(v) { return parseInt(v) || 0; }); }
                 }
 
                 if (bioChartInstance) bioChartInstance.destroy();
@@ -228,11 +230,8 @@
                     data: {
                         labels: xLabels,
                         datasets: [
-                            // 🟥 前方主線一：左側心率 (唯一保留的左側軸刻度)
                             { label: '實時心率 (bpm)', data: finalHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: 3, borderWidth: 2 },
-                            // 🟦 前方主線二：右側功率 (對齊獨立右側軸 Y2)
                             { label: '輸出功率 (W)', data: finalPowerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: 3, borderWidth: 2 },
-                            // 灰色半透明背景山脈面（對齊右側隱藏 Y1 軸）
                             { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                         ]
                     },
