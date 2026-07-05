@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v40.0</title>
+    <title>Kit Coach 團隊特訓大數據平台 v40.1</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -13,7 +13,6 @@
         .form-container { padding: 20px; }
         .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
-        .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
         .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
         .upload-box { flex: 1; background: #1e1e24; border-radius: 8px; padding: 15px 10px; text-align: center; cursor: pointer; box-sizing: border-box; }
         .upload-box.fit { border: 2px dashed #00f2fe; }
@@ -43,7 +42,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v40.0</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v40.1</p>
     </div>
 
     <div class="form-container">
@@ -199,25 +198,11 @@
         document.querySelector('#riskContainer [data-value="良好"]').classList.add('active');
         document.querySelector('#weatherContainer [data-value="舒適常溫"]').classList.add('active');
         document.querySelector('#supplyContainer [data-value="補給正常"]').classList.add('active');
-        
-        const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
-        autoFields.forEach(f => {
-            const el = document.getElementById(f);
-            if(el) { el.style.backgroundColor = "#1e1e24"; el.style.borderColor = "#333"; }
-        });
         submitted = false;
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        // 100% 還原原汁原味姓名名冊
-        const runners = [
-            "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
-            "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
-            "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", 
-            "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", 
-            "Timothy", "Charlotte Lokman", "Kayan"
-        ];
-        
+        const runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
         const runnerSelect = document.getElementById('runnerSelect');
         runnerSelect.innerHTML = '<option value="">請選擇跑手...</option>';
         runners.forEach(name => {
@@ -230,34 +215,29 @@
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
             let opt = document.createElement('option');
-            opt.value = "第 " + i + " 週"; 
-            opt.textContent = "第 " + i + " 週";
+            opt.value = "第 " + i + " 週"; opt.textContent = "第 " + i + " 週";
             weekSelect.appendChild(opt);
         }
 
-        // 📡 網址參數安全撈取中樞：自動接收來自 Parser 的真實高頻字串流並注入
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('auto')) {
-            const dist = urlParams.get('dist');
-            const time = urlParams.get('time');
-            const climb = urlParams.get('climb');
-            const hr = urlParams.get('hr');
-            const cad = urlParams.get('cad');
-            const climbStream = urlParams.get('climb_stream');
-            const hrStream = urlParams.get('hr_stream');
+            if (urlParams.get('dist')) document.getElementById('distance').value = urlParams.get('dist');
+            if (urlParams.get('climb')) document.getElementById('elevation').value = urlParams.get('climb');
+            if (urlParams.get('time')) document.getElementById('duration').value = urlParams.get('time');
+            if (urlParams.get('cad')) document.getElementById('cadence').value = urlParams.get('cad');
+            if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
+            document.getElementById('stride').value = "1.15";
 
-            if (dist) document.getElementById('distance').value = dist;
-            if (climb) document.getElementById('elevation').value = climb;
-            if (time) document.getElementById('duration').value = time;
-            if (cad) document.getElementById('cadence').value = cad;
-            if (hr) document.getElementById('hr').value = hr;
-            if (dist && time && cad) document.getElementById('stride').value = "1.15";
+            // 🛡️ 【關鍵去括號清洗】傳遞進來時如果是 [0,0,0]，清洗成 0,0,0 防止 CSV 爆裂
+            let cStream = urlParams.get('climb_stream') || "";
+            let hStream = urlParams.get('hr_stream') || "";
+            
+            cStream = cStream.replace(/[\[\]]/g, "");
+            hStream = hStream.replace(/[\[\]]/g, "");
 
-            // ⚡ 全自動無損寫入真實隱藏格子，等待發送
-            if (climbStream) document.getElementById('hidden_climb_stream').value = climbStream;
-            if (hrStream) document.getElementById('hidden_hr_stream').value = hrStream;
+            document.getElementById('hidden_climb_stream').value = cStream;
+            document.getElementById('hidden_hr_stream').value = hStream;
 
-            // 青綠色自動高亮提示
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
                 const el = document.getElementById(f);
@@ -270,7 +250,6 @@
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '舒適常溫';
         const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '補給正常';
-        
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
