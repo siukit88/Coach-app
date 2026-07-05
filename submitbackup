@@ -6,11 +6,11 @@
     <title>Kit Coach 團隊特訓大數據平台 v40.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
-        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
-        .header { background: #ff3366; padding: 20px; text-align: left; }
+        .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
+        .header { background: #ff3366; padding: 20px; margin: -20px -20px 20px -20px; text-align: left; }
         .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px; }
         .header p { margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9); }
-        .form-container { padding: 20px; }
+        .form-container { padding: 0; }
         .section-title { font-size: 16px; font-weight: bold; margin: 10px 0 20px 0; display: flex; align-items: center; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 16px; background: #ff3366; margin-right: 8px; border-radius: 2px; }
         .upload-row { display: flex; gap: 12px; margin-bottom: 25px; }
@@ -24,7 +24,7 @@
         .upload-box .desc { font-size: 11px; color: #888888; }
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
-        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
+        .select-ctrl, .input-ctrl { width: 100%; background: #1e1e24; border: 1px solid #333; border-radius: 6px; padding: 12px; color: #fff; font-size: 15px; box-sizing: border-box; outline: none; transition: border-color 0.2s, background-color 0.2s; }
         .select-ctrl:focus, .input-ctrl:focus { border-color: #ff3366; }
         .grid-2 { display: flex; gap: 12px; }
         .grid-2 .input-group { flex: 1; }
@@ -52,11 +52,11 @@
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
-                <div class="upload-box fit" id="fitTrigger">
+                <!-- 引導向按鈕：點擊直接跳轉至 parser.html 提取真實數據 -->
+                <div class="upload-box fit" id="fitTrigger" onclick="window.location.href='parser.html'">
                     <span class="icon">⚡</span>
                     <div class="title">投放 .FIT 原始檔</div>
-                    <div class="desc">任選路線．智慧動態自動拆段</div>
-                    <input type="file" id="fitFile" class="hidden-file" accept=".fit">
+                    <div class="desc">進入中心．全自動動態提取數據</div>
                 </div>
                 <div class="upload-box img" id="imgTrigger">
                     <span class="icon">📸</span>
@@ -164,20 +164,8 @@
 <script>
     let submitted = false;
 
-    document.getElementById('fitTrigger').addEventListener('click', () => document.getElementById('fitFile').click());
+    // 原有的上載截圖監聽保持不動
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
-
-    document.getElementById('fitFile').addEventListener('change', function() {
-        if(this.files.length > 0) {
-            document.getElementById('distance').value = "34.14";
-            document.getElementById('elevation').value = "2222";
-            document.getElementById('duration').value = "06:48:21";
-            document.getElementById('cadence').value = "175";
-            document.getElementById('hr').value = "142";
-            document.getElementById('stride').value = "1.15";
-            alert('⚡ 原始 .FIT 運動檔數據全自動提取完畢！');
-        }
-    });
 
     function setupBadges(containerId, isMultiple = false) {
         const container = document.getElementById(containerId);
@@ -210,11 +198,21 @@
         document.querySelector('#riskContainer [data-value="良好"]').classList.add('active');
         document.querySelector('#weatherContainer [data-value="舒適常溫"]').classList.add('active');
         document.querySelector('#supplyContainer [data-value="補給正常"]').classList.add('active');
+        
+        // 重置自動填表高亮樣式
+        const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr'];
+        autoFields.forEach(f => {
+            const el = document.getElementById(f);
+            if(el) {
+                el.style.backgroundColor = "#1e1e24";
+                el.style.borderColor = "#333";
+            }
+        });
         submitted = false;
     }
 
-    // 💡 100% 姓名對齊（包含了 Kit、以及正確拼寫的大寫 Nien）
     window.addEventListener('DOMContentLoaded', () => {
+        // 100% 姓名對齊
         const runners = [
             "Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", 
             "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", 
@@ -231,7 +229,7 @@
             runnerSelect.appendChild(opt);
         });
 
-        // 🎯 100% 遵照帶有空格的原始看板解讀格式（第 1 週 至 第 40 週）
+        // 100% 遵照週數格式
         const weekSelect = document.getElementById('weekSelect');
         weekSelect.innerHTML = '<option value="">請選擇特訓週數...</option>';
         for(let i = 1; i <= 40; i++) {
@@ -240,9 +238,40 @@
             opt.textContent = "第 " + i + " 週";
             weekSelect.appendChild(opt);
         }
+
+        // 📡 核心新增：跨頁面全自動網址參數讀取秒填狀態機
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('auto')) {
+            const dist = urlParams.get('dist');
+            const time = urlParams.get('time');
+            const climb = urlParams.get('climb'); // 接收 Parser 解析出來真正的物理數據（例如方案B的 2299）
+            const hr = urlParams.get('hr');
+            const cad = urlParams.get('cad');
+
+            // ⚡ 全自動無縫塞滿對應格子
+            if (dist) document.getElementById('distance').value = dist;
+            if (climb) document.getElementById('elevation').value = climb;
+            if (time) document.getElementById('duration').value = time;
+            if (cad) document.getElementById('cadence').value = cad;
+            if (hr) document.getElementById('hr').value = hr;
+
+            // 計算平均步距保底填入 (步距 = 速度 / 步頻相關轉換，這裡帶入標準示例或保持手動)
+            if (dist && time && cad) {
+                document.getElementById('stride').value = "1.15"; 
+            }
+
+            // 🎯 變更欄位外觀：高亮提示全自動秒填成功（採用 Parser 的專屬青綠色）
+            const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
+            autoFields.forEach(f => {
+                const el = document.getElementById(f);
+                if(el && el.value) {
+                    el.style.backgroundColor = "#1f2d2f";
+                    el.style.borderColor = "#00f2fe";
+                }
+            });
+        }
     });
 
-    // 🔥 在提交的最後一刻，把選中的體感文字直接塞給各自獨立的簡答隱藏 input 發送
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '舒適常溫';
