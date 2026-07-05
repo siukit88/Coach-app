@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 數據智能提取中心 v59.0</title>
+    <title>Kit Coach 數據智能提取中心 v60.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding: 20px 20px 40px 20px; box-sizing: border-box; }
@@ -33,7 +33,7 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 數據智能提取中心</h1>
-        <p>ANT+ 全局狀態機：Lap 增量累加極高精準版 v59.0</p>
+        <p>ANT+ 官方通用狀態機：逐秒高度點流精確累加版 v60.0</p>
     </div>
 
     <div class="upload-zone">
@@ -54,7 +54,7 @@
         <div class="data-row"><span class="data-label">平均心率 (bpm) ：</span><input type="text" class="data-input" id="res_hr" placeholder="--"></div>
     </div>
 
-    <button class="btn-action" onclick="copyToClipboardV59()">📋 一鍵複製數據 (準備貼上)</button>
+    <button class="btn-action" onclick="copyToClipboardV60()">📋 一鍵複製數據 (準備貼上)</button>
     
     <a href="submit.html" class="nav-link">⬅ 返回功課回報主頁 (submit.html)</a>
 </div>
@@ -81,8 +81,11 @@
                 let localDefs = {};
 
                 let sessionDist = null, sessionTime = null, sessionClimb = null, sessionHr = null, sessionCad = null;
-                let lapClimbSum = 0; // 📡 核心：Lap 分圈爬升全局累加器
                 let recordDistMax = 0, recordTimeMin = Infinity, recordTimeMax = -Infinity;
+                
+                // 📡 終極修復：逐秒高度差正增量累加引擎
+                let lastAltitude = null;
+                let accumulatedClimb = 0;
 
                 // ANT+ 標準狀態機步進
                 while (offset < buffer.byteLength - 4) {
@@ -139,28 +142,34 @@
                                     dPtr += f.size;
                                 }
                             } 
-                            // 📡 雷達 B: 全局 ID 19 - Lap 分圈數據（專門用來強力打撈被隱藏的爬升高度）
-                            else if (def.globalMsg === 19) {
-                                for (let f of def.fields) {
-                                    if (dPtr + f.size <= buffer.byteLength) {
-                                        let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
-                                        // 🎯 核心修正：撈取官方強制規定的單圈總爬升（ID 9），累加進計數器
-                                        if (f.id === 9 && val > 0 && val < 6000 && f.size === 2) {
-                                            lapClimbSum += val;
-                                        }
-                                    }
-                                    dPtr += f.size;
-                                }
-                            }
-                            // 📡 雷達 C: 全局 ID 20 - Record 軌跡流
+                            // 📡 雷達 C: 全局 ID 20 - Record 軌跡點流（專攻解鎖被隱藏的高度數據）
                             else if (def.globalMsg === 20) {
+                                let currentSecAltitude = null;
                                 for (let f of def.fields) {
                                     if (dPtr + f.size <= buffer.byteLength) {
                                         let val = (f.size === 4) ? view.getUint32(dPtr, !def.isBE) : (f.size === 2 ? view.getUint16(dPtr, !def.isBE) : view.getUint8(dPtr));
                                         if (f.id === 5 && f.size === 4) recordDistMax = Math.max(recordDistMax, val);
                                         if (f.id === 253 && f.size === 4) { recordTimeMin = Math.min(recordTimeMin, val); recordTimeMax = Math.max(recordTimeMax, val); }
+                                        
+                                        // 🎯 核心打撈：提取官方規定的逐秒絕對海拔高度 (ID 2, Uint16)
+                                        if (f.id === 2 && f.size === 2) {
+                                            // FIT 標準高度公式：(val / 5) - 500 米
+                                            currentSecAltitude = (val / 5) - 500;
+                                        }
                                     }
                                     dPtr += f.size;
+                                }
+                                
+                                // 🎯 物理增量算盤：如果這一秒比上一秒高，把正差值累加進爬升總和
+                                if (currentSecAltitude !== null) {
+                                    if (lastAltitude !== null) {
+                                        let diff = currentSecAltitude - lastAltitude;
+                                        // 排除雜訊跳躍，只有合理的正爬升（例如每秒小於 5 米）才累加
+                                        if (diff > 0.1 && diff < 5) {
+                                            accumulatedClimb += diff;
+                                        }
+                                    }
+                                    lastAltitude = currentSecAltitude;
                                 }
                             }
                             offset += def.dSize;
@@ -170,15 +179,13 @@
                     }
                 }
 
-                // 智慧數據交叉清洗
+                // 智慧數據交叉互補清洗
                 let recordDistParsed = recordDistMax / 100000;
                 let finalDistance = (sessionDist && Math.abs(sessionDist - recordDistParsed) < 3) ? sessionDist : (recordDistParsed > 0.1 ? recordDistParsed : sessionDist || 0);
                 let finalTime = (sessionTime && sessionTime > 10) ? sessionTime : (recordTimeMax > recordTimeMin ? (recordTimeMax - recordTimeMin) : 0);
                 
-                // 🔒 爬升保底策略：優先採用 Session 爬升，若為 0 則立刻啟用 Lap 累加高度，保證絕不吐出 0！
-                let finalClimb = (sessionClimb && sessionClimb > 0) ? sessionClimb : lapClimbSum;
-
-                if (finalClimb > 6000) finalClimb = 0;
+                // 🔒 終極爬升策略：優先使用 Session 爬升。若為 0，直接無縫切換至「逐秒高度軌跡累加值」，徹底解決 Suunto 隱藏高度的問題！
+                let finalClimb = (sessionClimb && sessionClimb > 0) ? sessionClimb : Math.round(accumulatedClimb);
 
                 if (finalDistance > 0.05) {
                     document.getElementById('res_distance').value = finalDistance.toFixed(2);
@@ -192,7 +199,7 @@
                     document.getElementById('res_hr').value = (sessionHr > 40 && sessionHr < 210) ? sessionHr : "";
                     document.getElementById('res_cadence').value = (sessionCad > 40 && sessionCad < 240) ? sessionCad : "";
                     
-                    alert('⚡ 官方通用協議狀態機解碼成功！\n爬升數據已成功啟用 Lap 區間雷達進行動態打撈累加。');
+                    alert('⚡ 全指標解碼通車成功！\n已成功調用物理點流高度計，完成爬升海拔數據的終極補全。');
                 } else {
                     throw new Error("解碼異常");
                 }
@@ -204,7 +211,7 @@
         reader.readAsArrayBuffer(file);
     };
 
-    function copyToClipboardV59() {
+    function copyToClipboardV60() {
         const dist = document.getElementById('res_distance').value;
         const climb = document.getElementById('res_elevation').value;
         const time = document.getElementById('res_duration').value;
