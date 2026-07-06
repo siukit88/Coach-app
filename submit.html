@@ -48,7 +48,7 @@
     <div class="form-container">
         <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
-        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
+        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -175,7 +175,7 @@
             </div>
             
             <div style="margin-top: 30px;">
-                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
+                <button type="button" id="submitBtn" onclick="handleSecureSubmit();" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
             </div>
         </form>
         
@@ -225,7 +225,6 @@
         submitted = false;
     }
 
-    // 將數值轉為標準劃分字串方便前端顯示
     function convertToDisplayStream(rawParam) {
         if (!rawParam) return "";
         return rawParam.replace(/[\[\]]/g, "").replace(/,/g, "-");
@@ -258,7 +257,6 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🚀 【雙向裝車】前端視覺格子直接塞入帶減號格式
             document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
             document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
             document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
@@ -271,7 +269,18 @@
         }
     });
 
-    // 🎯 【合流打包核心】：點擊提交時，將大數據流隱形拼接到「意見反映」欄位中發送
+    // 🎯 【精準安全閥門控制流】：先打包裝車，確保數據落袋，再執行物理寄出
+    function handleSecureSubmit() {
+        // 1. 執行原本的數據搜集與打包
+        collectBadgeValues();
+        
+        // 2. 標記提交狀態並正式觸發發送
+        submitted = true;
+        
+        // 3. 100% 裝車完成後，物理寄出 Form 表單
+        document.getElementById('trainingForm').submit();
+    }
+
     function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
@@ -280,18 +289,13 @@
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
 
-        // 🛡️ 提取當前的數據流
         let cData = document.getElementById('ui_climb').value || "0";
         let hData = document.getElementById('ui_hr').value || "0";
         let pData = document.getElementById('ui_power').value || "0";
-        
-        // 取得用戶手寫的意見文字
         let userText = document.getElementById('user_feedback').value || "";
         
-        // 🛠️ 用最安全的特製高密度標籤封裝起來，合併進入大文字箱
         let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${cData}\nHR:${hData}\nPOWER:${pData}\n[/FIT_STREAM_DATA]`;
         
-        // 100% 裝車直達 1271874368
         document.getElementById('google_feedback_input').value = combinedPayload;
     }
 </script>
