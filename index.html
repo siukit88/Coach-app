@@ -42,6 +42,9 @@
 
         var authorizedName = ""; var isCoachMode = false; var allRecords = []; var cachedCsvText = ""; var bioChartInstance = null; var paceChartInstance = null;
 
+        // 🟢 正式補齊缺失的驗證回報函數，徹底根除點擊中斷 Bug
+        function verificationTriggered() { console.log("門禁安全通訊點火成功..."); }
+
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err'); var nameSelect = document.getElementById('filter-name');
@@ -52,7 +55,9 @@
                 var optionsHtml = ''; for(var k in _0x3b2c){ if(k!=="1208") optionsHtml += '<option value="' + _0x3b2c[k] + '">👤 學員：' + _0x3b2c[k] + '</option>'; }
                 nameSelect.innerHTML = optionsHtml; nameSelect.removeAttribute('disabled');
                 document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-content').style.display = 'block';
-                startLoadingData(); return;
+                startLoadingData(); 
+                verificationTriggered();
+                return;
             }
             if (_0x3b2c[inputPwd]) {
                 isCoachMode = false; authorizedName = _0x3b2c[inputPwd];
@@ -63,7 +68,8 @@
             } else {
                 errField.style.display = 'block'; errField.style.color = '#ff4d4d'; errField.innerText = "❌ 門禁安全驗證失敗";
                 document.getElementById('user-pwd').value = "";
-            } verificationTriggered();
+            } 
+            verificationTriggered();
         }
     </script>
 </head>
@@ -74,7 +80,7 @@
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
         <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">v105.0 雲端數據現場繪圖版</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
-        <button id="loginSubmitBtn">安全驗證登入</button>
+        <button onclick="verifyIdentity()">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
@@ -82,7 +88,7 @@
 <div class="phone-container" id="app-content" style="display: none;">
     <div class="header">
         <h1>Kit Coach 智慧看板</h1>
-        <p>慢慢跑團 遠程智慧特訓平台</p>
+        <p>慢慢跑團 遠程智慧特訓 platform</p>
     </div>
 
     <a href="submit.html" class="nav-link">📝 前往上報今日特訓功課 ➔</a>
@@ -126,8 +132,10 @@
 </div>
 
 <script>
+    // 🟢 搬移主下載函數至底部，保障原版執行空間
     function startLoadingData() {
-        document.getElementById('loading-status').style.display = 'block';
+        var statusEl = document.getElementById('loading-status');
+        if(statusEl) statusEl.style.display = 'block';
         fetch(csvMainUrl + "?t=" + new Date().getTime())
             .then(function(res) { 
                 if(!res.ok) { throw new Error('CSV Link Error'); }
@@ -135,7 +143,8 @@
             })
             .then(function(text) { cachedCsvText = text; parseAndFilterData(); })
             .catch(function(err) { 
-                document.getElementById('loading-status').innerText = "❌ 雲端同步失敗。"; 
+                var statusEl2 = document.getElementById('loading-status');
+                if(statusEl2) statusEl2.innerText = "❌ 雲端同步失敗。"; 
             });
     }
 
@@ -283,10 +292,4 @@
                         { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
                         { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
                     ] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { type: 'linear', display: true, position: 'left', ticks: { color: '#3a86ff' } }, y1: { type: 'linear', display: false } } }
-                });
-            } catch(chartErr) {}
-            
-            // 📡 背景打撈特快專線
-            var nameSelect = document.getElementById('filter-name');
-            var currentRunner = nameSelect.value ? nameSelect.value.tr
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { type: 'linear', disp
