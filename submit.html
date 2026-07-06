@@ -48,7 +48,7 @@
     <div class="form-container">
         <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
-        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target">
+        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectFinalTextPayload();">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -175,7 +175,7 @@
             </div>
             
             <div style="margin-top: 30px;">
-                <button type="button" id="submitBtn" onclick="handleSecureSubmit();" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
+                <button type="submit" id="submitBtn" class="select-ctrl" style="background: #ff3366; font-weight: bold; border: none; cursor: pointer; color: white;">確認提交功課 ➔</button>
             </div>
         </form>
         
@@ -187,6 +187,11 @@
 
 <script>
     let submitted = false;
+    
+    // 🔒 【發送軌道專用變數】直接鎖定網址源頭數據，與 UI 格子完全脫鉤，徹底免疫 UI 凍結鎖！
+    let srcClimbStream = "0";
+    let srcHrStream = "0";
+    let srcPowerStream = "0";
 
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
@@ -257,9 +262,15 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
+            // 🚀 【軌道一：視覺軌道】填入格子（管它 UI 是否凍結，純粹給肉眼看）
             document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
             document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
             document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
+
+            // 🚀 【軌道二：數據特快軌】直接物理複製網址列的乾淨數值，封存入安全變數，永不留白！
+            srcClimbStream = convertToDisplayStream(urlParams.get('climb_stream')) || "0";
+            srcHrStream = convertToDisplayStream(urlParams.get('hr_stream')) || "0";
+            srcPowerStream = convertToDisplayStream(urlParams.get('power_stream')) || "0";
 
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
@@ -269,19 +280,8 @@
         }
     });
 
-    // 🎯 【精準安全閥門控制流】：先打包裝車，確保數據落袋，再執行物理寄出
-    function handleSecureSubmit() {
-        // 1. 執行原本的數據搜集與打包
-        collectBadgeValues();
-        
-        // 2. 標記提交狀態並正式觸發發送
-        submitted = true;
-        
-        // 3. 100% 裝車完成後，物理寄出 Form 表單
-        document.getElementById('trainingForm').submit();
-    }
-
-    function collectBadgeValues() {
+    // 🎯 【原生提交點火鏈】：提交那一刻，百分之百從最安全的「網址備份變數」中提取數值，徹底繞過 UI 框
+    function collectFinalTextPayload() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
         const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常（水份、能量膠與食物吸收良好）';
@@ -289,13 +289,11 @@
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
 
-        let cData = document.getElementById('ui_climb').value || "0";
-        let hData = document.getElementById('ui_hr').value || "0";
-        let pData = document.getElementById('ui_power').value || "0";
+        // 🛡️ 決定性一步：提取與 UI 鎖完全無關的 src 原始安全變數
         let userText = document.getElementById('user_feedback').value || "";
+        let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${srcClimbStream}\nHR:${srcHrStream}\nPOWER:${srcPowerStream}\n[/FIT_STREAM_DATA]`;
         
-        let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${cData}\nHR:${hData}\nPOWER:${pData}\n[/FIT_STREAM_DATA]`;
-        
+        // 灌入 Google 容器發送
         document.getElementById('google_feedback_input').value = combinedPayload;
     }
 </script>
