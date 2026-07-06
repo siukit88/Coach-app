@@ -31,10 +31,7 @@
     </style>
 
     <script>
-        // 📡 🔒 請在此處放入你重新「發布到網路」獲取的最新 .csv 網址！
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
-        
-        // 🔒 鎖定教練自己的 GitHub 帳號名
         var GITHUB_USER = "siukit88";
 
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "Thomas", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
@@ -69,7 +66,6 @@
         function startLoadingData() {
             var statusEl = document.getElementById('loading-status');
             if(statusEl) statusEl.style.display = 'block';
-            // 🟢 【關鍵修正】：將字串拼接的問號改為 & 符號，徹底封印 400 Bad Request 畸形網址錯誤
             fetch(csvMainUrl + "&t=" + new Date().getTime())
                 .then(function(res) { 
                     if(!res.ok) { throw new Error('CSV Link Error'); }
@@ -129,9 +125,11 @@
                 }
 
                 weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-                var sortedWeeks = Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);});
+                var sortedWeeks = Object.keys(weeks).sort(function(a,b){return parseInt(a.replace(/[^0-9]/g, '')) - parseInt(b.replace(/[^0-9]/g, ''));});
                 sortedWeeks.forEach(function(w) { 
-                    weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
+                    // 🟢 【對位修正一】：如果 Google 本身帶有「第x週」，直接顯示，避免堆疊成「第第xx週週」
+                    var displayName = w.indexOf("週") !== -1 ? w : "第 " + w + " 週";
+                    weekSelect.innerHTML += '<option value="' + w + '">' + displayName + '</option>'; 
                 });
                 
                 document.getElementById('loading-status').style.display = 'none';
@@ -285,5 +283,3 @@
                     data: { labels: xLabels, datasets: [ 
                         { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
                         { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                    ] },
-                    option
