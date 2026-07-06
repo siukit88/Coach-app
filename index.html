@@ -74,7 +74,7 @@
         <h3>🔒 慢跑團・智慧特訓安全門禁</h3>
         <p style="font-size:11px; color:#666; margin-top:-5px; margin-bottom:15px;">v105.0 雲端數據現場繪圖版</p>
         <input type="text" id="user-pwd" placeholder="請輸入 4 位特訓代號" maxlength="6">
-        <button onclick="verifyIdentity()">安全驗證登入</button>
+        <button id="loginSubmitBtn">安全驗證登入</button>
         <div id="login-err" style="display:none; margin-top: 10px; font-size: 13px;"></div>
     </div>
 </div>
@@ -287,8 +287,6 @@
                 });
             } catch(chartErr) {}
             
-            // 📡 【100% 獨立隔離、無毒背景感想打撈特快專線】
-            bgFetchGistFeedback(targetName, selectedWeek);
-        }
-    }
-    document.getElementById('filter-name'
+            // 📡 背景打撈特快專線
+            var nameSelect = document.getElementById('filter-name');
+            var currentRunner = nameSelect.value ? nameSelect.value.tr
