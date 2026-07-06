@@ -43,7 +43,7 @@
 
         var authorizedName = ""; var isCoachMode = false; var allRecords = []; var cachedCsvText = ""; var bioChartInstance = null; var paceChartInstance = null;
 
-        // 🔐 門禁身分驗證
+        // 🔐 門禁身分驗證（安全點火源）
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err'); var nameSelect = document.getElementById('filter-name');
@@ -68,7 +68,7 @@
             }
         }
 
-        // 🔄 異步下載 Google Excel 數據
+        // 🔄 異步下載 Google Excel 數據（加上最嚴密的防禦型檢查，絕不引爆黑屏）
         function startLoadingData() {
             var statusEl = document.getElementById('loading-status');
             if(statusEl) statusEl.style.display = 'block';
@@ -80,9 +80,8 @@
                 })
                 .then(function(text) { cachedCsvText = text; parseAndFilterData(); })
                 .catch(function(err) { 
-                    if(document.getElementById('loading-status')) {
-                        document.getElementById('loading-status').innerText = "❌ 雲端同步失敗。"; 
-                    }
+                    var errEl = document.getElementById('loading-status');
+                    if(errEl) errEl.innerText = "❌ 雲端同步失敗。"; 
                 });
         }
 
@@ -123,7 +122,7 @@
                                     timestamp: row[0]||"--", name: row[idxName].trim(), week: wValue, 
                                     distance: row[idxDist]||"0", time: row[idxTime]||"--", cadence: row[idxCadence]||"0", 
                                     stride: row[idxStride]||"0", hr: row[idxHr]||"0", risk: row[idxRisk]||"良好", 
-                                weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
+                                    weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
                                     rawRowPackage: row 
                                 });
                                 weeks[wValue] = true;
@@ -132,26 +131,37 @@
                     }
                 }
 
-                weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-                var sortedWeeks = Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);});
-                sortedWeeks.forEach(function(w) { 
-                    weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
-                });
+                if (weekSelect) {
+                    weekSelect.innerHTML = '<option value="">選擇週數...</option>';
+                    var sortedWeeks = Object.keys(weeks).sort(function(a,b){return parseInt(a)-parseInt(b);});
+                    sortedWeeks.forEach(function(w) { 
+                        weekSelect.innerHTML += '<option value="' + w + '">第 ' + w + ' 週</option>'; 
+                    });
+                }
                 
                 if(document.getElementById('loading-status')) document.getElementById('loading-status').style.display = 'none';
                 if(allRecords && allRecords.length > 0) { 
-                    var last = allRecords[allRecords.length - 1]; if(last) { weekSelect.value = last.week; updateDisplay(last.week); }
+                    var last = allRecords[allRecords.length - 1]; 
+                    if(last && weekSelect) { weekSelect.value = last.week; updateDisplay(last.week); }
                 } else { clearDisplayFields(); }
-            } catch (error) { if(document.getElementById('loading-status')) document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; }
+            } catch (error) { 
+                if(document.getElementById('loading-status')) document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; 
+            }
         }
 
         function clearDisplayFields() {
-            document.getElementById('val-date').innerText = "--"; document.getElementById('val-distance').innerText = "--"; 
-            document.getElementById('val-time').innerText = "--"; document.getElementById('val-cadence').innerText = "--"; 
-            document.getElementById('val-stride').innerText = "--"; document.getElementById('val-hr').innerText = "--";
-            document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
-            document.getElementById('val-supply').innerText = "--"; document.getElementById('val-climb').innerText = "--";
-            document.getElementById('val-eph').innerText = "--"; document.getElementById('val-feedback').innerText = "--";
+            if(document.getElementById('val-date')) document.getElementById('val-date').innerText = "--"; 
+            if(document.getElementById('val-distance')) document.getElementById('val-distance').innerText = "--"; 
+            if(document.getElementById('val-time')) document.getElementById('val-time').innerText = "--"; 
+            if(document.getElementById('val-cadence')) document.getElementById('val-cadence').innerText = "--"; 
+            if(document.getElementById('val-stride')) document.getElementById('val-stride').innerText = "--"; 
+            if(document.getElementById('val-hr')) document.getElementById('val-hr').innerText = "--";
+            if(document.getElementById('val-risk')) document.getElementById('val-risk').innerText = "--"; 
+            if(document.getElementById('val-weather')) document.getElementById('val-weather').innerText = "--";
+            if(document.getElementById('val-supply')) document.getElementById('val-supply').innerText = "--"; 
+            if(document.getElementById('val-climb')) document.getElementById('val-climb').innerText = "--";
+            if(document.getElementById('val-eph')) document.getElementById('val-eph').innerText = "--"; 
+            if(document.getElementById('val-feedback')) document.getElementById('val-feedback').innerText = "--";
         }
 
         // 🔄 【雙軌融合異步引擎 + 萬用模糊指紋配對】
@@ -161,38 +171,46 @@
             if (!matched) return;
 
             var nameSelect = document.getElementById('filter-name');
-            var targetName = nameSelect.value ? nameSelect.value.trim() : authorizedName;
+            var targetName = nameSelect && nameSelect.value ? nameSelect.value.trim() : authorizedName;
 
             // 軌道一：同步原生標準 Excel 常規數據
-            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
-            document.getElementById('val-distance').innerText = matched.distance + " km"; 
-            document.getElementById('val-time').innerText = matched.time; 
-            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
-            document.getElementById('val-stride').innerText = matched.stride + " m";
-            document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            document.getElementById('val-climb').innerText = matched.climb + " 米";
-            document.getElementById('val-risk').innerText = matched.risk;
-            document.getElementById('val-weather').innerText = matched.weather;
-            document.getElementById('val-supply').innerText = matched.supply;
-            document.getElementById('val-feedback').innerText = "⚡ 正在穿透 GitHub Gist 讀取無限時序流...";
-            document.getElementById('gist-loading-status').innerText = "📡 正在調取 GitHub 遠端保險箱...";
-            document.getElementById('gist-loading-status').style.color = "#ffcc00";
+            if(document.getElementById('val-date')) document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
+            if(document.getElementById('val-distance')) document.getElementById('val-distance').innerText = matched.distance + " km"; 
+            if(document.getElementById('val-time')) document.getElementById('val-time').innerText = matched.time; 
+            if(document.getElementById('val-cadence')) document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
+            if(document.getElementById('val-stride')) document.getElementById('val-stride').innerText = matched.stride + " m";
+            if(document.getElementById('val-hr')) document.getElementById('val-hr').innerText = matched.hr + " bpm";
+            if(document.getElementById('val-climb')) document.getElementById('val-climb').innerText = matched.climb + " 米";
+            if(document.getElementById('val-risk')) document.getElementById('val-risk').innerText = matched.risk;
+            if(document.getElementById('val-weather')) document.getElementById('val-weather').innerText = matched.weather;
+            if(document.getElementById('val-supply')) document.getElementById('val-supply').innerText = matched.supply;
+            
+            if(document.getElementById('val-feedback')) document.getElementById('val-feedback').innerText = "⚡ 正在穿透 GitHub Gist 讀取無限時序流...";
+            if(document.getElementById('gist-loading-status')) {
+                document.getElementById('gist-loading-status').innerText = "📡 正在調取 GitHub 遠端保險箱...";
+                document.getElementById('gist-loading-status').style.color = "#ffcc00";
+            }
 
             var distNum = parseFloat(matched.distance) || 0; 
             var climbNum = parseFloat(matched.climb) || 0;
             var hrNum = parseInt(matched.hr) || 0;
 
-            var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
-            document.getElementById('hr-bar').style.width = pct + "%";
+            var hrBar = document.getElementById('hr-bar');
+            if(hrBar) {
+                var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+                hrBar.style.width = pct + "%";
+            }
 
             var hoursNum = 0;
             if (matched.time) {
                 var match = matched.time.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
                 if (match) { hoursNum = parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
             }
-            if (hoursNum > 0) {
-                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
-            } else { document.getElementById('val-eph').innerText = "--"; }
+            if (document.getElementById('val-eph')) {
+                if (hoursNum > 0) {
+                    document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
+                } else { document.getElementById('val-eph').innerText = "--"; }
+            }
 
             var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', distNum + 'km'];
             
@@ -207,7 +225,7 @@
                     var gists = await listRes.json();
                     var matchedRawUrl = null;
                     
-                    // 🧬 萬用模糊比對演算法：全自動對位
+                    // 🧬 萬用模糊比對演算法：全自動完美對位消除空格
                     var fingerTarget = (targetName + "_" + selectedWeek).replace(/[\s_第週]/g, "").toLowerCase();
 
                     for(var i=0; i<gists.length; i++) {
@@ -228,9 +246,11 @@
                         var dataRes = await fetch(matchedRawUrl);
                         var bigData = await dataRes.json();
 
-                        document.getElementById('val-feedback').innerText = bigData.feedback || "該週學員未填寫心得感想。";
-                        document.getElementById('gist-loading-status').innerText = "🟢 FIT 時序大數據對位成功！";
-                        document.getElementById('gist-loading-status').style.color = "#00ffcc";
+                        if(document.getElementById('val-feedback')) document.getElementById('val-feedback').innerText = bigData.feedback || "該週學員未填寫心得感想。";
+                        if(document.getElementById('gist-loading-status')) {
+                            document.getElementById('gist-loading-status').innerText = "🟢 FIT 時序大數據對位成功！";
+                            document.getElementById('gist-loading-status').style.color = "#00ffcc";
+                        }
 
                         if(bigData.climb_stream) finalClimbData = bigData.climb_stream.split('-').map(Number);
                         if(bigData.hr_stream) finalHrData = bigData.hr_stream.split('-').map(Number);
@@ -240,9 +260,11 @@
                             return ((idx / (finalHrData.length - 1)) * distNum).toFixed(1) + "km";
                         });
                     } else {
-                        document.getElementById('val-feedback').innerText = "⚠️ 該週無 FIT 大數據 (可於 Excel 欄位12後讀取歷史數據)。";
-                        document.getElementById('gist-loading-status').innerText = "🟡 遠端未見 FIT 大數據。";
-                        document.getElementById('gist-loading-status').style.color = "#ffb703";
+                        if(document.getElementById('val-feedback')) document.getElementById('val-feedback').innerText = "⚠️ 該週無 FIT 大數據 (可於 Excel 欄位12後讀取歷史數據)。";
+                        if(document.getElementById('gist-loading-status')) {
+                            document.getElementById('gist-loading-status').innerText = "🟡 遠端未見 FIT 大數據。";
+                            document.getElementById('gist-loading-status').style.color = "#ffb703";
+                        }
                         
                         var rowPack = matched.rawRowPackage;
                         if (rowPack && rowPack.length > 12) {
@@ -256,30 +278,4 @@
                             if (streams[1] && streams[1].trim() !== "") { finalHrData = streams[1].split(',').map(Number); }
                             if (streams[2] && streams[2].trim() !== "") { finalPowerData = streams[2].split(',').map(Number); }
                         }
-                    }
-                }
-            } catch(gistErr) {
-                console.error(gistErr);
-                document.getElementById('gist-loading-status').innerText = "❌ 遠端保險箱連線超時。";
-                document.getElementById('gist-loading-status').style.color = "#ff4d4d";
-            }
-
-            // 🎨 渲染原版 Chart.js 圖表
-            try {
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(document.getElementById('bioMetricsChart').getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '實時心率 (bpm)', data: finalHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: finalHrData.length > 20 ? 0 : 3, borderWidth: 2 },
-                            { label: '輸出功率 (W)', data: finalPowerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: finalPowerData.length > 20 ? 0 : 3, borderWidth: 2 },
-                            { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                        ]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        scales: { 
-                            y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, 
-                            y2: { type: 'linear', display: true, position: 'right', ticks: { color: '#
+                
