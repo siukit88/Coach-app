@@ -127,15 +127,22 @@
                 weekSelect.innerHTML = '<option value="">選擇週數...</option>';
                 var sortedWeeks = Object.keys(weeks).sort(function(a,b){return parseInt(a.replace(/[^0-9]/g, '')) - parseInt(b.replace(/[^0-9]/g, ''));});
                 sortedWeeks.forEach(function(w) { 
-                    // 🟢 【對位修正一】：如果 Google 本身帶有「第x週」，直接顯示，避免堆疊成「第第xx週週」
                     var displayName = w.indexOf("週") !== -1 ? w : "第 " + w + " 週";
                     weekSelect.innerHTML += '<option value="' + w + '">' + displayName + '</option>'; 
                 });
                 
                 document.getElementById('loading-status').style.display = 'none';
+                
+                // 🟢 【雙軌修復精髓】：不論 Google Sheet 找不找得到歷史行，一律強制發動 updateDisplay 讓 Gist 背景專線獨立點火！
+                var currentWeek = weekSelect.value;
                 if(allRecords && allRecords.length > 0) { 
-                    var last = allRecords[allRecords.length - 1]; if(last) { weekSelect.value = last.week; updateDisplay(last.week); }
-                } else { clearDisplayFields(); }
+                    var last = allRecords[allRecords.length - 1]; 
+                    if(last) { weekSelect.value = last.week; currentWeek = last.week; }
+                }
+                if(!currentWeek && sortedWeeks.length > 0) { currentWeek = sortedWeeks[0]; weekSelect.value = currentWeek; }
+                if(!currentWeek) { currentWeek = "第 11 週"; } // 最強防禦兜底
+                
+                updateDisplay(currentWeek);
             } catch (error) { document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; }
         }
     </script>
@@ -209,8 +216,16 @@
     }
 
     function updateDisplay(selectedWeek) {
-        if(!allRecords || allRecords.length === 0) return;
+        var nameSelect = document.getElementById('filter-name');
+        var currentRunner = nameSelect.value ? nameSelect.value.trim() : authorizedName;
+        
+        // 預設重置欄位
+        clearDisplayFields();
+
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
+        
+        var distNum = 0; var climbNum = 0; var hrNum = 0;
+        
         if (matched) {
             document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
             document.getElementById('val-distance').innerText = matched.distance + " km"; 
@@ -219,9 +234,13 @@
             document.getElementById('val-stride').innerText = matched.stride + " m";
             document.getElementById('val-hr').innerText = matched.hr + " bpm";
             document.getElementById('val-climb').innerText = matched.climb + " 米";
+            document.getElementById('val-risk').innerText = matched.risk;
+            document.getElementById('val-weather').innerText = matched.weather;
+            document.getElementById('val-supply').innerText = matched.supply;
 
-            var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0;
-            var hrNum = parseInt(matched.hr) || 0;
+            distNum = parseFloat(matched.distance) || 0; 
+            climbNum = parseFloat(matched.climb) || 0;
+            hrNum = parseInt(matched.hr) || 0;
 
             var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
             document.getElementById('hr-bar').style.width = pct + "%";
@@ -233,14 +252,18 @@
             }
             if (hoursNum > 0) {
                 document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
-            } else { document.getElementById('val-eph').innerText = "--"; }
+            }
+        }
 
-            var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', distNum + 'km'];
-            
-            var finalClimbData = [Math.round(climbNum*0.01), Math.round(climbNum*0.28), Math.round(climbNum*0.41), Math.round(climbNum*0.07), Math.round(climbNum*0.41), Math.round(climbNum*0.20)];
-            var finalHrData = [hrNum - 15, hrNum + 8, hrNum + 18, hrNum - 22, hrNum + 12, hrNum - 7];
-            var finalPowerData = [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)];
+        // 🛣️ 真數據對位渲染線（防衛型結構：沒 Google 資料時，先以 10 公里預設地形渲染，絕不卡死！）
+        var effectiveDist = distNum > 0 ? distNum : 10;
+        var xLabels = ['0km', (effectiveDist*0.2).toFixed(2)+'km', (effectiveDist*0.4).toFixed(2)+'km', (effectiveDist*0.6).toFixed(2)+'km', (effectiveDist*0.8).toFixed(2)+'km', effectiveDist + 'km'];
+        
+        var finalClimbData = [Math.round(climbNum*0.01), Math.round(climbNum*0.28), Math.round(climbNum*0.41), Math.round(climbNum*0.07), Math.round(climbNum*0.41), Math.round(climbNum*0.20)];
+        var finalHrData = hrNum > 0 ? [hrNum - 15, hrNum + 8, hrNum + 18, hrNum - 22, hrNum + 12, hrNum - 7] : [120, 140, 155, 135, 160, 145];
+        var finalPowerData = hrNum > 0 ? [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)] : [160, 210, 190, 240, 200, 170];
 
+        if (matched) {
             var rowPack = matched.rawRowPackage;
             if (rowPack && rowPack.length > 12) {
                 var streams = [];
@@ -249,37 +272,29 @@
                         streams.push(rowPack[colIdx].toString().trim().replace(/[\[\]"]/g, ""));
                     }
                 }
-                if (streams[0] && streams[0].trim() !== "") { finalClimbData = streams[0].split(',').map(function(v) { return parseInt(v) || 0; }); }
-                if (streams[1] && streams[1].trim() !== "") { finalHrData = streams[1].split(',').map(function(v) { return parseInt(v) || 0; }); }
-                if (streams[2] && streams[2].trim() !== "") { finalPowerData = streams[2].split(',').map(function(v) { return parseInt(v) || 0; }); }
+                if (streams[0] && streams[0].trim() !== "") { finalClimbData = streams[0].split(',').map(Number); }
+                if (streams[1] && streams[1].trim() !== "") { finalHrData = streams[1].split(',').map(Number); }
+                if (streams[2] && streams[2].trim() !== "") { finalPowerData = streams[2].split(',').map(Number); }
             }
+        }
 
-            try {
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(document.getElementById('bioMetricsChart').getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '實時心率 (bpm)', data: finalHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: 3, borderWidth: 2 },
-                            { label: '輸出功率 (W)', data: finalPowerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: 3, borderWidth: 2 },
-                            { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                        ]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        scales: { 
-                            y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, 
-                            y2: { type: 'linear', display: true, position: 'right', ticks: { color: '#3a86ff' }, grid: { display: false } }, 
-                            y1: { type: 'linear', display: false } 
-                        } 
-                    }
-                });
+        // 🎨 降落繪圖核心（封裝成通用渲染函數，供 Gist 隨時覆寫）
+        renderPrimaryCharts(xLabels, finalClimbData, finalHrData, finalPowerData);
+        
+        // 📡 🚀 【最高點火！】：不論 Google 有沒有找到此行，背景 Gist 打撈線通通強制啟動！
+        bgFetchGistFeedback(currentRunner, selectedWeek, effectiveDist);
+    }
 
-                if (paceChartInstance) paceChartInstance.destroy();
-                paceChartInstance = new Chart(document.getElementById('paceMetricsChart').getContext('2d'), {
-                    type: 'line',
-                    data: { labels: xLabels, datasets: [ 
-                        { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
-                        { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
+    function renderPrimaryCharts(xLabels, climbData, hrData, powerData) {
+        try {
+            if (bioChartInstance) bioChartInstance.destroy();
+            bioChartInstance = new Chart(document.getElementById('bioMetricsChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: xLabels,
+                    datasets: [
+                        { label: '實時心率 (bpm)', data: hrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: hrData.length > 20 ? 0 : 3, borderWidth: 2 },
+                        { label: '輸出功率 (W)', data: powerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: powerData.length > 20 ? 0 : 3, borderWidth: 2 },
+                        { label: '[背景] 實際爬升高度', data: climbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
+                    ]
+          
