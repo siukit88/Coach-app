@@ -35,7 +35,7 @@
         // 📡 原生標準 100% 同步 Google Sheet CSV 網址
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
         
-        // 🔒 鎖定教練自己的 GitHub 帳號名，用於大數據專線自動配對
+        // 🔒 鎖定教練自己的 GitHub 帳號名
         var GITHUB_USER = "siukit88";
 
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "Thomas", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
@@ -128,6 +128,7 @@
 </div>
 
 <script>
+    // 🟢 完整補回並修復原生的 CSV 下載功能
     function startLoadingData() {
         document.getElementById('loading-status').style.display = 'block';
         fetch(csvMainUrl + "?t=" + new Date().getTime())
@@ -209,7 +210,7 @@
         document.getElementById('val-eph').innerText = "--"; document.getElementById('val-feedback').innerText = "--";
     }
 
-    // 🔄 【終極雙軌融合異步引擎】
+    // 🔄 【雙軌融合異步引擎 + 萬用模糊指紋配對】
     async function updateDisplay(selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
@@ -218,7 +219,7 @@
         var nameSelect = document.getElementById('filter-name');
         var targetName = nameSelect.value ? nameSelect.value.trim() : authorizedName;
 
-        // 軌道一：先刷入原版標準 Excel 常規數據
+        // 軌道一：同步原生標準 Excel 常規數據
         document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
         document.getElementById('val-distance').innerText = matched.distance + " km"; 
         document.getElementById('val-time').innerText = matched.time; 
@@ -251,19 +252,18 @@
 
         var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', distNum + 'km'];
         
-        // 預設地形兜底數據
         var finalClimbData = [Math.round(climbNum*0.01), Math.round(climbNum*0.28), Math.round(climbNum*0.41), Math.round(climbNum*0.07), Math.round(climbNum*0.41), Math.round(climbNum*0.20)];
         var finalHrData = [hrNum - 15, hrNum + 8, hrNum + 18, hrNum - 22, hrNum + 12, hrNum - 7];
         var finalPowerData = [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)];
 
-        // 軌道二：🚀 【萬用模糊指紋配對】強行擊穿隱形空格，精準讀取 Gist 大數據包
+        // 軌道二：🚀 擊穿隱形空格，精準讀取 Gist 大數據包
         try {
             var listRes = await fetch("https://api.github.com/users/" + GITHUB_USER + "/gists?per_page=100&_=" + new Date().getTime());
             if(listRes.ok) {
                 var gists = await listRes.json();
                 var matchedRawUrl = null;
                 
-                // 🧬 萬用模糊比對演算法：去掉所有空格與特殊符號，強制對位！
+                // 🧬 萬用模糊比對演算法：去掉所有空格與特殊符號
                 var fingerTarget = (targetName + "_" + selectedWeek).replace(/[\s_第週]/g, "").toLowerCase();
 
                 for(var i=0; i<gists.length; i++) {
@@ -284,7 +284,6 @@
                     var dataRes = await fetch(matchedRawUrl);
                     var bigData = await dataRes.json();
 
-                    // 100% 吐出感想與無損時序流
                     document.getElementById('val-feedback').innerText = bigData.feedback || "該週學員未填寫心得感想。";
                     document.getElementById('gist-loading-status').innerText = "🟢 FIT 時序大數據對位成功！";
                     document.getElementById('gist-loading-status').style.color = "#00ffcc";
@@ -293,7 +292,6 @@
                     if(bigData.hr_stream) finalHrData = bigData.hr_stream.split('-').map(Number);
                     if(bigData.power_stream) finalPowerData = bigData.power_stream.split('-').map(Number);
 
-                    // 重新動態對齊真 X 軸點數里程
                     xLabels = Array.from({length: finalHrData.length}, function(_, idx) {
                         return ((idx / (finalHrData.length - 1)) * distNum).toFixed(1) + "km";
                     });
@@ -302,7 +300,8 @@
                     document.getElementById('gist-loading-status').innerText = "🟡 遠端未見 FIT 大數據。";
                     document.getElementById('gist-loading-status').style.color = "#ffb703";
                     
-                    // 降級讀取原版 CSV 欄位 12 的歷史備用數據
                     var rowPack = matched.rawRowPackage;
                     if (rowPack && rowPack.length > 12) {
-                    
+                        var streams = [];
+                        for (var colIdx = 12; colIdx < rowPack.length; colIdx++) {
+                            if (r
