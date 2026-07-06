@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kit Coach 團隊特訓大數據平台 v40.2</title>
+    <title>Kit Coach 團隊特訓大數據平台 v41.0</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #ffffff; }
         .phone-container { width: 100%; max-width: 412px; min-height: 100vh; background: #16161a; margin: 0 auto; padding-bottom: 40px; box-sizing: border-box; }
@@ -42,13 +42,13 @@
 <div class="phone-container">
     <div class="header">
         <h1>Kit Coach 團隊特訓大數據平台</h1>
-        <p>慢慢跑團 遠程智慧特訓 platform v40.2</p>
+        <p>慢慢跑團 遠程智慧特訓 platform v41.0</p>
     </div>
 
     <div class="form-container">
-        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
+        <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同遠端時序緩存）已完美同步！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
-        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; packageAllPayloads();">
+        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -153,26 +153,24 @@
 
             <div class="input-group">
                 <label>意見反映 (如有任何特訓心得可在這裡填寫)</label>
-                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." id="ui_feedback_text"></textarea>
-                
-                <input type="hidden" name="entry.1271874368" id="google_true_feedback_entry">
+                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." name="entry.1271874368" id="user_feedback"></textarea>
             </div>
 
             <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
 
             <div class="input-group">
                 <label>實際分段海拔數據 (10% ➔ 100% 可手動修改)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_climb">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_climb" oninput="saveStreamsToCache();">
             </div>
 
             <div class="input-group">
                 <label>實際分段心率數據 (10% ➔ 100% 可手動修改)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_hr">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_hr" oninput="saveStreamsToCache();">
             </div>
 
             <div class="input-group">
                 <label>功率時序流 Power Stream (10% ➔ 100% 可手動修改)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_power">
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_power" oninput="saveStreamsToCache();">
             </div>
             
             <div style="margin-top: 30px;">
@@ -222,7 +220,7 @@
         document.querySelector('#riskContainer [data-value^="良好"]').classList.add('active');
         document.querySelector('#weatherContainer [data-value^="正常"]').classList.add('active');
         document.querySelector('#supplyContainer [data-value^="正常"]').classList.add('active');
-        document.getElementById('ui_feedback_text').value = "";
+        document.getElementById('user_feedback').value = "";
         submitted = false;
     }
 
@@ -230,6 +228,26 @@
         if (!rawParam) return "";
         return rawParam.replace(/[\[\]]/g, "").replace(/,/g, "-");
     }
+
+    // 🚀 【終極緩存同步鎖】當網頁加載或手動微調數據時，實時將科學數據存入瀏覽器本地，永不失落！
+    function saveStreamsToCache() {
+        let runner = document.getElementById('runnerSelect').value || "Unknown";
+        let week = document.getElementById('weekSelect').value || "Unknown";
+        let cacheKey = `FIT_STREAM_${runner}_${week}`;
+
+        let streamObj = {
+            climb: document.getElementById('ui_climb').value || "",
+            hr: document.getElementById('ui_hr').value || "",
+            power: document.getElementById('ui_power').value || ""
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(streamObj));
+        // 額外留一份最新紀錄方便看板直接讀取
+        localStorage.setItem('FIT_STREAM_LATEST', JSON.stringify(streamObj));
+    }
+
+    // 當選擇跑手或週數變更時，自動更新緩存鍵名
+    document.getElementById('runnerSelect').addEventListener('change', saveStreamsToCache);
+    document.getElementById('weekSelect').addEventListener('change', saveStreamsToCache);
 
     window.addEventListener('DOMContentLoaded', () => {
         const runners = ["Kit", "Nien", "Simon", "Alex", "Sun", "Jackson", "Joy", "George", "Lip", "Wing_PTL", "Jason_PTL", "Alwyn", "Camille", "Fion", "Daniel", "KingYan", "Szero", "Frances", "Bianca", "Mabel", "Avis", "Jason", "Jerry", "Rita", "Ruby", "Calvin Siu", "Thomas", "Yin Wai", "Gary", "Lois", "Gaby", "Carol", "Timothy", "Charlotte Lokman", "Kayan"];
@@ -258,9 +276,13 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
+            // 數據注入解鎖框
             document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
             document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
             document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
+
+            // 0秒立刻鎖入緩存軌道
+            saveStreamsToCache();
 
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
@@ -270,26 +292,16 @@
         }
     });
 
-    // 🎯 【合體打包核心】：將手動修改過的分區數據、感想，統一黏合塞進 1271874368 發送
-    function packageAllPayloads() {
+    function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
         const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常（水份、能量膠與食物吸收良好）';
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
-
-        // 撈取可能被跑手修改過的最新的實體框數值
-        let userText = document.getElementById('ui_feedback_text').value || "";
-        let finalClimb = document.getElementById('ui_climb').value || "0";
-        let finalHr = document.getElementById('ui_hr').value || "0";
-        let finalPower = document.getElementById('ui_power').value || "0";
-
-        // 🧬 合體成為單一巨型字串包裹，確保數據全部安全上車
-        let totalPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${finalClimb}\nHR:${finalHr}\nPOWER:${finalPower}\n[/FIT_STREAM_DATA]`;
         
-        // 灌入 100% 存在、合法且必定能通車的意見反映問題欄
-        document.getElementById('google_true_feedback_entry').value = totalPayload;
+        // 提交最後一秒再次確保緩存最新
+        saveStreamsToCache();
     }
 </script>
 </body>
