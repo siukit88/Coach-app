@@ -34,6 +34,9 @@
         // 📡 🔒 請在此處放入你重新「發布到網路」獲取的最新 .csv 網址！
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
         
+        // 🔒 鎖定教練自己的 GitHub 帳號名，用於背景打撈對位
+        var GITHUB_USER = "siukit88";
+
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "Thomas", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
         var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
 
@@ -60,7 +63,7 @@
             } else {
                 errField.style.display = 'block'; errField.style.color = '#ff4d4d'; errField.innerText = "❌ 門禁安全驗證失敗";
                 document.getElementById('user-pwd').value = "";
-            }
+            } verificationTriggered();
         }
     </script>
 </head>
@@ -113,6 +116,10 @@
                 <div class="data-row" style="margin-top: 10px;">身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
                 <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
                 <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+                <div class="data-row" style="border-bottom: none; padding-top: 10px;">
+                    <div style="color: #ff3366; font-weight: bold; margin-bottom: 5px;">💬 學員特訓心得反映：</div>
+                    <div id="val-feedback" style="color: #ffffff; font-size: 14px; line-height: 1.5; white-space: pre-wrap;">--</div>
+                </div>
             </div>
         </div>
     </div>
@@ -197,7 +204,7 @@
         document.getElementById('val-stride').innerText = "--"; document.getElementById('val-hr').innerText = "--";
         document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
         document.getElementById('val-supply').innerText = "--"; document.getElementById('val-climb').innerText = "--";
-        document.getElementById('val-eph').innerText = "--";
+        document.getElementById('val-eph').innerText = "--"; document.getElementById('val-feedback').innerText = "--";
     }
 
     function updateDisplay(selectedWeek) {
@@ -227,15 +234,12 @@
                 document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
             } else { document.getElementById('val-eph').innerText = "--"; }
 
-            // 🛣️ X 軸 100% 精確對齊當前行數據實際里程
             var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', distNum + 'km'];
             
-            // ⛰️ 【真地形起伏重現】：基礎比例結構完美克隆 Garmin 真實雙峰地形圖
             var finalClimbData = [Math.round(climbNum*0.01), Math.round(climbNum*0.28), Math.round(climbNum*0.41), Math.round(climbNum*0.07), Math.round(climbNum*0.41), Math.round(climbNum*0.20)];
             var finalHrData = [hrNum - 15, hrNum + 8, hrNum + 18, hrNum - 22, hrNum + 12, hrNum - 7];
             var finalPowerData = [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)];
 
-            // 🎯 大數據打撈解鎖：如果 Excel 中儲存了上報的真去括號串流，直接無損重現！
             var rowPack = matched.rawRowPackage;
             if (rowPack && rowPack.length > 12) {
                 var streams = [];
@@ -249,7 +253,6 @@
                 if (streams[2] && streams[2].trim() !== "") { finalPowerData = streams[2].split(',').map(function(v) { return parseInt(v) || 0; }); }
             }
 
-            // 📊 執行看板主場渲染
             try {
                 if (bioChartInstance) bioChartInstance.destroy();
                 bioChartInstance = new Chart(document.getElementById('bioMetricsChart').getContext('2d'), {
@@ -283,10 +286,9 @@
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { type: 'linear', display: true, position: 'left', ticks: { color: '#3a86ff' } }, y1: { type: 'linear', display: false } } }
                 });
             } catch(chartErr) {}
+            
+            // 📡 【100% 獨立隔離、無毒背景感想打撈特快專線】
+            bgFetchGistFeedback(targetName, selectedWeek);
         }
     }
-    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
-</script>
-</body>
-</html>
+    document.getElementById('filter-name'
