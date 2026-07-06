@@ -42,8 +42,6 @@
 
         var authorizedName = ""; var isCoachMode = false; var allRecords = []; var cachedCsvText = ""; var bioChartInstance = null; var paceChartInstance = null;
 
-        function verificationTriggered() { console.log("門禁安全通訊點火..."); }
-
         function verifyIdentity() {
             var inputPwd = document.getElementById('user-pwd').value.trim();
             var errField = document.getElementById('login-err'); var nameSelect = document.getElementById('filter-name');
@@ -68,11 +66,11 @@
             }
         }
 
-        // 搬運一：Google Sheet CSV 異步下載函數安全登陸頭部
         function startLoadingData() {
             var statusEl = document.getElementById('loading-status');
             if(statusEl) statusEl.style.display = 'block';
-            fetch(csvMainUrl + "?t=" + new Date().getTime())
+            // 🟢 【關鍵修正】：將字串拼接的問號改為 & 符號，徹底封印 400 Bad Request 畸形網址錯誤
+            fetch(csvMainUrl + "&t=" + new Date().getTime())
                 .then(function(res) { 
                     if(!res.ok) { throw new Error('CSV Link Error'); }
                     return res.text(); 
@@ -84,7 +82,6 @@
                 });
         }
 
-        // 搬運二：標準 CSV 解析引擎安全登陸頭部
         function parseStandardCSV(csvText) {
             var lines = []; var currentLine = []; var currentCell = ''; var inQuotes = false;
             var normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -99,7 +96,6 @@
             return lines;
         }
 
-        // 搬運三：數據指紋過濾系統安全登陸頭部
         function parseAndFilterData() {
             try {
                 var lines = parseStandardCSV(cachedCsvText);
@@ -288,4 +284,6 @@
                     type: 'line',
                     data: { labels: xLabels, datasets: [ 
                         { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
-                        { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04
+                        { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
+                    ] },
+                    option
