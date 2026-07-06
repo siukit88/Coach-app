@@ -48,7 +48,7 @@
     <div class="form-container">
         <iframe name="hidden_submit_target" id="hidden_submit_target" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted){alert('🚀 功課數據（連同完整時序曲線）已完美同步至大數據平台！'); document.getElementById('trainingForm').reset(); resetBadges();}"></iframe>
 
-        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectFinalTextPayload();">
+        <form id="trainingForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSfCsCEhAqEvFlrSLPDdGMGl3hAMXP7nURwnVjLHQ1DfSDwZTg/formResponse" method="POST" target="hidden_submit_target" onsubmit="submitted=true; collectBadgeValues();">
             <div class="section-title">📝 步驟一：學員功課手動回報</div>
             
             <div class="upload-row">
@@ -153,25 +153,24 @@
 
             <div class="input-group">
                 <label>意見反映 (如有任何特訓心得可在這裡填寫)</label>
-                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." id="user_feedback"></textarea>
-                <input type="hidden" name="entry.1271874368" id="google_feedback_input">
+                <textarea class="input-ctrl" rows="3" placeholder="請填寫你的感想..." name="entry.1271874368" id="user_feedback"></textarea>
             </div>
 
             <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
 
             <div class="input-group">
-                <label>實際分段海拔數據 (10% ➔ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_climb">
+                <label>實際分段海拔數據 (10% ➔ 100% 可手動微調)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." name="entry.1014260476" id="ui_climb">
             </div>
 
             <div class="input-group">
-                <label>實際分段心率數據 (10% ➔ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_hr">
+                <label>實際分段心率數據 (10% ➔ 100% 可手動微調)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." name="entry.2051690470" id="ui_hr">
             </div>
 
             <div class="input-group">
-                <label>功率時序流 Power Stream (10% ➔ 100%)</label>
-                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe; pointer-events: none;" placeholder="等待 FIT 注入..." id="ui_power">
+                <label>功率時序流 Power Stream (10% ➔ 100% 可手動微調)</label>
+                <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." name="entry.585827917" id="ui_power">
             </div>
             
             <div style="margin-top: 30px;">
@@ -187,11 +186,6 @@
 
 <script>
     let submitted = false;
-    
-    // 🔒 【發送軌道專用變數】直接鎖定網址源頭數據，與 UI 格子完全脫鉤，徹底免疫 UI 凍結鎖！
-    let srcClimbStream = "0";
-    let srcHrStream = "0";
-    let srcPowerStream = "0";
 
     document.getElementById('imgTrigger').addEventListener('click', () => document.getElementById('imgFile').click());
 
@@ -262,15 +256,10 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 🚀 【軌道一：視覺軌道】填入格子（管它 UI 是否凍結，純粹給肉眼看）
+            // 🚀 【原生直填】數據自動塞入實體解鎖框中，不再有任何隱形阻斷
             document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
             document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
             document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
-
-            // 🚀 【軌道二：數據特快軌】直接物理複製網址列的乾淨數值，封存入安全變數，永不留白！
-            srcClimbStream = convertToDisplayStream(urlParams.get('climb_stream')) || "0";
-            srcHrStream = convertToDisplayStream(urlParams.get('hr_stream')) || "0";
-            srcPowerStream = convertToDisplayStream(urlParams.get('power_stream')) || "0";
 
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
             autoFields.forEach(f => {
@@ -280,21 +269,13 @@
         }
     });
 
-    // 🎯 【原生提交點火鏈】：提交那一刻，百分之百從最安全的「網址備份變數」中提取數值，徹底繞過 UI 框
-    function collectFinalTextPayload() {
+    function collectBadgeValues() {
         const risks = Array.from(document.querySelectorAll('#riskContainer .status-badge.active')).map(b => b.getAttribute('data-value')).join(', ');
         const weather = document.querySelector('#weatherContainer .status-badge.active')?.getAttribute('data-value') || '正常（天氣涼爽 / 室內冷氣 / 體感舒適）';
         const supply = document.querySelector('#supplyContainer .status-badge.active')?.getAttribute('data-value') || '正常（水份、能量膠與食物吸收良好）';
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
-
-        // 🛡️ 決定性一步：提取與 UI 鎖完全無關的 src 原始安全變數
-        let userText = document.getElementById('user_feedback').value || "";
-        let combinedPayload = `${userText}\n\n[FIT_STREAM_DATA]\nCLIMB:${srcClimbStream}\nHR:${srcHrStream}\nPOWER:${srcPowerStream}\n[/FIT_STREAM_DATA]`;
-        
-        // 灌入 Google 容器發送
-        document.getElementById('google_feedback_input').value = combinedPayload;
     }
 </script>
 </body>
