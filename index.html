@@ -28,12 +28,16 @@
         .login-box input { background: #16161a; border: 1px solid #ff3366; padding: 12px; width: 100%; box-sizing: border-box; color: #ffffff; font-size: 18px; text-align: center; border-radius: 4px; margin-bottom: 15px; outline: none; }
         .login-box button { background: #ff3366; border: none; color: #ffffff; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .loading-text { font-size: 14px; color: #00ffcc; margin: 10px 0; text-align: center; }
+        .gist-status { font-size: 12px; color: #ffcc00; text-align: center; margin-top: 5px; font-weight: bold; }
     </style>
 
     <script>
-        // 📡 🔒 請在此處放入你重新「發布到網路」獲取的最新 .csv 網址！
+        // 📡 原生標準 100% 同步 Google Sheet CSV 網址
         var csvMainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxdxSecRK-c5JnXNdMqt__8HjZI1mZFP8gP7YF2MSGDQRfj_fheZZnDRih-95CRCbnN3QG7XrJMthY/pub?gid=99162601&single=true&output=csv";
         
+        // 🔒 鎖定教練自己的 GitHub 帳號名，用於大數據專線自動配對
+        var GITHUB_USER = "siukit88";
+
         var _0x5a1b = ["1000", "Kit", "1001", "Nein", "1002", "Simon", "1003", "Alex", "1004", "Sun", "1005", "Jackson", "1006", "Joy", "1007", "George", "1008", "Lip", "1009", "Wing_PTL", "1010", "Jason_PTL", "1011", "Alwyn", "1012", "Camille", "1013", "Fion", "1014", "Daniel", "1015", "KingYan", "1016", "Szero", "1017", "Frances", "1018", "Bianca", "1019", "Mabel", "1020", "Avis", "1021", "Jason", "1022", "Jerry", "1023", "Rita", "1024", "Ruby", "1025", "Calvin Siu", "Thomas", "1026", "Thomas", "1027", "Yin Wai", "1028", "Gary", "1029", "Lois", "1030", "Gaby", "1031", "Carol", "1032", "Timothy", "1033", "Charlotte Lokman", "1034", "Kayan", "1208", "Coach"];
         var _0x3b2c = {}; for(var i=0; i<_0x5a1b.length; i+=2){ _0x3b2c[_0x5a1b[i]] = _0x5a1b[i+1]; }
 
@@ -87,6 +91,7 @@
     <div class="card">
         <h2>📊 雲端歷史特訓紀錄</h2>
         <div id="loading-status" class="loading-text">🔄 安全加密通道建立中...</div>
+        <div id="gist-loading-status" class="gist-status"></div>
 
         <div class="filter-zone">
             <select id="filter-name" class="filter-select"></select>
@@ -113,6 +118,10 @@
                 <div class="data-row" style="margin-top: 10px;">身體風險體感 <span id="val-risk" class="data-val" style="color:#ffb703;">--</span></div>
                 <div class="data-row">環境天氣 <span id="val-weather" class="data-val">--</span></div>
                 <div class="data-row">補給問題 <span id="val-supply" class="data-val">--</span></div>
+                <div class="data-row" style="border-bottom: none; padding-top: 12px;">
+                    <div style="margin-bottom: 6px; color: #ff3366; font-weight: bold;">💬 學員特訓心得與意見反映：</div>
+                    <div id="val-feedback" style="color: #ffffff; font-size: 14px; line-height: 1.6; white-space: pre-wrap; padding: 8px; background: #16161a; border-radius: 4px; border: 1px solid #2a2a35;">等待加載感想文字...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -197,96 +206,103 @@
         document.getElementById('val-stride').innerText = "--"; document.getElementById('val-hr').innerText = "--";
         document.getElementById('val-risk').innerText = "--"; document.getElementById('val-weather').innerText = "--";
         document.getElementById('val-supply').innerText = "--"; document.getElementById('val-climb').innerText = "--";
-        document.getElementById('val-eph').innerText = "--";
+        document.getElementById('val-eph').innerText = "--"; document.getElementById('val-feedback').innerText = "--";
     }
 
-    function updateDisplay(selectedWeek) {
+    // 🔄 【終極雙軌融合異步引擎】
+    async function updateDisplay(selectedWeek) {
         if(!allRecords || allRecords.length === 0) return;
         var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
-        if (matched) {
-            document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
-            document.getElementById('val-distance').innerText = matched.distance + " km"; 
-            document.getElementById('val-time').innerText = matched.time; 
-            document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
-            document.getElementById('val-stride').innerText = matched.stride + " m";
-            document.getElementById('val-hr').innerText = matched.hr + " bpm";
-            document.getElementById('val-climb').innerText = matched.climb + " 米";
+        if (!matched) return;
 
-            var distNum = parseFloat(matched.distance) || 0; var climbNum = parseFloat(matched.climb) || 0;
-            var hrNum = parseInt(matched.hr) || 0;
+        var nameSelect = document.getElementById('filter-name');
+        var targetName = nameSelect.value ? nameSelect.value.trim() : authorizedName;
 
-            var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
-            document.getElementById('hr-bar').style.width = pct + "%";
+        // 軌道一：先刷入原版標準 Excel 常規數據
+        document.getElementById('val-date').innerText = matched.timestamp.split(' ')[0] || matched.timestamp;
+        document.getElementById('val-distance').innerText = matched.distance + " km"; 
+        document.getElementById('val-time').innerText = matched.time; 
+        document.getElementById('val-cadence').innerText = matched.cadence + " spm"; 
+        document.getElementById('val-stride').innerText = matched.stride + " m";
+        document.getElementById('val-hr').innerText = matched.hr + " bpm";
+        document.getElementById('val-climb').innerText = matched.climb + " 米";
+        document.getElementById('val-risk').innerText = matched.risk;
+        document.getElementById('val-weather').innerText = matched.weather;
+        document.getElementById('val-supply').innerText = matched.supply;
+        document.getElementById('val-feedback').innerText = "⚡ 正在穿透 GitHub Gist 讀取無限時序流...";
+        document.getElementById('gist-loading-status').innerText = "📡 正在調取 GitHub 遠端保險箱...";
+        document.getElementById('gist-loading-status').style.color = "#ffcc00";
 
-            var hoursNum = 0;
-            if (matched.time) {
-                var match = matched.time.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
-                if (match) { hoursNum = parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
-            }
-            if (hoursNum > 0) {
-                document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
-            } else { document.getElementById('val-eph').innerText = "--"; }
+        var distNum = parseFloat(matched.distance) || 0; 
+        var climbNum = parseFloat(matched.climb) || 0;
+        var hrNum = parseInt(matched.hr) || 0;
 
-            // 🛣️ X 軸 100% 精確對齊當前行數據實際里程
-            var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', distNum + 'km'];
-            
-            // ⛰️ 【真地形起伏重現】：基礎比例結構完美克隆 Garmin 真實雙峰地形圖
-            var finalClimbData = [Math.round(climbNum*0.01), Math.round(climbNum*0.28), Math.round(climbNum*0.41), Math.round(climbNum*0.07), Math.round(climbNum*0.41), Math.round(climbNum*0.20)];
-            var finalHrData = [hrNum - 15, hrNum + 8, hrNum + 18, hrNum - 22, hrNum + 12, hrNum - 7];
-            var finalPowerData = [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)];
+        var pct = Math.min(100, Math.max(10, (hrNum / 200) * 100));
+        document.getElementById('hr-bar').style.width = pct + "%";
 
-            // 🎯 大數據打撈解鎖：如果 Excel 中儲存了上報的真去括號串流，直接無損重現！
-            var rowPack = matched.rawRowPackage;
-            if (rowPack && rowPack.length > 12) {
-                var streams = [];
-                for (var colIdx = 12; colIdx < rowPack.length; colIdx++) {
-                    if (rowPack[colIdx] && (rowPack[colIdx].indexOf(',') !== -1 || rowPack[colIdx].indexOf('[') !== -1)) {
-                        streams.push(rowPack[colIdx].toString().trim().replace(/[\[\]"]/g, ""));
-                    }
-                }
-                if (streams[0] && streams[0].trim() !== "") { finalClimbData = streams[0].split(',').map(function(v) { return parseInt(v) || 0; }); }
-                if (streams[1] && streams[1].trim() !== "") { finalHrData = streams[1].split(',').map(function(v) { return parseInt(v) || 0; }); }
-                if (streams[2] && streams[2].trim() !== "") { finalPowerData = streams[2].split(',').map(function(v) { return parseInt(v) || 0; }); }
-            }
-
-            // 📊 執行看板主場渲染
-            try {
-                if (bioChartInstance) bioChartInstance.destroy();
-                bioChartInstance = new Chart(document.getElementById('bioMetricsChart').getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: xLabels,
-                        datasets: [
-                            { label: '實時心率 (bpm)', data: finalHrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: 3, borderWidth: 2 },
-                            { label: '輸出功率 (W)', data: finalPowerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: 3, borderWidth: 2 },
-                            { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                        ]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        scales: { 
-                            y: { type: 'linear', display: true, position: 'left', ticks: { color: '#ff3366' }, grid: { color: '#222' } }, 
-                            y2: { type: 'linear', display: true, position: 'right', ticks: { color: '#3a86ff' }, grid: { display: false } }, 
-                            y1: { type: 'linear', display: false } 
-                        } 
-                    }
-                });
-
-                if (paceChartInstance) paceChartInstance.destroy();
-                paceChartInstance = new Chart(document.getElementById('paceMetricsChart').getContext('2d'), {
-                    type: 'line',
-                    data: { labels: xLabels, datasets: [ 
-                        { label: '即時配速 (Pace)', data: [5.6, 5.2, 5.8, 6.4, 4.9, 4.5], borderColor: '#3a86ff', fill: false, tension: 0.3, yAxisID: 'y' },
-                        { label: '[背景] 實際爬升高度', data: finalClimbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                    ] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { type: 'linear', display: true, position: 'left', ticks: { color: '#3a86ff' } }, y1: { type: 'linear', display: false } } }
-                });
-            } catch(chartErr) {}
+        var hoursNum = 0;
+        if (matched.time) {
+            var match = matched.time.match(/([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
+            if (match) { hoursNum = parseInt(match[1]) + (parseInt(match[2]) / 60) + (parseInt(match[3]) / 3600); }
         }
-    }
-    document.getElementById('filter-name').addEventListener('change', function() { parseAndFilterData(); });
-    document.getElementById('filter-week').addEventListener('change', function(e) { updateDisplay(e.target.value); });
-</script>
-</body>
-</html>
+        if (hoursNum > 0) {
+            document.getElementById('val-eph').innerText = ((distNum + (climbNum / 100)) / hoursNum).toFixed(2) + " EP/小時";
+        } else { document.getElementById('val-eph').innerText = "--"; }
+
+        var xLabels = ['0km', (distNum*0.2).toFixed(2)+'km', (distNum*0.4).toFixed(2)+'km', (distNum*0.6).toFixed(2)+'km', (distNum*0.8).toFixed(2)+'km', distNum + 'km'];
+        
+        // 預設地形兜底數據
+        var finalClimbData = [Math.round(climbNum*0.01), Math.round(climbNum*0.28), Math.round(climbNum*0.41), Math.round(climbNum*0.07), Math.round(climbNum*0.41), Math.round(climbNum*0.20)];
+        var finalHrData = [hrNum - 15, hrNum + 8, hrNum + 18, hrNum - 22, hrNum + 12, hrNum - 7];
+        var finalPowerData = [Math.round(hrNum*1.3), Math.round(hrNum*1.6), Math.round(hrNum*1.4), Math.round(hrNum*1.8), Math.round(hrNum*1.5), Math.round(hrNum*1.35)];
+
+        // 軌道二：🚀 【萬用模糊指紋配對】強行擊穿隱形空格，精準讀取 Gist 大數據包
+        try {
+            var listRes = await fetch("https://api.github.com/users/" + GITHUB_USER + "/gists?per_page=100&_=" + new Date().getTime());
+            if(listRes.ok) {
+                var gists = await listRes.json();
+                var matchedRawUrl = null;
+                
+                // 🧬 萬用模糊比對演算法：去掉所有空格與特殊符號，強制對位！
+                var fingerTarget = (targetName + "_" + selectedWeek).replace(/[\s_第週]/g, "").toLowerCase();
+
+                for(var i=0; i<gists.length; i++) {
+                    var filesObj = gists[i].files;
+                    if(filesObj) {
+                        for(var fn in filesObj) {
+                            var fingerFile = fn.replace(/[\s_第週\.json]/g, "").toLowerCase();
+                            if(fingerFile === fingerTarget) {
+                                matchedRawUrl = filesObj[fn].raw_url;
+                                break;
+                            }
+                        }
+                    }
+                    if(matchedRawUrl) break;
+                }
+
+                if(matchedRawUrl) {
+                    var dataRes = await fetch(matchedRawUrl);
+                    var bigData = await dataRes.json();
+
+                    // 100% 吐出感想與無損時序流
+                    document.getElementById('val-feedback').innerText = bigData.feedback || "該週學員未填寫心得感想。";
+                    document.getElementById('gist-loading-status').innerText = "🟢 FIT 時序大數據對位成功！";
+                    document.getElementById('gist-loading-status').style.color = "#00ffcc";
+
+                    if(bigData.climb_stream) finalClimbData = bigData.climb_stream.split('-').map(Number);
+                    if(bigData.hr_stream) finalHrData = bigData.hr_stream.split('-').map(Number);
+                    if(bigData.power_stream) finalPowerData = bigData.power_stream.split('-').map(Number);
+
+                    // 重新動態對齊真 X 軸點數里程
+                    xLabels = Array.from({length: finalHrData.length}, function(_, idx) {
+                        return ((idx / (finalHrData.length - 1)) * distNum).toFixed(1) + "km";
+                    });
+                } else {
+                    document.getElementById('val-feedback').innerText = "⚠️ 該週無 FIT 大數據 (可於 Excel 欄位12後讀取歷史數據)。";
+                    document.getElementById('gist-loading-status').innerText = "🟡 遠端未見 FIT 大數據。";
+                    document.getElementById('gist-loading-status').style.color = "#ffb703";
+                    
+                    // 降級讀取原版 CSV 欄位 12 的歷史備用數據
+                    var rowPack = matched.rawRowPackage;
+                    if (rowPack && rowPack.length > 12) {
+                    
