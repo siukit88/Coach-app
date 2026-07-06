@@ -159,17 +159,17 @@
             <div class="section-title">📊 🚀 步驟二：科學分段資料肉眼核對線</div>
 
             <div class="input-group">
-                <label>實際分段海拔數據 (10% ➔ 100% 可手動修改)</label>
+                <label>實際分段海拔數據 (10% ➔ 100% 可手動微調)</label>
                 <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_climb" oninput="saveStreamsToCache();">
             </div>
 
             <div class="input-group">
-                <label>實際分段心率數據 (10% ➔ 100% 可手動修改)</label>
+                <label>實際分段心率數據 (10% ➔ 100% 可手動微調)</label>
                 <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_hr" oninput="saveStreamsToCache();">
             </div>
 
             <div class="input-group">
-                <label>功率時序流 Power Stream (10% ➔ 100% 可手動修改)</label>
+                <label>功率時序流 Power Stream (10% ➔ 100% 可手動微調)</label>
                 <input type="text" class="input-ctrl" style="color: #00f2fe; background-color: #1f2d2f; border-color: #00f2fe;" placeholder="等待 FIT 注入..." id="ui_power" oninput="saveStreamsToCache();">
             </div>
             
@@ -229,7 +229,7 @@
         return rawParam.replace(/[\[\]]/g, "").replace(/,/g, "-");
     }
 
-    // 🚀 【終極緩存同步鎖】當網頁加載或手動微調數據時，實時將科學數據存入瀏覽器本地，永不失落！
+    // 🔒 【大數據本地保險箱核心邏輯】實時把三串數據鎖進 LocalStorage，徹底告別 Google 攔截
     function saveStreamsToCache() {
         let runner = document.getElementById('runnerSelect').value || "Unknown";
         let week = document.getElementById('weekSelect').value || "Unknown";
@@ -241,11 +241,11 @@
             power: document.getElementById('ui_power').value || ""
         };
         localStorage.setItem(cacheKey, JSON.stringify(streamObj));
-        // 額外留一份最新紀錄方便看板直接讀取
+        // 額外備份一份最新數據，方便看板點擊時直接跨網頁秒讀
         localStorage.setItem('FIT_STREAM_LATEST', JSON.stringify(streamObj));
     }
 
-    // 當選擇跑手或週數變更時，自動更新緩存鍵名
+    // 只要跑手更換或打字，即時鎖定保險箱
     document.getElementById('runnerSelect').addEventListener('change', saveStreamsToCache);
     document.getElementById('weekSelect').addEventListener('change', saveStreamsToCache);
 
@@ -276,12 +276,12 @@
             if (urlParams.get('hr')) document.getElementById('hr').value = urlParams.get('hr');
             document.getElementById('stride').value = "1.15";
 
-            // 數據注入解鎖框
+            // 數據自動注入實體解鎖框
             document.getElementById('ui_climb').value = convertToDisplayStream(urlParams.get('climb_stream'));
             document.getElementById('ui_hr').value = convertToDisplayStream(urlParams.get('hr_stream'));
             document.getElementById('ui_power').value = convertToDisplayStream(urlParams.get('power_stream'));
 
-            // 0秒立刻鎖入緩存軌道
+            // 0秒立刻裝入本地保險箱
             saveStreamsToCache();
 
             const autoFields = ['distance', 'elevation', 'duration', 'cadence', 'hr', 'stride'];
@@ -299,8 +299,8 @@
         document.getElementById('hidden_risk').value = risks;
         document.getElementById('hidden_weather').value = weather;
         document.getElementById('hidden_supply').value = supply;
-        
-        // 提交最後一秒再次確保緩存最新
+
+        // 點擊發送最後一關，再次鎖死最新修改的數據到保險箱
         saveStreamsToCache();
     }
 </script>
