@@ -118,6 +118,7 @@
                                     weather: row[idxWeather]||"正常", supply: row[idxSupply]||"正常", climb: row[idxClimb]||"0",
                                     rawRowPackage: row 
                                 });
+                                // 🟢 儲存純粹的原始週數指紋
                                 weeks[wValue] = true;
                             }
                         }
@@ -125,22 +126,27 @@
                 }
 
                 weekSelect.innerHTML = '<option value="">選擇週數...</option>';
-                var sortedWeeks = Object.keys(weeks).sort(function(a,b){return parseInt(a.replace(/[^0-9]/g, '')) - parseInt(b.replace(/[^0-9]/g, ''));});
+                
+                // 🟢 【去骨排序】：抽離所有非數字，純數值排序週數
+                var sortedWeeks = Object.keys(weeks).sort(function(a,b){
+                    return parseInt(a.replace(/[^0-9]/g, '')) - parseInt(b.replace(/[^0-9]/g, ''));
+                });
+                
                 sortedWeeks.forEach(function(w) { 
-                    var displayName = w.indexOf("週") !== -1 ? w : "第 " + w + " 週";
+                    // 確保選單外觀高雅，不論 Google Sheet 傳啥，選單一律統整呈現「第 x 週」
+                    var cleanNum = w.replace(/[^0-9]/g, '');
+                    var displayName = "第 " + (cleanNum || w) + " 週";
                     weekSelect.innerHTML += '<option value="' + w + '">' + displayName + '</option>'; 
                 });
                 
                 document.getElementById('loading-status').style.display = 'none';
                 
-                // 🟢 【雙軌修復精髓】：不論 Google Sheet 找不找得到歷史行，一律強制發動 updateDisplay 讓 Gist 背景專線獨立點火！
                 var currentWeek = weekSelect.value;
                 if(allRecords && allRecords.length > 0) { 
                     var last = allRecords[allRecords.length - 1]; 
                     if(last) { weekSelect.value = last.week; currentWeek = last.week; }
                 }
-                if(!currentWeek && sortedWeeks.length > 0) { currentWeek = sortedWeeks[0]; weekSelect.value = currentWeek; }
-                if(!currentWeek) { currentWeek = "第 11 週"; } // 最強防禦兜底
+                if(!currentWeek && sortedWeeks.length > 0) { currentWeek = sortedWeeks[sortedWeeks.length - 1]; weekSelect.value = currentWeek; }
                 
                 updateDisplay(currentWeek);
             } catch (error) { document.getElementById('loading-status').innerText = "❌ 數據解析錯誤。"; }
@@ -219,10 +225,13 @@
         var nameSelect = document.getElementById('filter-name');
         var currentRunner = nameSelect.value ? nameSelect.value.trim() : authorizedName;
         
-        // 預設重置欄位
         clearDisplayFields();
 
-        var matched = allRecords.find(function(r) { return r.week === selectedWeek; });
+        // 🟢 【去骨配對核心】：兩端字串通通熔解成純數字進行 100% 齒輪對比
+        var targetNumStr = (selectedWeek || "").toString().replace(/[^0-9]/g, '');
+        var matched = allRecords.find(function(r) { 
+            return r.week.toString().replace(/[^0-9]/g, '') === targetNumStr; 
+        });
         
         var distNum = 0; var climbNum = 0; var hrNum = 0;
         
@@ -255,7 +264,6 @@
             }
         }
 
-        // 🛣️ 真數據對位渲染線（防衛型結構：沒 Google 資料時，先以 10 公里預設地形渲染，絕不卡死！）
         var effectiveDist = distNum > 0 ? distNum : 10;
         var xLabels = ['0km', (effectiveDist*0.2).toFixed(2)+'km', (effectiveDist*0.4).toFixed(2)+'km', (effectiveDist*0.6).toFixed(2)+'km', (effectiveDist*0.8).toFixed(2)+'km', effectiveDist + 'km'];
         
@@ -278,11 +286,10 @@
             }
         }
 
-        // 🎨 降落繪圖核心（封裝成通用渲染函數，供 Gist 隨時覆寫）
         renderPrimaryCharts(xLabels, finalClimbData, finalHrData, finalPowerData);
         
-        // 📡 🚀 【最高點火！】：不論 Google 有沒有找到此行，背景 Gist 打撈線通通強制啟動！
-        bgFetchGistFeedback(currentRunner, selectedWeek, effectiveDist);
+        // 📡 🚀 【雙向強制爆發點】：傳入純數字指紋週數，強制打穿 Gist 後台提取大數據文字
+        bgFetchGistFeedback(currentRunner, targetNumStr, effectiveDist);
     }
 
     function renderPrimaryCharts(xLabels, climbData, hrData, powerData) {
@@ -295,6 +302,4 @@
                     datasets: [
                         { label: '實時心率 (bpm)', data: hrData, borderColor: '#ff3366', fill: false, tension: 0.2, yAxisID: 'y', pointRadius: hrData.length > 20 ? 0 : 3, borderWidth: 2 },
                         { label: '輸出功率 (W)', data: powerData, borderColor: '#3a86ff', fill: false, tension: 0.2, yAxisID: 'y2', pointRadius: powerData.length > 20 ? 0 : 3, borderWidth: 2 },
-                        { label: '[背景] 實際爬升高度', data: climbData, borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.04)', fill: true, pointRadius: 0, tension: 0.4, yAxisID: 'y1' }
-                    ]
-          
+                        { label: '[背景] 實際爬升高度', data: climbDa
