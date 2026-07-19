@@ -26,20 +26,23 @@
     <a id="auth-link" href="#" class="btn-strava">🧡 連接我的 Strava 帳號</a>
 
     <div class="status-box" id="status-zone" style="display: none;">
-        <h4 id="status-title" style="margin: 0 0 10px 0; color: #00ffcc;">🔄 正在與 Strava 交換安全安全憑證...</h4>
+        <h4 id="status-title" style="margin: 0 0 10px 0; color: #00ffcc;">🔄 正在與 Strava 交換安全憑證...</h4>
         <div id="status-desc" style="font-size: 13px; color: #dddddd;">請稍候，正在為你生成永久自動同步密鑰。</div>
     </div>
 </div>
 
 <script>
-    // 🔒 智慧鎖定：已自動將教練官方提供的真實 API 認證資訊封裝寫死
+    // 🔒 智慧鎖定：封裝教練官方 API 認證資訊
     var STRAVA_CLIENT_ID = "266268"; 
     var STRAVA_CLIENT_SECRET = "e304eac78b700095d7f114432f7ee0ed647c2fae";
     
-    // 全自動動態動態獲取當前的網頁網址，作為授權完的回呼目標
+    // 🎯 智慧鎖定：自動對接你剛創立的 Google 試算表後端接收大腦網址！
+    var GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVhsrXiGin1HCEmsKtvTtdclYkhGGPwimiPu85Z_rGQreoZLwYTH7Qj78pp_GcKLfn/exec";
+    
+    // 全自動獲取當前的網頁網址作為回呼目標
     var REDIRECT_URI = window.location.href.split('?')[0]; 
 
-    // 初始化建構 Strava 官方授權跳轉請求連結 (精準要求讀取活動歷史及時序流權限：activity:read_all)
+    // 初始化建構 Strava 官方授權連結
     document.getElementById('auth-link').href = "https://www.strava.com/oauth/authorize?" +
         "client_id=" + STRAVA_CLIENT_ID +
         "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
@@ -47,17 +50,16 @@
         "&approval_prompt=auto" +
         "&scope=activity:read_all";
 
-    // 🎯 步驟二：當網頁加載時，全自動檢查網址列是否帶有 Strava 回傳的安全臨時碼 ?code=xxxx
+    // 🎯 步驟二：當網頁加載時，全自動檢查網址列是否帶有 Strava 回傳的 ?code=xxxx
     window.addEventListener('DOMContentLoaded', function() {
         var urlParams = new URLSearchParams(window.location.search);
         var authCode = urlParams.get('code');
 
         if (authCode) {
-            // 發現臨時 Code，切換 UI 介面進入背景對流狀態
             document.getElementById('status-zone').style.display = 'block';
             document.getElementById('auth-link').style.display = 'none';
 
-            // 🎯 步驟三：即刻向 Strava 伺服器發動認證交換 (Token Exchange)
+            // 即刻向 Strava 伺服器發動認證交換
             exchangeStravaToken(authCode);
         }
     });
@@ -82,27 +84,52 @@
             return res.json();
         })
         .then(function(data) {
-            // 🟢 【大捷通車】：成功獲取核心數據金鑰！
-            document.getElementById('status-title').innerText = "✅ Strava 自動化同步授權成功！";
-            
-            // 提取核心數據：
-            // data.refresh_token -> 供未來背景全自動抓數據的永久鑰匙
-            // data.athlete.firstname -> 跑手在 Strava 上的姓名
+            // 🟢 成功從 Strava 換到密鑰
             var athleteName = (data.athlete && data.athlete.firstname) ? data.athlete.firstname : "跑手";
+            if (data.athlete && data.athlete.lastname) { athleteName += " " + data.athlete.lastname; }
+            
+            var athleteId = data.athlete ? data.athlete.id : "unknown";
             var permRefreshToken = data.refresh_token;
 
-            document.getElementById('status-desc').innerHTML = 
-                "👤 偵測到跑手帳號：" + athleteName + "<br><br>" +
-                "🔑 你的永久續期金鑰 (Refresh Token)：" +
-                "<span class='token-val'>" + permRefreshToken + "</span><br>" +
-                "💡 複製這串金鑰貼給教練，或下一步我們編寫程式，讓網頁全自動幫學生把這串金鑰寫入 Google Sheet 儲存！";
-            
-            console.log("Strava Success Data:", data);
+            document.getElementById('status-title').innerText = "⚡ Strava 授權成功！正在寫入雲端表格...";
+            document.getElementById('status-desc').innerHTML = "👤 跑手姓名：" + athleteName + "<br>⏳ 正在安全傳輸金鑰至教練的 Google 試算表，請勿關閉網頁...";
+
+            // 🎯 步驟三：全自動啟動「第二重物理傳輸」，將金鑰射向 Google Apps Script 網址
+            sendTokenToGoogleSheet(athleteId, athleteName, permRefreshToken);
         })
         .catch(function(err) {
             document.getElementById('status-title').innerText = "❌ 授權認證交換失敗";
             document.getElementById('status-title').style.color = "#ff3366";
             document.getElementById('status-desc').innerText = "請確保你的 Authorization Callback Domain 與當前網域 100% 吻合。";
+        });
+    }
+
+    function sendTokenToGoogleSheet(id, name, token) {
+        var googlePayload = {
+            athlete_id: id,
+            athlete_name: name,
+            refresh_token: token
+        };
+
+        // 發動強行跨網域 POST 請求
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors", // 防禦 CORS 攔截，強行送出數據
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(googlePayload)
+        })
+        .then(function() {
+            // 🟢 【終極完勝】：落地成功！
+            document.getElementById('status-title').innerText = "🎉 全自動綁定成功！";
+            document.getElementById('status-title').style.color = "#00ffcc";
+            document.getElementById('status-desc').innerHTML = 
+                "🤝 歡迎加入 Takeitslow 特訓生態系！<br><br>" +
+                "跑手 <b>" + name + "</b> 的永久同步金鑰已安全儲存至教練的雲端表格中。<br><br>" +
+                "✨ <b>現在你可以放心關閉此網頁</b>，以後跑完步數據會全自動同步到教練的智慧看板！";
+        })
+        .catch(function(err) {
+            document.getElementById('status-title').innerText = "⚠️ 寫入雲端發生未知狀態";
+            document.getElementById('status-desc').innerText = "請教練至 Google 試算表檢查 'Strava_Tokens' 分頁是否已自動生成並帶入資料。";
         });
     }
 </script>
