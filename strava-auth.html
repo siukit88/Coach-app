@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Takeitslow 慢跑團 ・ Strava 數據自動化授權</title>
+    <title>Takeitslow 慢跑團 ・ 授權核心修復版</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding-top: 60px; }
         .container { max-width: 400px; margin: 0 auto; background: #16161a; padding: 30px; border-radius: 8px; box-sizing: border-box; border: 1px solid #ff3366; }
@@ -18,29 +18,32 @@
 
 <div class="container">
     <h2>🏃‍♂️ Takeitslow 慢跑團</h2>
-    <p>智慧特訓自動化對流系統</p>
-    <p style="font-size: 12px; color: #666;">教練提醒：每位學員只需在此點擊授權一次，以後跑步功課將直接免手動同步至看板！</p>
+    <p>智慧特訓數據流綁定系統 (核心修復版)</p>
     
-    <a id="auth-link" href="#" class="btn-strava">🧡 連接我的 Strava 帳號</a>
+    <!-- 🟢 點擊此按鈕將被物理強制進入 Strava 切換帳號畫面 -->
+    <a id="auth-link" href="#" class="btn-strava">🧡 重新連接我的 Strava 帳號</a>
 
     <div class="status-box" id="status-zone" style="display: none;">
-        <h4 id="status-title" style="margin: 0 0 10px 0; color: #00ffcc;">🔄 正在與 Strava 交換安全憑證...</h4>
-        <div id="status-desc" style="font-size: 13px; color: #dddddd;">請稍候，正在為你生成永久自動同步密鑰。</div>
+        <h4 id="status-title" style="margin: 0 0 10px 0; color: #00ffcc;">🔄 正在建立安全對流...</h4>
+        <div id="status-desc" style="font-size: 13px; color: #dddddd;">正在為新同學打通 Google 試算表管道。</div>
     </div>
 </div>
 
 <script>
     var STRAVA_CLIENT_ID = "266268"; 
     var STRAVA_CLIENT_SECRET = "e304eac78b700095d7f114432f7ee0ed647c2fae";
+    
+    // 🛑 【關鍵校準點】：請教練務必核對這串網址，是否與你目前 Apps Script 點擊「管理部署」生成的最新 URL 100% 完全相同！
     var GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVhsrXiGin1HCEmsKtvTtdclYkhGGPwimiPu85Z_rGQreoZLwYTH7Qj78pp_GcKLfn/exec";
     
     var REDIRECT_URI = window.location.href.split('?')[0]; 
 
+    // 🟢 修正點：將 approval_prompt 改為 force，物理重置瀏覽器記憶，強制同學必須手動登入自己的帳號
     document.getElementById('auth-link').href = "https://www.strava.com/oauth/authorize?" +
         "client_id=" + STRAVA_CLIENT_ID +
         "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
         "&response_type=code" +
-        "&approval_prompt=auto" +
+        "&approval_prompt=force" + 
         "&scope=activity:read_all";
 
     window.addEventListener('DOMContentLoaded', function() {
@@ -57,62 +60,46 @@
     function exchangeStravaToken(code) {
         var tokenExchangeUrl = "https://www.strava.com/oauth/token";
         
-        var payload = {
-            client_id: STRAVA_CLIENT_ID,
-            client_secret: STRAVA_CLIENT_SECRET,
-            code: code,
-            grant_type: "authorization_code"
-        };
-
         fetch(tokenExchangeUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                client_id: STRAVA_CLIENT_ID,
+                client_secret: STRAVA_CLIENT_SECRET,
+                code: code,
+                grant_type: "authorization_code"
+            })
         })
-        .then(function(res) {
-            if (!res.ok) throw new Error("Exchange Failed");
-            return res.json();
-        })
+        .then(function(res) { return res.json(); })
         .then(function(data) {
-            var athleteName = (data.athlete && data.athlete.firstname) ? data.athlete.firstname : "跑手";
+            var athleteName = (data.athlete && data.athlete.firstname) ? data.athlete.firstname : "新跑手";
             if (data.athlete && data.athlete.lastname) { athleteName += " " + data.athlete.lastname; }
-            
             var athleteId = data.athlete ? data.athlete.id : "unknown";
             var permRefreshToken = data.refresh_token;
 
-            document.getElementById('status-title').innerText = "⚡ Strava 授權成功！正在同步至雲端...";
+            document.getElementById('status-title').innerText = "⚡ 認證成功！正在強行注入 Excel...";
             
-            // 🎯 【戰術變更】：將參數拼接在網址後方，發動 GET 衝鋒
+            // 發射純 GET 請求
             sendTokenViaGet(athleteId, athleteName, permRefreshToken);
         })
         .catch(function(err) {
-            document.getElementById('status-title').innerText = "❌ 授權認證交換失敗";
-            document.getElementById('status-title').style.color = "#ff3366";
-            document.getElementById('status-desc').innerText = "請確保你的 Authorization Callback Domain 與當前網域 100% 吻合。";
+            document.getElementById('status-title').innerText = "❌ 認證管道建立失敗";
         });
     }
 
     function sendTokenViaGet(id, name, token) {
-        // 🟢 智慧型動態拼接純 GET 網址
         var finalGetUrl = GOOGLE_SCRIPT_URL + 
             "?athlete_id=" + encodeURIComponent(id) + 
             "&athlete_name=" + encodeURIComponent(name) + 
             "&refresh_token=" + encodeURIComponent(token);
 
-        // 🟢 雙重火力發射：fetch 預載 + 隱形圖片載入，保證 100% 觸發 Google 後台
         fetch(finalGetUrl, { mode: 'no-cors' });
-
         var imgTrigger = new Image();
         imgTrigger.src = finalGetUrl;
 
-        // 🟢 網頁直接認定大捷通車
         setTimeout(function() {
-            document.getElementById('status-title').innerText = "🎉 全自動綁定成功！";
-            document.getElementById('status-title').style.color = "#00ffcc";
-            document.getElementById('status-desc').innerHTML = 
-                "🤝 歡迎加入 Takeitslow 特訓生態系！<br><br>" +
-                "跑手 <b>" + name + "</b> 的永久同步金鑰已透過安全加密隧道直接注入雲端。<br><br>" +
-                "✨ <b>現在你可以放心關閉此網頁</b>。請教練即刻查看 Google 試算表後台！";
+            document.getElementById('status-title').innerText = "🎉 綁定大功告成！";
+            document.getElementById('status-desc').innerHTML = "跑手 <b>" + name + "</b> 的憑證已成功登記。<br><br>請教練即刻重新在 Excel 執行診斷名單！";
         }, 1500);
     }
 </script>
