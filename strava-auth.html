@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Takeitslow 慢跑團 ・ 授權核心修復版</title>
+    <title>Takeitslow 慢跑團 ・ 授權強制對流版</title>
     <style>
         body { margin: 0; padding: 0; background-color: #121212; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding-top: 60px; }
         .container { max-width: 400px; margin: 0 auto; background: #16161a; padding: 30px; border-radius: 8px; box-sizing: border-box; border: 1px solid #ff3366; }
@@ -18,14 +18,13 @@
 
 <div class="container">
     <h2>🏃‍♂️ Takeitslow 慢跑團</h2>
-    <p>智慧特訓數據流綁定系統 (核心修復版)</p>
+    <p>智慧特訓數據流綁定系統 (物理對流版)</p>
     
-    <!-- 🟢 點擊此按鈕將被物理強制進入 Strava 切換帳號畫面 -->
-    <a id="auth-link" href="#" class="btn-strava">🧡 重新連接我的 Strava 帳號</a>
+    <a id="auth-link" href="#" class="btn-strava">🧡 點擊連通我的 Strava 帳號</a>
 
     <div class="status-box" id="status-zone" style="display: none;">
-        <h4 id="status-title" style="margin: 0 0 10px 0; color: #00ffcc;">🔄 正在建立安全對流...</h4>
-        <div id="status-desc" style="font-size: 13px; color: #dddddd;">正在為新同學打通 Google 試算表管道。</div>
+        <h4 id="status-title" style="margin: 0 0 10px 0; color: #00ffcc;">🔄 正在向 Strava 交換安全憑證...</h4>
+        <div id="status-desc" style="font-size: 13px; color: #dddddd;">驗證成功後，系統將直接物理跳轉至 Google 雲端數據庫。</div>
     </div>
 </div>
 
@@ -33,12 +32,12 @@
     var STRAVA_CLIENT_ID = "266268"; 
     var STRAVA_CLIENT_SECRET = "e304eac78b700095d7f114432f7ee0ed647c2fae";
     
-    // 🛑 【關鍵校準點】：請教練務必核對這串網址，是否與你目前 Apps Script 點擊「管理部署」生成的最新 URL 100% 完全相同！
+    // 🛑 【核心檢查點】：請教練務必核對這串網址，必須與你目前 Google Apps Script 最新部署的 Web App URL 完全一致！
     var GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVhsrXiGin1HCEmsKtvTtdclYkhGGPwimiPu85Z_rGQreoZLwYTH7Qj78pp_GcKLfn/exec";
     
     var REDIRECT_URI = window.location.href.split('?')[0]; 
 
-    // 🟢 修正點：將 approval_prompt 改為 force，物理重置瀏覽器記憶，強制同學必須手動登入自己的帳號
+    // 強制彈出 Strava 登入與授權勾選頁面，防範瀏覽器舊緩存相衝
     document.getElementById('auth-link').href = "https://www.strava.com/oauth/authorize?" +
         "client_id=" + STRAVA_CLIENT_ID +
         "&redirect_uri=" + encodeURIComponent(REDIRECT_URI) +
@@ -77,30 +76,26 @@
             var athleteId = data.athlete ? data.athlete.id : "unknown";
             var permRefreshToken = data.refresh_token;
 
-            document.getElementById('status-title').innerText = "⚡ 認證成功！正在強行注入 Excel...";
+            document.getElementById('status-title').innerText = "⚡ 驗證成功！正在物理跳轉至 Google 試算表...";
             
-            // 發射純 GET 請求
-            sendTokenViaGet(athleteId, athleteName, permRefreshToken);
+            // 🎯 【編寫邏輯調整】：拋棄 fetch 背景盲發，改用 100% 無法被攔截的網頁物理跳轉術
+            sendTokenViaRedirect(athleteId, athleteName, permRefreshToken);
         })
         .catch(function(err) {
-            document.getElementById('status-title').innerText = "❌ 認證管道建立失敗";
+            document.getElementById('status-title').innerText = "❌ Strava 憑證交換失敗";
+            document.getElementById('status-desc').innerText = "請確認 Client Secret 與 Callback 網域配置。";
         });
     }
 
-    function sendTokenViaGet(id, name, token) {
+    function sendTokenViaRedirect(id, name, token) {
+        // 組裝帶有參數的最終 GET 安全傳輸網址
         var finalGetUrl = GOOGLE_SCRIPT_URL + 
             "?athlete_id=" + encodeURIComponent(id) + 
             "&athlete_name=" + encodeURIComponent(name) + 
             "&refresh_token=" + encodeURIComponent(token);
 
-        fetch(finalGetUrl, { mode: 'no-cors' });
-        var imgTrigger = new Image();
-        imgTrigger.src = finalGetUrl;
-
-        setTimeout(function() {
-            document.getElementById('status-title').innerText = "🎉 綁定大功告成！";
-            document.getElementById('status-desc').innerHTML = "跑手 <b>" + name + "</b> 的憑證已成功登記。<br><br>請教練即刻重新在 Excel 執行診斷名單！";
-        }, 1500);
+        // 🟢 物理強制轉址：讓瀏覽器視窗直接飛過去 Google 應用程式，打穿一切攔截牆！
+        window.location.href = finalGetUrl;
     }
 </script>
 </body>
