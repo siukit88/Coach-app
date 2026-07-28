@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Takeitslow 慢跑團 ・ 多跑手 EPH 科學對比看板</title>
-    <!-- 遠端引入 Chart.js 核心圖表套件 -->
+    <title>Takeitslow 慢跑團 ・ 1km微觀山形對比看板</title>
+    <!-- 引入 Chart.js 圖表引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 20px; background-color: #0c0c0e; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        .dashboard-container { max-width: 1100px; margin: 0 auto; background: #141417; padding: 25px; border-radius: 12px; border: 1px solid #2d2d34; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; background: #141417; padding: 25px; border-radius: 12px; border: 1px solid #2d2d34; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         h2 { font-size: 24px; color: #fc4c02; margin-top: 0; display: flex; align-items: center; gap: 10px; }
         .filter-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; background: #1e1e24; padding: 20px; border-radius: 8px; border: 1px solid #2d2d34; }
         @media(max-width: 768px) { .filter-section { grid-template-columns: 1fr; } }
@@ -17,49 +17,49 @@
         .checkbox-group { background: #252530; padding: 10px; border-radius: 6px; max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; border: 1px solid #333; }
         .checkbox-label { font-size: 13px; color: #ddd; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; }
         .checkbox-label input { width: 16px; height: 16px; cursor: pointer; }
-        .chart-box { position: relative; width: 100%; height: 500px; background: #18181c; padding: 15px; border-radius: 8px; box-sizing: border-box; border: 1px solid #23232a; }
-        .loading-text { color: #00ffcc; font-size: 16px; text-align: center; padding: 60px 0; font-weight: bold; }
+        .chart-box { position: relative; width: 100%; height: 550px; background: #18181c; padding: 15px; border-radius: 8px; box-sizing: border-box; border: 1px solid #23232a; }
+        .loading-text { color: #00ffcc; font-size: 16px; text-align: center; padding: 80px 0; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
-    <h2>🏃‍♂️ Takeitslow 慢跑團 特訓對比看板</h2>
+    <h2>🏃‍♂️ Takeitslow 慢跑團 1km微觀特訓對比看板 (左右互搏版)</h2>
     
-    <!-- 篩選控制模組 -->
+    <!-- 日期與多跑手動態過濾篩選器 -->
     <div class="filter-section">
         <label>第一步：選取特訓日期
             <select id="date-select" onchange="onDateChanged()">
-                <option value="">-- 📡 正在加載歷史日期 --</option>
+                <option value="">-- 📡 正在加載高密度歷史日期 --</option>
             </select>
         </label>
         
-        <label>第二步：勾選對比跑手 (多選/左右互搏)
+        <label>第二步：勾選對比學員 (支援多學員重疊對比)
             <div id="athlete-checkboxes" class="checkbox-group">
                 <span style="color:#777; font-size:13px; padding:5px;">請先選取特訓日期</span>
             </div>
         </label>
     </div>
 
-    <!-- 圖表主舞台 -->
+    <!-- 📊 1km 微觀地形混合型科學圖表主舞台 -->
     <div class="chart-box">
-        <div id="loading-msg" class="loading-text">📡 正在從 Google 試算表同步微觀數據流...</div>
+        <div id="loading-msg" class="loading-text">📡 正在從 Google 試算表實時同步 1km 微觀數據流...</div>
         <canvas id="multiStravaChart" style="display: none;"></canvas>
     </div>
 </div>
 
 <script>
-    // 🛑 【關鍵校準變數】：請在此物理替換為你最新的 Google Apps Script 部署應用程式網址！
+    // 🛑 【核心校準網址】：請在此替換為你 Apps Script 最新部署釋出的網址！
     var GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzVhsrXiGin1HCEmsKtvTtdclYkhGGPwimiPu85Z_rGQreoZLwYTH7Qj78pp_GcKLfn/exec";
     
     var rawFetchedData = [];
     var activeChart = null;
 
-    // 預設調色盤：為不同學員動態分配獨立的物理顏色（實線心率，虛線EPH）
+    // 左右互搏調色盤配置：為勾選的學員自動分配高對比顏色 (實線為心率，虛線為EPH效益)
     var colorPalette = [
-        { hr: '#ff3366', eph: 'rgba(255, 51, 102, 0.6)' },  // 跑手 1: 桃紅
-        { hr: '#3388ff', eph: 'rgba(51, 136, 255, 0.6)' },  // 跑手 2: 寶藍
-        { hr: '#ffcc00', eph: 'rgba(255, 204, 0, 0.6)' }    // 跑手 3: 金黃
+        { hr: '#ff3366', eph: '#ff88aa' },  // 學員 1: 戰術桃紅
+        { hr: '#3388ff', eph: '#88bbff' },  // 學員 2: 科學寶藍
+        { hr: '#ffcc00', eph: '#ffee77' }   // 學員 3: 警示金黃
     ];
 
     window.addEventListener('DOMContentLoaded', function() {
@@ -67,7 +67,7 @@
     });
 
     /**
-     * 📥 從後台倒出全量 5km 分析 JSON 資料
+     * 📥 自動免抄寫讀數引擎：實時打撈後台 1km 數據
      */
     function fetchDashboardData() {
         fetch(GOOGLE_API_URL + "?action=get_analysis")
@@ -77,13 +77,13 @@
             document.getElementById('loading-msg').style.display = 'none';
             document.getElementById('multiStravaChart').style.display = 'block';
             
-            // 提取所有不重複的特訓日期並排序
+            // 提取所有不重複的特訓日期並由新到舊排序
             var uniqueDates = [...new Set(data.map(item => item.date))].sort().reverse();
             var dateSelect = document.getElementById('date-select');
             dateSelect.innerHTML = "";
             
             if(uniqueDates.length === 0) {
-                dateSelect.innerHTML = "<option value=''>-- 暫無任何歷史數據 --</option>";
+                dateSelect.innerHTML = "<option value=''>-- 數據庫內暫無 1km 資料 --</option>";
                 return;
             }
 
@@ -94,27 +94,25 @@
                 dateSelect.appendChild(opt);
             });
 
-            // 自動觸發第一次日期初始化
             onDateChanged();
         })
         .catch(err => {
-            document.getElementById('loading-msg').innerText = "❌ 資料庫對流超時，請確保後台已產出 5km_Analysis_xxx 數據。";
+            document.getElementById('loading-msg').innerText = "❌ 資料庫通訊失敗。請確保後台已執行數據重灌並產生 1km_Analysis_xxx 分頁。";
         });
     }
 
     /**
-     * 📅 當更換日期時，動態生成當天出席的跑手 Checkbox
+     * 👥 聯動過濾：當日期切換，精準刷新當天有出賽的跑手名單
      */
     function onDateChanged() {
         var selectedDate = document.getElementById('date-select').value;
         var checkboxContainer = document.getElementById('athlete-checkboxes');
         checkboxContainer.innerHTML = "";
 
-        // 過濾出當天有出席特訓的所有學員名單
         var athletesOnDay = [...new Set(rawFetchedData.filter(item => item.date === selectedDate).map(item => item.name))];
 
         if(athletesOnDay.length === 0) {
-            checkboxContainer.innerHTML = "<span style='color:#777; font-size:13px; padding:5px;'>當天暫無跑手數據</span>";
+            checkboxContainer.innerHTML = "<span style='color:#777; font-size:13px; padding:5px;'>當天無學員紀錄</span>";
             if(activeChart) activeChart.destroy();
             return;
         }
@@ -126,7 +124,7 @@
             var chk = document.createElement('input');
             chk.type = "checkbox";
             chk.value = name;
-            chk.checked = (index < 2); // 預設自動勾選前兩位同學進行左右互搏對比
+            chk.checked = (index < 2); // 預設自動勾選當日前兩位同學重疊對比
             chk.addEventListener('change', updateChartWithFilters);
             
             label.appendChild(chk);
@@ -134,12 +132,11 @@
             checkboxContainer.appendChild(label);
         });
 
-        // 立刻繪製圖表
         updateChartWithFilters();
     }
 
     /**
-     * 📊 核心對比引擎：動態多線重疊與共享地形背景渲染
+     * 📊 核心渲染引擎：1km 連續微觀波浪地形與多跑手指標對齊
      */
     function updateChartWithFilters() {
         var selectedDate = document.getElementById('date-select').value;
@@ -151,15 +148,15 @@
             return;
         }
 
-        // 1. 物理獲取當天所有相關數據，並提煉出統一的 X 軸分段標籤
+        // 1. 物理獲取當天所有數據，並對 X 軸 1km 標籤進行嚴格的「自然順序排序」，防止地形亂跳
         var dayRecords = rawFetchedData.filter(item => item.date === selectedDate);
-        var uniqueIntervals = [...new Set(dayRecords.map(item => item.interval))].sort((a,b) => parseInt(a) - parseInt(b));
+        var uniqueIntervals = [...new Set(dayRecords.map(item => item.interval))].sort();
 
         var chartDatasets = [];
         var sharedAltitudeData = new Array(uniqueIntervals.length).fill(0);
         var altitudePopulated = false;
 
-        // 2. 循環每一位被勾選的學員，為其抽取心率與 EPH 數據集
+        // 2. 遍歷勾選學員，將其實際心率與 EPH 指標工整對齊 1km X 軸
         selectedNames.forEach((athleteName, aIdx) => {
             var color = colorPalette[aIdx % colorPalette.length];
             var hrArray = [];
@@ -169,9 +166,9 @@
                 var record = dayRecords.find(r => r.name === athleteName && r.interval === intervalName);
                 if (record) {
                     hrArray.push(parseFloat(record.real_hr) || null);
-                    ephArray.push(parseFloat(record.eph_hr) || null);
+                    ephArray.push(parseFloat(record.eph_val) || null);
                     
-                    // 順便抽取共享的地形海拔高度
+                    // 3. 微觀地形共享提取：將這 1 公里的真實高度紀錄存入地形陣列
                     if (!altitudePopulated && record.max_alt && record.max_alt !== "無") {
                         sharedAltitudeData[iIdx] = parseFloat(record.max_alt);
                     }
@@ -183,44 +180,44 @@
 
             if(sharedAltitudeData.some(v => v > 0)) altitudePopulated = true;
 
-            // 塞入實際平均心率線 (實線)
+            // 實際心率曲線 (工整實線)
             chartDatasets.push({
-                label: '❤️ ' + athleteName + ' 實際心率',
+                label: '❤️ ' + athleteName + ' 實際心率 (HR)',
                 data: hrArray,
                 borderColor: color.hr,
                 backgroundColor: color.hr,
                 borderWidth: 3,
-                tension: 0.1,
+                tension: 0.2, // 微幅平滑曲線
                 yAxisID: 'yBody'
             });
 
-            // 塞入 Effort Pace Hour 效益線 (虛線對比 🎯)
+            // Effort Pace Hour 效益曲線 (工整虛線對比 🎯)
             chartDatasets.push({
-                label: '⚡ ' + athleteName + ' EPH (Effort Pace Hour)',
+                label: '⚡ ' + athleteName + ' 效益指標 (EPH)',
                 data: ephArray,
                 borderColor: color.hr,
                 backgroundColor: color.hr,
                 borderWidth: 2,
-                borderDash: [6, 4], 
-                tension: 0.1,
+                borderDash: [5, 4], 
+                tension: 0.2,
                 yAxisID: 'yBody'
             });
         });
 
-        // 3. 完美注入底部共享的半透明山形海拔地形巨幕
+        // 4. 🚀 核心升級：將 1km 高密度微觀波浪山形面積圖優雅地注入背景底層
         chartDatasets.unshift({
-            label: '⛰️ 共享地形高度 (m)',
+            label: '⛰️ 1km微觀連續地形高度 (m)',
             data: sharedAltitudeData,
-            backgroundColor: 'rgba(252, 76, 2, 0.06)', 
-            borderColor: 'rgba(252, 76, 2, 0.2)',
-            borderWidth: 1,
-            fill: true,
-            pointRadius: 0,
+            backgroundColor: 'rgba(252, 76, 2, 0.08)', // Strava 經典亮橘色高密度背景地形
+            borderColor: 'rgba(252, 76, 2, 0.25)',
+            borderWidth: 1.5,
+            fill: true, // 填滿面積
+            pointRadius: 0, // 隱藏頂點圓圈，保持高密度連續波浪感
             yAxisID: 'yAltitude',
-            order: 99 // 強制壓在最底層
+            order: 99 // 強制置於底層背景
         });
 
-        // 4. 發動 Chart.js 實體渲染
+        // 5. 銷毀舊實體並重新渲染
         if (activeChart) { activeChart.destroy(); }
 
         var ctx = document.getElementById('multiStravaChart').getContext('2d');
@@ -237,21 +234,21 @@
                     yBody: {
                         type: 'linear',
                         position: 'left',
-                        title: { display: true, text: '生理指標數據 (bpm / 指標數)', color: '#fff' },
+                        title: { display: true, text: '心率 (bpm) / EPH 效益值', color: '#fff' },
                         grid: { color: '#23232a' },
                         ticks: { color: '#aaa' },
-                        min: 100, max: 200
+                        min: 90, max: 200 // 最佳化越野跑心率觀測視窗
                     },
                     yAltitude: {
                         type: 'linear',
                         position: 'right',
-                        display: false, // 隱藏數值刻度，讓山形完美退居幕後
+                        display: false, // 隱藏刻度，讓微觀山形圖優雅退居幕後作為純背景
                         grid: { drawOnChartArea: false }
                     },
                     x: {
                         grid: { color: '#23232a' },
                         ticks: { color: '#aaa' },
-                        title: { display: true, text: '特訓固定區間基準線 (km)', color: '#aaa' }
+                        title: { display: true, text: '特訓高密度 1 公里物理分段 (km)', color: '#aaa' }
                     }
                 },
                 plugins: {
